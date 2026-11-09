@@ -169,7 +169,53 @@ function tvarkom_obd_parse_figures( $raw ) {
 			'checkout_type'    => isset( $operations['checkout_type'] ) && in_array( $operations['checkout_type'], array( 'classic', 'block' ), true ) ? $operations['checkout_type'] : null,
 			'hpos'             => $flag( $operations, 'hpos' ),
 		),
+		'impact'     => tvarkom_obd_parse_impact( isset( $raw['impact'] ) ? $raw['impact'] : null ),
 	);
+}
+
+/**
+ * The modelled sales impact's figures, checked: a known status and, when estimated, amounts that
+ * are numbers with their labels. Null when absent (scans before them) or malformed.
+ *
+ * @param mixed $raw figures.impact.
+ * @return array{status: string, sales: array<string, mixed>|null, slow_checkout: array<string, mixed>|null, failed_orders: array<string, mixed>|null, total: array<string, mixed>|null}|null
+ */
+function tvarkom_obd_parse_impact( $raw ) {
+	if ( ! is_array( $raw ) || ! isset( $raw['status'] ) || ! in_array( $raw['status'], array( 'estimated', 'no_orders', 'below', 'above', 'unknown' ), true ) ) {
+		return null;
+	}
+	$money  = function ( $key, $extra = '' ) use ( $raw ) {
+		$m = isset( $raw[ $key ] ) && is_array( $raw[ $key ] ) ? $raw[ $key ] : null;
+		if ( null === $m || ! isset( $m['low'], $m['high'] ) || ! is_numeric( $m['low'] ) || ! is_numeric( $m['high'] ) || $m['low'] < 0 || $m['high'] < $m['low'] ) {
+			return null;
+		}
+		$label = tvarkom_obd_analysis_text( isset( $m['label'] ) ? $m['label'] : null );
+		if ( '' === $label ) {
+			return null;
+		}
+		$out = array(
+			'low'   => (float) $m['low'],
+			'high'  => (float) $m['high'],
+			'label' => $label,
+		);
+		if ( 'excess_seconds' === $extra ) {
+			$out['excess_seconds'] = isset( $m['excess_seconds'] ) && is_numeric( $m['excess_seconds'] ) && $m['excess_seconds'] > 0 ? (float) $m['excess_seconds'] : null;
+		} elseif ( 'count' === $extra ) {
+			$out['count'] = isset( $m['count'] ) && is_int( $m['count'] ) && $m['count'] >= 0 ? $m['count'] : null;
+		}
+		return $out;
+	};
+	$impact = array(
+		'status'        => $raw['status'],
+		'sales'         => $money( 'sales' ),
+		'slow_checkout' => $money( 'slow_checkout', 'excess_seconds' ),
+		'failed_orders' => $money( 'failed_orders', 'count' ),
+		'total'         => $money( 'total' ),
+	);
+	if ( 'estimated' === $impact['status'] && null === $impact['total'] ) {
+		return null; // An estimate without its total can't be drawn; the texts show instead.
+	}
+	return $impact;
 }
 
 /**

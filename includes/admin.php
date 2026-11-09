@@ -21,7 +21,7 @@ function tvarkom_obd_admin_menu() {
 		__( 'On-board Diagnostics', 'on-board-diagnostics-scanner-for-woocommerce' ),
 		__( 'Store Scanner', 'on-board-diagnostics-scanner-for-woocommerce' ),
 		'manage_woocommerce',
-		'tvarkom-obd',
+		TVARKOM_OBD_PAGE,
 		'tvarkom_obd_render_page'
 	);
 }
@@ -32,7 +32,21 @@ function tvarkom_obd_admin_menu() {
  * @return string
  */
 function tvarkom_obd_page_url() {
-	return admin_url( 'admin.php?page=tvarkom-obd' );
+	return admin_url( 'admin.php?page=' . TVARKOM_OBD_PAGE );
+}
+
+/**
+ * Sends the page's 0.1.0 address (admin.php?page=tvarkom-obd) to the current one, so bookmarks
+ * and old links keep working.
+ *
+ * @return void
+ */
+function tvarkom_obd_redirect_old_page() {
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only compares the page name; nothing is changed.
+	if ( isset( $_GET['page'] ) && 'tvarkom-obd' === $_GET['page'] ) {
+		wp_safe_redirect( tvarkom_obd_page_url() );
+		exit;
+	}
 }
 
 /**
@@ -391,7 +405,7 @@ function tvarkom_obd_handle_scan() {
  * @return void
  */
 function tvarkom_obd_admin_assets( $hook_suffix ) {
-	if ( 'woocommerce_page_tvarkom-obd' !== $hook_suffix ) {
+	if ( 'woocommerce_page_' . TVARKOM_OBD_PAGE !== $hook_suffix ) {
 		return;
 	}
 	wp_enqueue_style( 'tvarkom-obd-admin', plugins_url( 'assets/admin.css', TVARKOM_OBD_FILE ), array(), tvarkom_obd_asset_version( 'assets/admin.css' ) );

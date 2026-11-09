@@ -24,6 +24,7 @@ define( 'TVARKOM_OBD_FILE', __FILE__ );
 define( 'TVARKOM_OBD_OPTION', 'tvarkom_obd' );
 define( 'TVARKOM_OBD_TOKEN', 'tvarkom_obd_verify_token' );
 define( 'TVARKOM_OBD_LOCK', 'tvarkom_obd_scan_lock' );
+define( 'TVARKOM_OBD_PAGE', 'obd-scanner' ); // admin.php?page=obd-scanner (0.1.0: tvarkom-obd, redirected).
 
 // Overridable in wp-config.php, e.g. for testing against a local gateway.
 if ( ! defined( 'TVARKOM_OBD_API_URL' ) ) {
@@ -59,6 +60,7 @@ require_once __DIR__ . '/includes/admin.php';
 tvarkom_obd_profile_maybe_start();
 add_action( 'admin_menu', 'tvarkom_obd_admin_menu', 99 );
 add_action( 'admin_post_tvarkom_obd_scan', 'tvarkom_obd_handle_scan' );
+add_action( 'admin_page_access_denied', 'tvarkom_obd_redirect_old_page' ); // WordPress refuses an unknown page before admin_init.
 add_action( 'admin_enqueue_scripts', 'tvarkom_obd_admin_assets' );
 add_action( 'admin_init', 'tvarkom_obd_privacy_policy_content' );
 add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'tvarkom_obd_plugin_action_links' );

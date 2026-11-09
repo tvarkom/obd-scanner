@@ -160,6 +160,11 @@ function tvarkom_obd_render_dashboard( array $results ) {
 	);
 	?>
 	<div class="tobd__top<?php echo null === $analysis ? ' tobd__top--two' : ''; ?>">
+		<?php
+		if ( null !== $analysis ) {
+			tvarkom_obd_render_store_widget( $sections, $analysis['figures'] ); // Store profile (includes/charts.php).
+		}
+		?>
 		<section class="tobd__panel tobd__score" aria-labelledby="tobd-score-title">
 			<h2 class="tobd__h2" id="tobd-score-title"><?php echo esc_html( '' !== $summary['headline'] ? $summary['headline'] : tvarkom_obd_risk_headline( $latest['level'] ) ); ?></h2>
 			<?php tvarkom_obd_render_gauge( $latest['score'], $latest['level'] ); ?>
@@ -176,19 +181,17 @@ function tvarkom_obd_render_dashboard( array $results ) {
 			<h3 class="tobd__h3" id="tobd-history-title"><?php esc_html_e( 'Score over time', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h3>
 			<?php tvarkom_obd_render_history( tvarkom_obd_daily_history( $results['history'] ) ); ?>
 		</section>
-
-		<section class="tobd__panel tobd__lost" aria-labelledby="tobd-lost-title">
-			<h2 class="tobd__h2" id="tobd-lost-title"><?php esc_html_e( 'Where your store lost points', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
-			<?php tvarkom_obd_render_lost_points( $latest['lost_points'] ); ?>
-		</section>
-		<?php
-		if ( null !== $analysis ) {
-			tvarkom_obd_render_store_widget( $sections, $analysis['figures'] ); // The store widget (includes/charts.php).
-		}
-		?>
+		<?php if ( null !== $analysis ) : ?>
+			<?php tvarkom_obd_render_impact_widget( $sections, $analysis['figures'] ); // Potential sales impact (includes/charts.php). ?>
+		<?php else : ?>
+			<?php // Scans before the analysis: where the score lost its points instead. ?>
+			<section class="tobd__panel tobd__lost" aria-labelledby="tobd-lost-title">
+				<h2 class="tobd__h2" id="tobd-lost-title"><?php esc_html_e( 'Where your store lost points', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
+				<?php tvarkom_obd_render_lost_points( $latest['lost_points'] ); ?>
+			</section>
+		<?php endif; ?>
 	</div>
 	<?php
-	tvarkom_obd_render_impact( $sections );
 	if ( empty( $pipeline ) ) {
 		// Scans before the pipeline: the measured values as their own panels.
 		tvarkom_obd_render_metric_panels( $latest['metrics'] );

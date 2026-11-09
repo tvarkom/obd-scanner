@@ -111,6 +111,10 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$this->assertStringNotContainsString( 'tobd__scanbar', $html, 'no scan button while scanning' );
 	}
 
+	public function test_the_page_lives_at_obd_scanner() {
+		$this->assertSame( admin_url( 'admin.php?page=obd-scanner' ), tvarkom_obd_page_url() );
+	}
+
 	public function test_assets_change_url_when_their_files_change() {
 		$version = tvarkom_obd_asset_version( 'assets/admin.css' );
 		$this->assertSame( TVARKOM_OBD_VERSION . '.' . filemtime( dirname( __DIR__ ) . '/assets/admin.css' ), $version );
@@ -340,12 +344,100 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$this->assertStringNotContainsString( 'PAID-ONLY', $html, 'paid-version sections never show, even without a tier' );
 		$this->assertStringNotContainsString( 'Full analysis', $html );
 		$this->assertStringContainsString( 'class="tobd__stack"', $html, 'the order outcomes bar' );
-		$this->assertStringContainsString( 'Your store at a glance', $html, 'the store widget' );
-		$this->assertStringContainsString( 'id="tobd-impact-title">Potential sales impact', $html, 'the impact panel' );
+		$this->assertStringContainsString( 'id="tobd-store-title">Store profile', $html, 'the store profile widget' );
+		$this->assertStringContainsString( 'id="tobd-impact-title">Potential sales impact', $html, 'the impact widget' );
+		$this->assertStringContainsString( 'Modelled sales at risk: about 450 €.', $html, 'without impact figures, the estimate as text' );
+		$this->assertStringNotContainsString( 'tobd-lost-title', $html, 'the impact widget replaces the points lost' );
+		$this->assertLessThan( strpos( $html, 'tobd-score-title' ), strpos( $html, 'tobd-store-title' ), 'store profile first' );
+		$this->assertLessThan( strpos( $html, 'tobd-impact-title' ), strpos( $html, 'tobd-score-title' ), 'sales impact last' );
 		$this->assertStringContainsString( '<li>Stripe</li>', $html );
 		$this->assertStringContainsString( '&lt;b&gt;50 €&lt;/b&gt;', $html );
-		$this->assertStringContainsString( 'Potential sales impact', $html, 'the modelled impact under the charts' );
 		$this->assertStringNotContainsString( 'Paid and on-hold orders in the last 30 days: 312', $html, 'the sales sentences become the figures' );
+	}
+
+	public function test_the_sales_impact_is_drawn_from_its_figures() {
+		$body                       = $this->ready_results();
+		$body['latest']['analysis'] = array(
+			'schema'   => 1,
+			'figures'  => array(
+				'impact' => array(
+					'status'        => 'estimated',
+					'sales'         => array(
+						'low'   => 20000,
+						'high'  => 20000,
+						'label' => '20 000 €',
+					),
+					'slow_checkout' => array(
+						'low'            => 400,
+						'high'           => 1400,
+						'label'          => '<i>400 €</i> – 1 400 €',
+						'excess_seconds' => 1,
+					),
+					'failed_orders' => array(
+						'low'   => 1000,
+						'high'  => 1000,
+						'label' => '1 000 €',
+						'count' => 20,
+					),
+					'total'         => array(
+						'low'   => 1400,
+						'high'  => 2400,
+						'label' => '1 400 € – 2 400 €',
+					),
+				),
+			),
+			'sections' => array(
+				array(
+					'id'      => 'commercial',
+					'heading' => 'Sales & checkout',
+					'blocks'  => array(
+						array(
+							'type' => 'heading',
+							'text' => 'Potential sales impact — modelled estimate',
+						),
+						array(
+							'type'  => 'list',
+							'items' => array( 'SENTENCE' ),
+						),
+						array(
+							'type' => 'note',
+							'text' => 'How the model works.',
+						),
+					),
+				),
+			),
+		);
+		$this->respond( 'GET', '/v1/results', 200, $body );
+		$html = $this->render_page();
+
+		$this->assertStringContainsString( '<span class="tobd__impact-value">1 400 € – 2 400 €</span>', $html );
+		$this->assertStringContainsString( '7%–12% of your gross sales', $html, 'share of the exact sales' );
+		$this->assertSame( 2, substr_count( $html, 'class="tobd__range-track"' ), 'one bar per cause' );
+		$this->assertStringContainsString( 'style="width: 100.0%"', $html, 'the largest high estimate fills the scale' );
+		$this->assertStringContainsString( 'style="width: 28.6%"', $html, 'slow checkout low: 400 of 1 400' );
+		$this->assertStringContainsString( '&lt;i&gt;400 €&lt;/i&gt;', $html, 'labels are escaped' );
+		$this->assertStringContainsString( '20 orders failed at payment', $html );
+		$this->assertStringContainsString( 'How the model works.', $html, 'the note under How this is estimated' );
+		$this->assertStringNotContainsString( 'SENTENCE', $html, 'the chart replaces the sentences' );
+	}
+
+	public function test_no_estimate_outside_the_modelled_range_shows_the_reason() {
+		$this->assertNull( tvarkom_obd_parse_impact( array( 'status' => 'guess' ) ) );
+		$this->assertNull( tvarkom_obd_parse_impact( array( 'status' => 'estimated' ) ), 'an estimate needs its total' );
+		$this->assertSame( 'below', tvarkom_obd_parse_impact( array( 'status' => 'below' ) )['status'] );
+		$this->assertNull(
+			tvarkom_obd_parse_impact(
+				array(
+					'status' => 'below',
+					'total'  => array(
+						'low'   => 5,
+						'high'  => 1,
+						'label' => 'x',
+					),
+				)
+			)['total'],
+			'a range that runs backwards is dropped'
+		);
 	}
 
 	public function test_the_pipeline_shows_every_job_with_its_colour_and_panel() {

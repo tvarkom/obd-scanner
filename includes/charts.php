@@ -1,10 +1,10 @@
 <?php
 /**
- * The store widget (founder decisions of 9 Nov 2026): the store at a glance, sales and checkout,
- * products and inventory, and store operations in one compact panel beside the score and the
- * points lost, drawn from the scan's figures (tvarkom_obd_parse_figures()) with CSS; and the
- * modelled sales impact under them. Every value is escaped. Without figures (scans stored before
- * them), the sections' own texts are shown instead.
+ * The top row's widgets (founder decisions of 9 Nov 2026): the store profile (the store, sales and
+ * checkout, products and inventory, and store operations in one compact panel) and the potential
+ * sales impact as a chart, drawn from the scan's figures (tvarkom_obd_parse_figures()) with CSS.
+ * Every value is escaped. Without figures (scans stored before them), the sections' own texts are
+ * shown instead.
  *
  * @package OBDScanner
  */
@@ -94,7 +94,7 @@ function tvarkom_obd_chips( $title, array $items ) {
 }
 
 /**
- * The store widget: the store at a glance, sales and checkout, products and inventory, and store
+ * The store profile widget: the store, sales and checkout, products and inventory, and store
  * operations. Without figures, the free sections' texts.
  *
  * @param array<int, array{id: string, heading: string, blocks: array<int, array<string, mixed>>}> $sections The analysis's free sections.
@@ -107,7 +107,7 @@ function tvarkom_obd_render_store_widget( array $sections, $figures ) {
 	};
 	?>
 	<section class="tobd__panel tobd__store-widget" aria-labelledby="tobd-store-title">
-		<h2 class="tobd__h2" id="tobd-store-title"><?php esc_html_e( 'Your store at a glance', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
+		<h2 class="tobd__h2" id="tobd-store-title"><?php esc_html_e( 'Store profile', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
 		<?php
 		if ( null === $figures ) {
 			foreach ( $sections as $section ) {
@@ -195,13 +195,13 @@ function tvarkom_obd_render_store_widget( array $sections, $figures ) {
 }
 
 /**
- * The modelled sales impact: the sales section's own texts from its impact heading on. Nothing
- * when the scan has none.
+ * The commercial section's impact blocks: what follows its heading (the estimate's texts and
+ * note). Empty when the scan has none.
  *
  * @param array<int, array{id: string, heading: string, blocks: array<int, array<string, mixed>>}> $sections The analysis's free sections.
- * @return void
+ * @return array<int, array<string, mixed>> Without the heading.
  */
-function tvarkom_obd_render_impact( array $sections ) {
+function tvarkom_obd_impact_blocks( array $sections ) {
 	foreach ( $sections as $section ) {
 		if ( 'commercial' !== $section['id'] ) {
 			continue;
@@ -209,19 +209,156 @@ function tvarkom_obd_render_impact( array $sections ) {
 		$blocks = array();
 		$found  = false;
 		foreach ( $section['blocks'] as $block ) {
-			$found = $found || 'heading' === $block['type'];
 			if ( $found ) {
 				$blocks[] = $block;
 			}
+			$found = $found || 'heading' === $block['type'];
 		}
-		if ( empty( $blocks ) ) {
-			return;
-		}
-		$title = array_shift( $blocks );
-		echo '<section class="tobd__panel tobd__impact-panel" aria-labelledby="tobd-impact-title"><h2 class="tobd__h2" id="tobd-impact-title">' . esc_html( $title['text'] ) . '</h2>';
-		foreach ( $blocks as $block ) {
-			tvarkom_obd_render_block( $block );
-		}
-		echo '</section>';
+		return $blocks;
 	}
+	return array();
+}
+
+/**
+ * The total at risk as a percentage of the 30 days' sales, or "" when the sales aren't known
+ * exactly (only a range was sent).
+ *
+ * @param array<string, mixed>      $total The total at risk.
+ * @param array<string, mixed>|null $sales The sales it's based on.
+ * @return string
+ */
+function tvarkom_obd_impact_share( array $total, $sales ) {
+	if ( null === $sales || $sales['low'] <= 0 || $sales['low'] !== $sales['high'] ) {
+		return '';
+	}
+	$low  = (int) round( 100 * $total['low'] / $sales['low'] );
+	$high = (int) round( 100 * $total['high'] / $sales['high'] );
+	if ( $low === $high ) {
+		/* translators: %d: percentage. */
+		return sprintf( __( '%d%%', 'on-board-diagnostics-scanner-for-woocommerce' ), $low );
+	}
+	/* translators: 1: lowest percentage, 2: highest percentage. */
+	return sprintf( __( '%1$d%%–%2$d%%', 'on-board-diagnostics-scanner-for-woocommerce' ), $low, $high );
+}
+
+/**
+ * One cause of the estimate as a range bar: the low estimate solid, up to the high one lighter.
+ *
+ * @param string               $label What causes it.
+ * @param array<string, mixed> $range Its low, high and label.
+ * @param string               $note  What was measured, or "".
+ * @param float                $max   The scale (the largest high estimate).
+ * @return void
+ */
+function tvarkom_obd_impact_range( $label, array $range, $note, $max ) {
+	$pct = function ( $value ) use ( $max ) {
+		return number_format( $max > 0 ? min( 100, 100 * $value / $max ) : 0, 1, '.', '' );
+	};
+	?>
+	<li>
+		<div class="tobd__range-head"><span><?php echo esc_html( $label ); ?></span><strong><?php echo esc_html( $range['label'] ); ?></strong></div>
+		<div class="tobd__range-track" aria-hidden="true">
+			<span class="tobd__range-high" style="width: <?php echo esc_attr( $pct( $range['high'] ) ); ?>%"></span>
+			<span class="tobd__range-low" style="width: <?php echo esc_attr( $pct( $range['low'] ) ); ?>%"></span>
+		</div>
+		<?php if ( '' !== $note ) : ?>
+			<p class="tobd__range-note"><?php echo esc_html( $note ); ?></p>
+		<?php endif; ?>
+	</li>
+	<?php
+}
+
+/**
+ * The potential sales impact widget: the modelled estimate as a chart (its total, then each cause
+ * as a low-to-high range bar), with how it's estimated one click away. Scans without the figures
+ * show the estimate's texts; a store outside the modelled range gets the scan's text on why.
+ *
+ * @param array<int, array{id: string, heading: string, blocks: array<int, array<string, mixed>>}> $sections The analysis's free sections.
+ * @param array<string, mixed>|null                                                                $figures  The scan's figures.
+ * @return void
+ */
+function tvarkom_obd_render_impact_widget( array $sections, $figures ) {
+	$blocks = tvarkom_obd_impact_blocks( $sections );
+	$impact = null !== $figures && isset( $figures['impact'] ) ? $figures['impact'] : null;
+	$notes  = array_values(
+		array_filter(
+			$blocks,
+			function ( $block ) {
+				return 'note' === $block['type'];
+			}
+		)
+	);
+	?>
+	<section class="tobd__panel tobd__impact-widget" aria-labelledby="tobd-impact-title">
+		<h2 class="tobd__h2" id="tobd-impact-title"><?php esc_html_e( 'Potential sales impact', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
+		<?php
+		if ( null !== $impact && 'estimated' === $impact['status'] ) {
+			$slow    = $impact['slow_checkout'];
+			$fail    = $impact['failed_orders'];
+			$max     = max( null === $slow ? 0 : $slow['high'], null === $fail ? 0 : $fail['high'] );
+			$share   = tvarkom_obd_impact_share( $impact['total'], $impact['sales'] );
+			$caption = '' === $share
+				? __( 'modelled sales at risk a month', 'on-board-diagnostics-scanner-for-woocommerce' )
+				/* translators: %s: percentage, or range of percentages, of the month's sales. */
+				: sprintf( __( 'modelled sales at risk a month, %s of your gross sales', 'on-board-diagnostics-scanner-for-woocommerce' ), $share );
+			?>
+			<p class="tobd__impact-total">
+				<span class="tobd__impact-value"><?php echo esc_html( $impact['total']['label'] ); ?></span>
+				<span class="tobd__impact-caption"><?php echo esc_html( $caption ); ?></span>
+			</p>
+			<ul class="tobd__ranges">
+				<?php
+				if ( null !== $slow ) {
+					tvarkom_obd_impact_range(
+						__( 'Slow cart or checkout', 'on-board-diagnostics-scanner-for-woocommerce' ),
+						$slow,
+						null === $slow['excess_seconds'] ? '' : sprintf(
+							/* translators: %s: seconds. */
+							__( 'The slower of the two takes %s s longer than a healthy response.', 'on-board-diagnostics-scanner-for-woocommerce' ),
+							number_format_i18n( $slow['excess_seconds'], 2 )
+						),
+						$max
+					);
+				}
+				if ( null !== $fail ) {
+					tvarkom_obd_impact_range(
+						__( 'Failed orders', 'on-board-diagnostics-scanner-for-woocommerce' ),
+						$fail,
+						null === $fail['count'] ? '' : sprintf(
+							/* translators: %s: number of orders. */
+							_n( '%s order failed at payment in the last 30 days; some shoppers retry.', '%s orders failed at payment in the last 30 days; some shoppers retry.', $fail['count'], 'on-board-diagnostics-scanner-for-woocommerce' ),
+							number_format_i18n( $fail['count'] )
+						),
+						$max
+					);
+				}
+				?>
+			</ul>
+			<ul class="tobd__legend">
+				<li class="tobd__legend-low"><span class="tobd__swatch"></span><?php esc_html_e( 'Low estimate', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></li>
+				<li class="tobd__legend-high"><span class="tobd__swatch"></span><?php esc_html_e( 'High estimate', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></li>
+			</ul>
+			<p class="tobd__impact-disclaimer"><?php esc_html_e( 'A modelled scenario, not measured lost sales.', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></p>
+			<?php if ( ! empty( $notes ) ) : ?>
+				<details class="tobd__how">
+					<summary><?php esc_html_e( 'How this is estimated', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></summary>
+					<?php
+					foreach ( $notes as $note ) {
+						echo '<p>' . esc_html( $note['text'] ) . '</p>';
+					}
+					?>
+				</details>
+			<?php endif; ?>
+			<?php
+		} elseif ( ! empty( $blocks ) ) {
+			// No figures (scans before them), or no estimate for this store: the scan's own texts.
+			foreach ( $blocks as $block ) {
+				tvarkom_obd_render_block( $block );
+			}
+		} else {
+			echo '<p class="tobd__empty">' . esc_html__( 'There is no sales impact to estimate from this scan.', 'on-board-diagnostics-scanner-for-woocommerce' ) . '</p>';
+		}
+		?>
+	</section>
+	<?php
 }

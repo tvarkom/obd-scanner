@@ -57,6 +57,8 @@
 .tobd--warn { --tone: var(--warn); --tone-soft: var(--warn-soft); }
 .tobd--bad { --tone: var(--bad); --tone-soft: var(--bad-soft); }
 .tobd--none { --tone: var(--none); --tone-soft: var(--paper); }
+.tobd--ink { --tone: var(--ink); --tone-soft: var(--paper); }
+.tobd--accent { --tone: #4f8a5b; --tone-soft: var(--good-soft); }
 .tobd__tone { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: var(--tone-soft); color: var(--tone); font-size: 11px; font-weight: 600; line-height: 1.6; white-space: nowrap; }
 
 /* Score gauge */
@@ -129,6 +131,34 @@
 .tobd__table thead th { background: var(--paper); font-weight: 600; white-space: nowrap; }
 .tobd__table tbody th { width: 40%; font-weight: 600; }
 .tobd__table tr:last-child th, .tobd__table tr:last-child td { border-bottom: 0; }
+
+/* Charts of the free sections: tiles, stacked bars, the customer donut, labels */
+.tobd__tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 0 0 18px; }
+.tobd__tile { display: flex; flex-direction: column-reverse; justify-content: flex-end; gap: 6px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+.tobd__tile-value { font-size: 20px; font-weight: 700; line-height: 1.2; color: var(--ink); overflow-wrap: break-word; }
+.tobd__tile-label { font-size: 12px; line-height: 1.4; color: var(--muted); }
+.tobd__grid--charts { margin: 0 0 8px; }
+.tobd__chart { margin: 0 0 16px; }
+.tobd p.tobd__chart-title, .tobd__chart-title { display: block; margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--ink); }
+.tobd__stack { display: flex; height: 18px; overflow: hidden; border-radius: 999px; background: var(--paper); border: 1px solid var(--line); }
+.tobd__stack span { display: block; height: 100%; background: var(--tone); }
+.tobd__stack span + span { border-left: 2px solid var(--surface); }
+.tobd__legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 10px 0 0; padding: 0; list-style: none; font-size: 13px; color: var(--muted); }
+.tobd__legend li { margin: 0; }
+.tobd__legend strong { color: var(--ink); }
+.tobd__legend--column { flex-direction: column; justify-content: center; }
+.tobd__swatch { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 3px; background: var(--tone); vertical-align: -1px; }
+.tobd__donut-row { display: flex; align-items: center; gap: 20px; }
+.tobd__donut { width: 120px; height: 120px; flex: 0 0 120px; }
+.tobd__donut circle { fill: none; stroke-width: 14; }
+.tobd__donut-new { stroke: var(--line); }
+.tobd__donut-returning { stroke: var(--good); }
+.tobd__donut-value { font-size: 18px; font-weight: 700; fill: var(--ink); }
+.tobd__legend-returning .tobd__swatch { background: var(--good); }
+.tobd__legend-new .tobd__swatch { background: var(--line); }
+.tobd__chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; padding: 0; list-style: none; }
+.tobd__chips li { margin: 0; padding: 5px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); font-size: 13px; }
+.tobd__analysis--commercial .tobd__h3 { margin-top: 8px; padding-top: 16px; border-top: 1px solid var(--line); }
 
 /* Scan button */
 .tobd__scanbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; margin: 0 0 16px; }

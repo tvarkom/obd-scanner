@@ -44,6 +44,7 @@ require_once __DIR__ . '/includes/profile-request.php';
 require_once __DIR__ . '/includes/scan.php';
 require_once __DIR__ . '/includes/dashboard.php';
 require_once __DIR__ . '/includes/analysis.php';
+require_once __DIR__ . '/includes/charts.php';
 require_once __DIR__ . '/includes/admin.php';
 
 // Every hook the plugin registers. Nothing contacts tvarkom until an administrator clicks

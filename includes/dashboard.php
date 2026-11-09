@@ -251,8 +251,7 @@ function tvarkom_obd_render_dashboard( array $results ) {
 	</section>
 	<?php
 	if ( null !== $analysis && ! empty( $analysis['sections'] ) ) {
-		echo '<h2 class="tobd__part">' . esc_html__( 'Full analysis', 'on-board-diagnostics-scanner-for-woocommerce' ) . '</h2>';
-		tvarkom_obd_render_analysis_sections( $analysis['sections'] );
+		tvarkom_obd_render_analysis_sections( $analysis['sections'], $analysis['figures'] );
 	}
 }
 

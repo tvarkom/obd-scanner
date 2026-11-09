@@ -43,7 +43,8 @@ The page (admin.php) ──▶ GET /v1/results ──▶ dashboard (dashboard.ph
 | `includes/metrics.php` | The store metrics sent with each scan (schema 3, as the Checkout Speed Audit) |
 | `includes/scan.php` | One scan request and the lock |
 | `includes/dashboard.php` | The dashboard's charts and texts |
-| `includes/analysis.php` | The full analysis (0.2.0): the report's sections from `latest.analysis`, checked and escaped |
+| `includes/analysis.php` | The analysis (0.2.0): the free sections from `latest.analysis`, checked and escaped; paid ones skipped |
+| `includes/charts.php` | The store profile, sales and checkout, catalog and operations as charts, from the analysis's figures |
 | `includes/business.php`, `funnel.php`, `detailed.php`, `profile*.php`, `class-tvarkom-obd-profiler.php` | The Checkout Speed Audit's collectors, ported with the `tvarkom_obd` prefix (0.2.0): business context, daily shop totals (table `tvarkom_obd_funnel`), detailed diagnostics, the checkout profiler (header `X-Tvarkom-Obd-Profile`) |
 | `includes/admin.php` | The page, the scan button and its handler, assets, privacy policy text |
 | `uninstall.php` | Removes the option, lock and token |
@@ -69,3 +70,20 @@ Build the zip from a tagged commit, its folder named after the slug
 `legal/privacy-policy.txt` is tvarkom's one privacy policy, shared with the Checkout Speed Audit
 plugin and published at tvarkom.com/privacy/ (website repo `content/privacy-policy.txt`): keep the
 copies identical. `legal/terms-of-use.txt` is this plugin's own.
+
+## Paid version (not in the free plugin)
+
+Founder decisions of 9 Nov 2026. Kept out of the free plugin, for a future paid version (tracked in
+tvarkom's `BACKLOG.md`, item 11):
+
+- The analysis's **Technical findings**, **Diagnostic details**, **How this scan works** and
+  **Developer reference** sections. The scanner marks them `"tier": "paid"`, the gateway keeps them
+  and never sends them (`audit.FreeAnalysis`), and `includes/analysis.php` skips them by tier and by
+  id (`TVARKOM_OBD_PAID_SECTIONS`) anyway.
+- The fix plan, next steps and priorities (never in the dashboard file).
+- Automatic weekly scans: the free plugin scans only on a click.
+
+The free sections (store at a glance, sales and checkout, products and inventory, store operations)
+are drawn as charts from the analysis's `figures` (`includes/charts.php`); traffic and marketing stay
+as text.
+

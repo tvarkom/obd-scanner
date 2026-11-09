@@ -1,11 +1,11 @@
 <?php
 /**
- * The full analysis (plugin 0.2.0): the report's own sections and texts, as tvarkom's scanner
- * wrote them for this dashboard (latest.analysis in GET /v1/results). Everything the report says
- * except the fix plan, the next steps and the top actions: the summary with the modelled sales
- * impact, the store profile, sales and checkout, catalog, operations and marketing, the technical
- * findings with why each matters, the measurements, the diagnostic details, how the scan works and
- * the developer reference.
+ * The analysis (plugin 0.2.0), as tvarkom's scanner wrote it for this dashboard (latest.analysis in
+ * GET /v1/results): the summary with the modelled sales impact, and the store profile, sales and
+ * checkout, catalog, operations and marketing sections, the first four drawn as charts from the
+ * scan's figures. The technical findings, diagnostic details, how the scan works and the developer
+ * reference are for a future paid version (founder decision of 9 Nov 2026): tvarkom doesn't send
+ * them, and this plugin skips them if it ever gets them.
  *
  * The texts come from tvarkom in English. They are checked for shape and size here and escaped
  * when shown; no markup from tvarkom is ever output.
@@ -16,6 +16,11 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+/**
+ * The analysis's sections for a future paid version, never shown by this plugin.
+ */
+const TVARKOM_OBD_PAID_SECTIONS = array( 'technical', 'detailed', 'how_this_scan_works', 'developer' );
 
 /**
  * A text from the analysis, or "" when it isn't one. Long texts are cut.
@@ -80,9 +85,16 @@ function tvarkom_obd_parse_analysis( $raw ) {
 			}
 		}
 		$heading = tvarkom_obd_analysis_text( isset( $section['heading'] ) ? $section['heading'] : null );
+		$id      = sanitize_key( isset( $section['id'] ) && is_string( $section['id'] ) ? $section['id'] : '' );
+		if ( in_array( $id, TVARKOM_OBD_PAID_SECTIONS, true ) ) {
+			continue;
+		}
 		if ( '' !== $heading && ! empty( $blocks ) ) {
+			if ( isset( $section['tier'] ) && 'paid' === $section['tier'] ) {
+				continue;
+			}
 			$sections[] = array(
-				'id'      => sanitize_key( isset( $section['id'] ) && is_string( $section['id'] ) ? $section['id'] : '' ),
+				'id'      => $id,
 				'heading' => $heading,
 				'blocks'  => $blocks,
 			);
@@ -91,6 +103,71 @@ function tvarkom_obd_parse_analysis( $raw ) {
 	return array(
 		'summary'  => $summary,
 		'sections' => $sections,
+		'figures'  => tvarkom_obd_parse_figures( isset( $raw['figures'] ) ? $raw['figures'] : null ),
+	);
+}
+
+/**
+ * The scan's figures behind the charts, checked: counts as non-negative integers, texts as texts.
+ *
+ * @param mixed $raw The analysis's figures.
+ * @return array<string, array<string, mixed>>|null
+ */
+function tvarkom_obd_parse_figures( $raw ) {
+	if ( ! is_array( $raw ) ) {
+		return null;
+	}
+	$group      = function ( $key ) use ( $raw ) {
+		return isset( $raw[ $key ] ) && is_array( $raw[ $key ] ) ? $raw[ $key ] : array();
+	};
+	$count      = function ( array $g, $key ) {
+		return isset( $g[ $key ] ) && is_int( $g[ $key ] ) && $g[ $key ] >= 0 ? $g[ $key ] : null;
+	};
+	$text       = function ( array $g, $key ) {
+		$v = isset( $g[ $key ] ) ? tvarkom_obd_analysis_text( $g[ $key ] ) : '';
+		return '' === $v ? null : $v;
+	};
+	$flag       = function ( array $g, $key ) {
+		return isset( $g[ $key ] ) && is_bool( $g[ $key ] ) ? $g[ $key ] : null;
+	};
+	$profile    = $group( 'profile' );
+	$orders     = $group( 'orders' );
+	$money      = $group( 'money' );
+	$customers  = $group( 'customers' );
+	$catalog    = $group( 'catalog' );
+	$operations = $group( 'operations' );
+	return array(
+		'profile'    => array(
+			'country'        => $text( $profile, 'country' ),
+			'currency'       => $text( $profile, 'currency' ),
+			'size'           => $text( $profile, 'size' ),
+			'orders_per_day' => isset( $profile['orders_per_day'] ) && is_numeric( $profile['orders_per_day'] ) && $profile['orders_per_day'] >= 0 ? (float) $profile['orders_per_day'] : null,
+		),
+		'orders'     => array(
+			'paid'      => $count( $orders, 'paid' ),
+			'failed'    => $count( $orders, 'failed' ),
+			'pending'   => $count( $orders, 'pending' ),
+			'cancelled' => $count( $orders, 'cancelled' ),
+		),
+		'money'      => array(
+			'sales' => $text( $money, 'sales' ),
+			'aov'   => $text( $money, 'aov' ),
+		),
+		'customers'  => array(
+			'new'       => $count( $customers, 'new' ),
+			'returning' => $count( $customers, 'returning' ),
+		),
+		'catalog'    => array(
+			'products'         => $count( $catalog, 'products' ),
+			'variations'       => $count( $catalog, 'variations' ),
+			'stock_management' => $flag( $catalog, 'stock_management' ),
+		),
+		'operations' => array(
+			'payment_gateways' => tvarkom_obd_analysis_texts( isset( $operations['payment_gateways'] ) ? $operations['payment_gateways'] : null, 30 ),
+			'shipping_methods' => tvarkom_obd_analysis_texts( isset( $operations['shipping_methods'] ) ? $operations['shipping_methods'] : null, 30 ),
+			'checkout_type'    => isset( $operations['checkout_type'] ) && in_array( $operations['checkout_type'], array( 'classic', 'block' ), true ) ? $operations['checkout_type'] : null,
+			'hpos'             => $flag( $operations, 'hpos' ),
+		),
 	);
 }
 
@@ -182,20 +259,24 @@ function tvarkom_obd_render_analysis_summary( array $summary ) {
 }
 
 /**
- * The analysis's sections, each in its own panel.
+ * The analysis's sections, each in its own panel: the store profile, sales and checkout, catalog
+ * and operations as charts (charts.php), any other as its texts.
  *
  * @param array<int, array{id: string, heading: string, blocks: array<int, array<string, mixed>>}> $sections From tvarkom_obd_parse_analysis().
+ * @param array<string, array<string, mixed>>|null                                                 $figures  From tvarkom_obd_parse_figures().
  * @return void
  */
-function tvarkom_obd_render_analysis_sections( array $sections ) {
+function tvarkom_obd_render_analysis_sections( array $sections, $figures ) {
 	foreach ( $sections as $i => $section ) {
 		$id = 'tobd-analysis-' . $i;
 		?>
 		<section class="tobd__panel tobd__analysis tobd__analysis--<?php echo esc_attr( $section['id'] ); ?>" aria-labelledby="<?php echo esc_attr( $id ); ?>">
 			<h2 class="tobd__h2" id="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $section['heading'] ); ?></h2>
 			<?php
-			foreach ( $section['blocks'] as $block ) {
-				tvarkom_obd_render_block( $block );
+			if ( ! tvarkom_obd_render_chart_section( $section, $figures ) ) {
+				foreach ( $section['blocks'] as $block ) {
+					tvarkom_obd_render_block( $block );
+				}
 			}
 			?>
 		</section>

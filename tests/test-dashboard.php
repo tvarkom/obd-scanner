@@ -191,4 +191,103 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$this->assertStringNotContainsString( 'Full analysis', $this->render_page() );
 		$this->assertNull( tvarkom_obd_parse_analysis( array( 'schema' => 2 ) ) );
 	}
+
+	public function test_free_sections_are_charts_and_paid_ones_never_show() {
+		$body                       = $this->ready_results();
+		$body['latest']['analysis'] = array(
+			'schema'   => 1,
+			'figures'  => array(
+				'orders'     => array(
+					'paid'      => 312,
+					'failed'    => 9,
+					'pending'   => 2,
+					'cancelled' => 4,
+				),
+				'money'      => array(
+					'sales' => '25 000 € – 100 000 €',
+					'aov'   => '<b>50 €</b>',
+				),
+				'customers'  => array(
+					'new'       => 200,
+					'returning' => 112,
+				),
+				'catalog'    => array(
+					'products'         => 420,
+					'variations'       => 1300,
+					'stock_management' => true,
+				),
+				'operations' => array(
+					'payment_gateways' => array( 'Stripe', 'PayPal' ),
+					'shipping_methods' => array( 'Flat rate' ),
+					'checkout_type'    => 'block',
+					'hpos'             => true,
+				),
+			),
+			'summary'  => array( 'text' => 'Serious speed problems.' ),
+			'sections' => array(
+				array(
+					'id'      => 'commercial',
+					'tier'    => 'free',
+					'heading' => 'Sales & checkout',
+					'blocks'  => array(
+						array(
+							'type'  => 'list',
+							'items' => array( 'Paid and on-hold orders in the last 30 days: 312' ),
+						),
+						array(
+							'type' => 'heading',
+							'text' => 'Potential sales impact — modelled estimate',
+						),
+						array(
+							'type'  => 'list',
+							'items' => array( 'Modelled sales at risk: about 450 €.' ),
+						),
+					),
+				),
+				array(
+					'id'      => 'catalog',
+					'tier'    => 'free',
+					'heading' => 'Products & inventory',
+					'blocks'  => array(
+						array(
+							'type'  => 'list',
+							'items' => array( '420 products' ),
+						),
+					),
+				),
+				array(
+					'id'      => 'technical',
+					'tier'    => 'paid',
+					'heading' => 'Technical findings',
+					'blocks'  => array(
+						array(
+							'type' => 'text',
+							'text' => 'PAID-ONLY',
+						),
+					),
+				),
+				array(
+					'id'      => 'developer',
+					'heading' => 'Developer reference',
+					'blocks'  => array(
+						array(
+							'type' => 'text',
+							'text' => 'PAID-ONLY',
+						),
+					),
+				),
+			),
+		);
+		$this->respond( 'GET', '/v1/results', 200, $body );
+		$html = $this->render_page();
+
+		$this->assertStringNotContainsString( 'PAID-ONLY', $html, 'paid-version sections never show, even without a tier' );
+		$this->assertStringNotContainsString( 'Full analysis', $html );
+		$this->assertStringContainsString( 'class="tobd__stack"', $html, 'the order outcomes bar' );
+		$this->assertStringContainsString( 'class="tobd__donut"', $html );
+		$this->assertStringContainsString( '<li>Stripe</li>', $html );
+		$this->assertStringContainsString( '&lt;b&gt;50 €&lt;/b&gt;', $html );
+		$this->assertStringContainsString( 'Potential sales impact', $html, 'the modelled impact under the charts' );
+		$this->assertStringNotContainsString( 'Paid and on-hold orders in the last 30 days: 312', $html, 'the sales sentences become the figures' );
+	}
 }

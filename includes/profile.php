@@ -37,10 +37,10 @@ define( 'TVARKOM_OBD_PROFILE_HEADER', 'X-Tvarkom-Obd-Profile' );
  * @return void
  */
 function tvarkom_obd_profile_maybe_start() {
-	if ( empty( $_SERVER['HTTP_X_TVARKOM_PROFILE'] ) || ! isset( $_SERVER['REQUEST_METHOD'] ) || 'GET' !== $_SERVER['REQUEST_METHOD'] ) {
+	if ( empty( $_SERVER['HTTP_X_TVARKOM_OBD_PROFILE'] ) || ! isset( $_SERVER['REQUEST_METHOD'] ) || 'GET' !== $_SERVER['REQUEST_METHOD'] ) {
 		return;
 	}
-	$sent    = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_TVARKOM_PROFILE'] ) );
+	$sent    = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_TVARKOM_OBD_PROFILE'] ) );
 	$pending = get_transient( TVARKOM_OBD_PROFILE_TOKEN );
 	if ( ! is_array( $pending ) || empty( $pending['token'] ) || ! hash_equals( (string) $pending['token'], $sent ) ) {
 		return;

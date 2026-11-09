@@ -15,7 +15,7 @@ class Tvarkom_OBD_Funnel_Test extends Tvarkom_OBD_Test_Case {
 		parent::set_up();
 		delete_option( TVARKOM_OBD_FUNNEL_SINCE );
 		tvarkom_obd_funnel_install();
-		unset( $_SERVER['HTTP_X_TVARKOM_PROFILE'] );
+		unset( $_SERVER['HTTP_X_TVARKOM_OBD_PROFILE'], $_SERVER['HTTP_X_TVARKOM_PROFILE'] );
 	}
 
 	/**
@@ -42,7 +42,10 @@ class Tvarkom_OBD_Funnel_Test extends Tvarkom_OBD_Test_Case {
 		$this->sign_in_shop_manager();
 		tvarkom_obd_funnel_add_to_cart();
 		wp_set_current_user( 0 );
-		$_SERVER['HTTP_X_TVARKOM_PROFILE'] = 'token';
+		$_SERVER['HTTP_X_TVARKOM_OBD_PROFILE'] = 'token';
+		tvarkom_obd_funnel_order();
+		unset( $_SERVER['HTTP_X_TVARKOM_OBD_PROFILE'] );
+		$_SERVER['HTTP_X_TVARKOM_PROFILE'] = 'token'; // The Checkout Speed Audit's profile, when both are active.
 		tvarkom_obd_funnel_order();
 		unset( $_SERVER['HTTP_X_TVARKOM_PROFILE'] );
 		$this->assertNull( $this->today() );

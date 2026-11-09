@@ -62,12 +62,13 @@ function tvarkom_obd_funnel_install() {
 }
 
 /**
- * Whether this request's events are counted: not by staff, not the plugin's checkout profile.
+ * Whether this request's events are counted: not by staff, not a checkout profile (this plugin's,
+ * or the one tvarkom's Checkout Speed Audit loads when both are active).
  *
  * @return bool
  */
 function tvarkom_obd_funnel_counts_this_request() {
-	if ( ! empty( $_SERVER['HTTP_X_TVARKOM_PROFILE'] ) ) {
+	if ( ! empty( $_SERVER['HTTP_X_TVARKOM_OBD_PROFILE'] ) || ! empty( $_SERVER['HTTP_X_TVARKOM_PROFILE'] ) ) {
 		return false;
 	}
 	return ! ( is_user_logged_in() && current_user_can( 'manage_woocommerce' ) );

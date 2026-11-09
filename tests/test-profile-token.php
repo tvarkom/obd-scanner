@@ -67,9 +67,9 @@ class Tvarkom_OBD_Profile_Token_Test extends Tvarkom_OBD_Test_Case {
 	 */
 	public function test_refused( $method, $header ) {
 		$_SERVER['REQUEST_METHOD'] = $method;
-		unset( $_SERVER['HTTP_X_TVARKOM_PROFILE'] );
+		unset( $_SERVER['HTTP_X_TVARKOM_OBD_PROFILE'] );
 		if ( null !== $header ) {
-			$_SERVER['HTTP_X_TVARKOM_PROFILE'] = $header;
+			$_SERVER['HTTP_X_TVARKOM_OBD_PROFILE'] = $header;
 		}
 
 		tvarkom_obd_profile_maybe_start();

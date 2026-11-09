@@ -24,32 +24,32 @@ if ( ! defined( 'ABSPATH' ) ) {
 function tvarkom_obd_rules() {
 	return array(
 		'slow_server'      => array(
-			__( 'Slow server response', 'obd-scanner' ),
-			__( 'Your homepage took more than 0.3 seconds to start answering (more than 0.8 seconds costs the most points). Every page of your store waits for this.', 'obd-scanner' ),
+			__( 'Slow server response', 'on-board-diagnostics-scanner-for-woocommerce' ),
+			__( 'Your homepage took more than 0.3 seconds to start answering (more than 0.8 seconds costs the most points). Every page of your store waits for this.', 'on-board-diagnostics-scanner-for-woocommerce' ),
 		),
 		'slow_checkout'    => array(
-			__( 'Slow cart or checkout', 'obd-scanner' ),
-			__( 'Your cart or checkout page took more than 0.3 seconds to start answering. These pages can\'t be served from a page cache, so shoppers wait for your server every time.', 'obd-scanner' ),
+			__( 'Slow cart or checkout', 'on-board-diagnostics-scanner-for-woocommerce' ),
+			__( 'Your cart or checkout page took more than 0.3 seconds to start answering. These pages can\'t be served from a page cache, so shoppers wait for your server every time.', 'on-board-diagnostics-scanner-for-woocommerce' ),
 		),
 		'too_many_files'   => array(
-			__( 'Too many files on the homepage', 'obd-scanner' ),
-			__( 'Your homepage asks the browser to load more than 60 scripts, stylesheets, images and other files.', 'obd-scanner' ),
+			__( 'Too many files on the homepage', 'on-board-diagnostics-scanner-for-woocommerce' ),
+			__( 'Your homepage asks the browser to load more than 60 scripts, stylesheets, images and other files.', 'on-board-diagnostics-scanner-for-woocommerce' ),
 		),
 		'too_heavy'        => array(
-			__( 'Heavy homepage', 'obd-scanner' ),
-			__( 'Your homepage and the files it loads weigh more than 3.5 MB.', 'obd-scanner' ),
+			__( 'Heavy homepage', 'on-board-diagnostics-scanner-for-woocommerce' ),
+			__( 'Your homepage and the files it loads weigh more than 3.5 MB.', 'on-board-diagnostics-scanner-for-woocommerce' ),
 		),
 		'uncached'         => array(
-			__( 'Files without browser caching', 'obd-scanner' ),
-			__( 'More than half of the scripts, stylesheets and images on your homepage don\'t tell browsers to keep a copy, so returning shoppers download them again.', 'obd-scanner' ),
+			__( 'Files without browser caching', 'on-board-diagnostics-scanner-for-woocommerce' ),
+			__( 'More than half of the scripts, stylesheets and images on your homepage don\'t tell browsers to keep a copy, so returning shoppers download them again.', 'on-board-diagnostics-scanner-for-woocommerce' ),
 		),
 		'autoload'         => array(
-			__( 'Large autoloaded options', 'obd-scanner' ),
-			__( 'WordPress loads more than 800 KB of settings from your database on every request (more than 2 MB costs the most points).', 'obd-scanner' ),
+			__( 'Large autoloaded options', 'on-board-diagnostics-scanner-for-woocommerce' ),
+			__( 'WordPress loads more than 800 KB of settings from your database on every request (more than 2 MB costs the most points).', 'on-board-diagnostics-scanner-for-woocommerce' ),
 		),
 		'background_tasks' => array(
-			__( 'Background task problems', 'obd-scanner' ),
-			__( 'WooCommerce\'s scheduled background tasks are failing or piling up: 10 or more failed in the last 7 days, or 100 or more are overdue (50 or more failures cost the most points).', 'obd-scanner' ),
+			__( 'Background task problems', 'on-board-diagnostics-scanner-for-woocommerce' ),
+			__( 'WooCommerce\'s scheduled background tasks are failing or piling up: 10 or more failed in the last 7 days, or 100 or more are overdue (50 or more failures cost the most points).', 'on-board-diagnostics-scanner-for-woocommerce' ),
 		),
 	);
 }
@@ -62,11 +62,11 @@ function tvarkom_obd_rules() {
  */
 function tvarkom_obd_level_label( $level ) {
 	$labels = array(
-		'PASS'          => __( 'Low risk', 'obd-scanner' ),
-		'WARNING'       => __( 'Moderate risk', 'obd-scanner' ),
-		'CRITICAL_RISK' => __( 'High risk', 'obd-scanner' ),
+		'PASS'          => __( 'Low risk', 'on-board-diagnostics-scanner-for-woocommerce' ),
+		'WARNING'       => __( 'Moderate risk', 'on-board-diagnostics-scanner-for-woocommerce' ),
+		'CRITICAL_RISK' => __( 'High risk', 'on-board-diagnostics-scanner-for-woocommerce' ),
 	);
-	return isset( $labels[ $level ] ) ? $labels[ $level ] : __( 'Not rated', 'obd-scanner' );
+	return isset( $labels[ $level ] ) ? $labels[ $level ] : __( 'Not rated', 'on-board-diagnostics-scanner-for-woocommerce' );
 }
 
 /**
@@ -92,11 +92,11 @@ function tvarkom_obd_level_tone( $level ) {
  */
 function tvarkom_obd_tone_label( $tone ) {
 	$labels = array(
-		'good' => __( 'Good', 'obd-scanner' ),
-		'warn' => __( 'Needs attention', 'obd-scanner' ),
-		'bad'  => __( 'Critical', 'obd-scanner' ),
+		'good' => __( 'Good', 'on-board-diagnostics-scanner-for-woocommerce' ),
+		'warn' => __( 'Needs attention', 'on-board-diagnostics-scanner-for-woocommerce' ),
+		'bad'  => __( 'Critical', 'on-board-diagnostics-scanner-for-woocommerce' ),
 	);
-	return isset( $labels[ $tone ] ) ? $labels[ $tone ] : __( 'Not measured', 'obd-scanner' );
+	return isset( $labels[ $tone ] ) ? $labels[ $tone ] : __( 'Not measured', 'on-board-diagnostics-scanner-for-woocommerce' );
 }
 
 /**
@@ -155,31 +155,31 @@ function tvarkom_obd_render_dashboard( array $results ) {
 	?>
 	<div class="tobd__grid">
 		<section class="tobd__panel tobd__score" aria-labelledby="tobd-score-title">
-			<h2 class="tobd__h2" id="tobd-score-title"><?php esc_html_e( 'Store performance score', 'obd-scanner' ); ?></h2>
+			<h2 class="tobd__h2" id="tobd-score-title"><?php esc_html_e( 'Store performance score', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
 			<?php tvarkom_obd_render_gauge( $latest['score'], $latest['level'] ); ?>
-			<p class="tobd__bands"><?php esc_html_e( '80–100 low risk · 50–79 moderate · 0–49 high', 'obd-scanner' ); ?></p>
+			<p class="tobd__bands"><?php esc_html_e( '80–100 low risk · 50–79 moderate · 0–49 high', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></p>
 			<p class="tobd__meta">
 				<?php
 				/* translators: %s: date and time of the scan. */
-				echo esc_html( sprintf( __( 'Scanned on %s', 'obd-scanner' ), tvarkom_obd_datetime( (int) $latest['completed_at'] ) ) );
+				echo esc_html( sprintf( __( 'Scanned on %s', 'on-board-diagnostics-scanner-for-woocommerce' ), tvarkom_obd_datetime( (int) $latest['completed_at'] ) ) );
 				?>
 			</p>
 		</section>
 
 		<section class="tobd__panel tobd__lost" aria-labelledby="tobd-lost-title">
-			<h2 class="tobd__h2" id="tobd-lost-title"><?php esc_html_e( 'Where your store lost points', 'obd-scanner' ); ?></h2>
+			<h2 class="tobd__h2" id="tobd-lost-title"><?php esc_html_e( 'Where your store lost points', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
 			<?php tvarkom_obd_render_lost_points( $latest['lost_points'] ); ?>
 		</section>
 	</div>
 
 	<section class="tobd__panel" aria-labelledby="tobd-speed-title">
-		<h2 class="tobd__h2" id="tobd-speed-title"><?php esc_html_e( 'Server response', 'obd-scanner' ); ?></h2>
-		<p class="tobd__intro"><?php esc_html_e( 'How long your server took to start answering each page, the median of several requests from our scanner. Reference: 0.3 seconds or less; above 0.8 seconds is critical.', 'obd-scanner' ); ?></p>
+		<h2 class="tobd__h2" id="tobd-speed-title"><?php esc_html_e( 'Server response', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
+		<p class="tobd__intro"><?php esc_html_e( 'How long your server took to start answering each page, the median of several requests from our scanner. Reference: 0.3 seconds or less; above 0.8 seconds is critical.', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></p>
 		<?php
 		$speed = array(
-			'ttfb_ms'     => __( 'Homepage', 'obd-scanner' ),
-			'cart_ms'     => __( 'Cart', 'obd-scanner' ),
-			'checkout_ms' => __( 'Checkout', 'obd-scanner' ),
+			'ttfb_ms'     => __( 'Homepage', 'on-board-diagnostics-scanner-for-woocommerce' ),
+			'cart_ms'     => __( 'Cart', 'on-board-diagnostics-scanner-for-woocommerce' ),
+			'checkout_ms' => __( 'Checkout', 'on-board-diagnostics-scanner-for-woocommerce' ),
 		);
 		foreach ( $speed as $id => $label ) {
 			$ms = tvarkom_obd_number( $metrics, $id );
@@ -188,7 +188,7 @@ function tvarkom_obd_render_dashboard( array $results ) {
 				$ms,
 				null === $ms ? '' : sprintf(
 					/* translators: %s: seconds, e.g. 0.52. */
-					__( '%s s', 'obd-scanner' ),
+					__( '%s s', 'on-board-diagnostics-scanner-for-woocommerce' ),
 					number_format_i18n( $ms / 1000, 2 )
 				),
 				300,
@@ -201,30 +201,30 @@ function tvarkom_obd_render_dashboard( array $results ) {
 
 	<div class="tobd__grid">
 		<section class="tobd__panel" aria-labelledby="tobd-page-title">
-			<h2 class="tobd__h2" id="tobd-page-title"><?php esc_html_e( 'Homepage weight', 'obd-scanner' ); ?></h2>
+			<h2 class="tobd__h2" id="tobd-page-title"><?php esc_html_e( 'Homepage weight', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
 			<?php
 			$kb = tvarkom_obd_number( $metrics, 'page_weight_kb' );
-			tvarkom_obd_render_bar( __( 'Size, with every file it loads', 'obd-scanner' ), $kb, null === $kb ? '' : tvarkom_obd_size( $kb ), 3584, 3584, 5376 );
+			tvarkom_obd_render_bar( __( 'Size, with every file it loads', 'on-board-diagnostics-scanner-for-woocommerce' ), $kb, null === $kb ? '' : tvarkom_obd_size( $kb ), 3584, 3584, 5376 );
 			$files = tvarkom_obd_number( $metrics, 'requests' );
-			tvarkom_obd_render_bar( __( 'Files', 'obd-scanner' ), $files, null === $files ? '' : number_format_i18n( $files ), 60, 60, 90 );
+			tvarkom_obd_render_bar( __( 'Files', 'on-board-diagnostics-scanner-for-woocommerce' ), $files, null === $files ? '' : number_format_i18n( $files ), 60, 60, 90 );
 			?>
-			<p class="tobd__note"><?php esc_html_e( 'Reference: 3.5 MB or less, and 60 files or fewer.', 'obd-scanner' ); ?></p>
+			<p class="tobd__note"><?php esc_html_e( 'Reference: 3.5 MB or less, and 60 files or fewer.', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></p>
 		</section>
 
 		<section class="tobd__panel" aria-labelledby="tobd-db-title">
-			<h2 class="tobd__h2" id="tobd-db-title"><?php esc_html_e( 'Database and server', 'obd-scanner' ); ?></h2>
+			<h2 class="tobd__h2" id="tobd-db-title"><?php esc_html_e( 'Database and server', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
 			<?php
 			$autoload = tvarkom_obd_number( $metrics, 'autoload_kb' );
-			tvarkom_obd_render_bar( __( 'Autoloaded options', 'obd-scanner' ), $autoload, null === $autoload ? '' : tvarkom_obd_size( $autoload ), 800, 2048, 3072, true );
+			tvarkom_obd_render_bar( __( 'Autoloaded options', 'on-board-diagnostics-scanner-for-woocommerce' ), $autoload, null === $autoload ? '' : tvarkom_obd_size( $autoload ), 800, 2048, 3072, true );
 			?>
-			<p class="tobd__note"><?php esc_html_e( 'Settings WordPress loads on every request. Reference: under 800 KB; above 2 MB is critical.', 'obd-scanner' ); ?></p>
+			<p class="tobd__note"><?php esc_html_e( 'Settings WordPress loads on every request. Reference: under 800 KB; above 2 MB is critical.', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></p>
 			<dl class="tobd__facts">
 				<?php
-				tvarkom_obd_render_fact( __( 'PHP version', 'obd-scanner' ), isset( $metrics['php_version'] ) ? (string) $metrics['php_version'] : '', 'none' );
+				tvarkom_obd_render_fact( __( 'PHP version', 'on-board-diagnostics-scanner-for-woocommerce' ), isset( $metrics['php_version'] ) ? (string) $metrics['php_version'] : '', 'none' );
 				$cache = isset( $metrics['object_cache'] ) ? (string) $metrics['object_cache'] : '';
 				tvarkom_obd_render_fact(
-					__( 'Persistent object cache', 'obd-scanner' ),
-					'None' === $cache ? __( 'None', 'obd-scanner' ) : $cache,
+					__( 'Persistent object cache', 'on-board-diagnostics-scanner-for-woocommerce' ),
+					'None' === $cache ? __( 'None', 'on-board-diagnostics-scanner-for-woocommerce' ) : $cache,
 					'' === $cache ? 'none' : ( 'None' === $cache ? 'warn' : 'good' )
 				);
 				?>
@@ -233,14 +233,14 @@ function tvarkom_obd_render_dashboard( array $results ) {
 	</div>
 
 	<section class="tobd__panel" aria-labelledby="tobd-security-title">
-		<h2 class="tobd__h2" id="tobd-security-title"><?php esc_html_e( 'Security and email', 'obd-scanner' ); ?></h2>
+		<h2 class="tobd__h2" id="tobd-security-title"><?php esc_html_e( 'Security and email', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
 		<dl class="tobd__facts tobd__facts--wide">
 			<?php tvarkom_obd_render_security( $metrics ); ?>
 		</dl>
 	</section>
 
 	<section class="tobd__panel" aria-labelledby="tobd-history-title">
-		<h2 class="tobd__h2" id="tobd-history-title"><?php esc_html_e( 'Score over time', 'obd-scanner' ); ?></h2>
+		<h2 class="tobd__h2" id="tobd-history-title"><?php esc_html_e( 'Score over time', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
 		<?php tvarkom_obd_render_history( $results['history'] ); ?>
 	</section>
 	<?php
@@ -271,9 +271,9 @@ function tvarkom_obd_render_gauge( $score, $level ) {
 				<?php
 				echo esc_html(
 					null === $score
-						? __( 'Score not available', 'obd-scanner' )
+						? __( 'Score not available', 'on-board-diagnostics-scanner-for-woocommerce' )
 						/* translators: 1: score from 0 to 100, 2: risk level, e.g. "High risk". */
-						: sprintf( __( 'Score %1$d out of 100, %2$s', 'obd-scanner' ), $score, tvarkom_obd_level_label( $level ) )
+						: sprintf( __( 'Score %1$d out of 100, %2$s', 'on-board-diagnostics-scanner-for-woocommerce' ), $score, tvarkom_obd_level_label( $level ) )
 				);
 				?>
 			</title>
@@ -297,14 +297,14 @@ function tvarkom_obd_render_gauge( $score, $level ) {
  */
 function tvarkom_obd_render_lost_points( array $lost ) {
 	if ( empty( $lost ) ) {
-		echo '<p class="tobd__empty">' . esc_html__( 'No check cost points in this scan.', 'obd-scanner' ) . '</p>';
+		echo '<p class="tobd__empty">' . esc_html__( 'No check cost points in this scan.', 'on-board-diagnostics-scanner-for-woocommerce' ) . '</p>';
 		return;
 	}
 	$rules = tvarkom_obd_rules();
-	echo '<p class="tobd__intro">' . esc_html__( 'Every store starts at 100. Each problem below took points away (the score never goes below 0).', 'obd-scanner' ) . '</p>';
+	echo '<p class="tobd__intro">' . esc_html__( 'Every store starts at 100. Each problem below took points away (the score never goes below 0).', 'on-board-diagnostics-scanner-for-woocommerce' ) . '</p>';
 	echo '<ul class="tobd__rules">';
 	foreach ( $lost as $item ) {
-		$rule   = isset( $rules[ $item['id'] ] ) ? $rules[ $item['id'] ] : array( __( 'Other check', 'obd-scanner' ), '' );
+		$rule   = isset( $rules[ $item['id'] ] ) ? $rules[ $item['id'] ] : array( __( 'Other check', 'on-board-diagnostics-scanner-for-woocommerce' ), '' );
 		$points = null === $item['points'] ? '—' : '−' . number_format_i18n( $item['points'] );
 		echo '<li><span class="tobd__points">' . esc_html( $points ) . '</span><div><strong>' . esc_html( $rule[0] ) . '</strong>';
 		if ( '' !== $rule[1] ) {
@@ -345,7 +345,7 @@ function tvarkom_obd_render_bar( $label, $value, $display, $good, $bad, $scale, 
 	<div class="tobd__bar tobd--<?php echo esc_attr( $tone ); ?>">
 		<div class="tobd__bar-head">
 			<span class="tobd__bar-label"><?php echo esc_html( $label ); ?></span>
-			<span class="tobd__bar-value"><?php echo esc_html( '' === $display ? __( 'Not measured', 'obd-scanner' ) : $display ); ?> <span class="tobd__tone"><?php echo esc_html( tvarkom_obd_tone_label( $tone ) ); ?></span></span>
+			<span class="tobd__bar-value"><?php echo esc_html( '' === $display ? __( 'Not measured', 'on-board-diagnostics-scanner-for-woocommerce' ) : $display ); ?> <span class="tobd__tone"><?php echo esc_html( tvarkom_obd_tone_label( $tone ) ); ?></span></span>
 		</div>
 		<div class="tobd__track" aria-hidden="true">
 			<span class="tobd__fill" style="width: <?php echo esc_attr( number_format( $width, 1, '.', '' ) ); ?>%"></span>
@@ -368,7 +368,7 @@ function tvarkom_obd_render_fact( $label, $value, $tone ) {
 	<div class="tobd__fact tobd--<?php echo esc_attr( $tone ); ?>">
 		<dt><?php echo esc_html( $label ); ?></dt>
 		<dd>
-			<?php echo esc_html( '' === $value ? __( 'Not measured', 'obd-scanner' ) : $value ); ?>
+			<?php echo esc_html( '' === $value ? __( 'Not measured', 'on-board-diagnostics-scanner-for-woocommerce' ) : $value ); ?>
 			<?php if ( 'none' !== $tone ) : ?>
 				<span class="tobd__tone"><?php echo esc_html( tvarkom_obd_tone_label( $tone ) ); ?></span>
 			<?php endif; ?>
@@ -386,34 +386,34 @@ function tvarkom_obd_render_fact( $label, $value, $tone ) {
 function tvarkom_obd_render_security( array $metrics ) {
 	$days = tvarkom_obd_number( $metrics, 'cert_days_left' );
 	if ( null === $days ) {
-		tvarkom_obd_render_fact( __( 'HTTPS certificate', 'obd-scanner' ), '', 'none' );
+		tvarkom_obd_render_fact( __( 'HTTPS certificate', 'on-board-diagnostics-scanner-for-woocommerce' ), '', 'none' );
 	} elseif ( $days < 0 ) {
-		tvarkom_obd_render_fact( __( 'HTTPS certificate', 'obd-scanner' ), __( 'Expired', 'obd-scanner' ), 'bad' );
+		tvarkom_obd_render_fact( __( 'HTTPS certificate', 'on-board-diagnostics-scanner-for-woocommerce' ), __( 'Expired', 'on-board-diagnostics-scanner-for-woocommerce' ), 'bad' );
 	} else {
 		tvarkom_obd_render_fact(
-			__( 'HTTPS certificate', 'obd-scanner' ),
+			__( 'HTTPS certificate', 'on-board-diagnostics-scanner-for-woocommerce' ),
 			/* translators: %s: number of days. */
-			sprintf( _n( '%s day left', '%s days left', (int) $days, 'obd-scanner' ), number_format_i18n( $days ) ),
+			sprintf( _n( '%s day left', '%s days left', (int) $days, 'on-board-diagnostics-scanner-for-woocommerce' ), number_format_i18n( $days ) ),
 			$days > 21 ? 'good' : 'warn'
 		);
 	}
 
 	$spf    = isset( $metrics['spf'] ) ? (string) $metrics['spf'] : '';
 	$spf_as = array(
-		'valid'    => array( __( 'Found', 'obd-scanner' ), 'good' ),
-		'missing'  => array( __( 'None found', 'obd-scanner' ), 'warn' ),
-		'multiple' => array( __( 'More than one found', 'obd-scanner' ), 'warn' ),
+		'valid'    => array( __( 'Found', 'on-board-diagnostics-scanner-for-woocommerce' ), 'good' ),
+		'missing'  => array( __( 'None found', 'on-board-diagnostics-scanner-for-woocommerce' ), 'warn' ),
+		'multiple' => array( __( 'More than one found', 'on-board-diagnostics-scanner-for-woocommerce' ), 'warn' ),
 	);
 	$spf_is = isset( $spf_as[ $spf ] ) ? $spf_as[ $spf ] : array( '', 'none' );
-	tvarkom_obd_render_fact( __( 'SPF email record', 'obd-scanner' ), $spf_is[0], $spf_is[1] );
+	tvarkom_obd_render_fact( __( 'SPF email record', 'on-board-diagnostics-scanner-for-woocommerce' ), $spf_is[0], $spf_is[1] );
 
 	$dmarc    = isset( $metrics['dmarc'] ) ? (string) $metrics['dmarc'] : '';
 	$dmarc_as = array(
-		'present' => array( __( 'Found', 'obd-scanner' ), 'good' ),
-		'missing' => array( __( 'None found', 'obd-scanner' ), 'warn' ),
+		'present' => array( __( 'Found', 'on-board-diagnostics-scanner-for-woocommerce' ), 'good' ),
+		'missing' => array( __( 'None found', 'on-board-diagnostics-scanner-for-woocommerce' ), 'warn' ),
 	);
 	$dmarc_is = isset( $dmarc_as[ $dmarc ] ) ? $dmarc_as[ $dmarc ] : array( '', 'none' );
-	tvarkom_obd_render_fact( __( 'DMARC email record', 'obd-scanner' ), $dmarc_is[0], $dmarc_is[1] );
+	tvarkom_obd_render_fact( __( 'DMARC email record', 'on-board-diagnostics-scanner-for-woocommerce' ), $dmarc_is[0], $dmarc_is[1] );
 }
 
 /**
@@ -424,7 +424,7 @@ function tvarkom_obd_render_security( array $metrics ) {
  */
 function tvarkom_obd_render_history( array $history ) {
 	if ( count( $history ) < 2 ) {
-		echo '<p class="tobd__empty">' . esc_html__( 'Your score history starts with your second scan.', 'obd-scanner' ) . '</p>';
+		echo '<p class="tobd__empty">' . esc_html__( 'Your score history starts with your second scan.', 'on-board-diagnostics-scanner-for-woocommerce' ) . '</p>';
 		return;
 	}
 	$width  = 640;
@@ -446,13 +446,13 @@ function tvarkom_obd_render_history( array $history ) {
 		$points[] = sprintf( '%.1f,%.1f', $x( $i ), $y( $point['score'] ) );
 		$labels[] = sprintf(
 			/* translators: 1: score, 2: date. */
-			__( '%1$d on %2$s', 'obd-scanner' ),
+			__( '%1$d on %2$s', 'on-board-diagnostics-scanner-for-woocommerce' ),
 			$point['score'],
 			tvarkom_obd_date( $point['completed_at'] )
 		);
 	}
 	/* translators: %s: list of scores with their dates. */
-	$summary = sprintf( __( 'Score history: %s', 'obd-scanner' ), implode( ', ', $labels ) );
+	$summary = sprintf( __( 'Score history: %s', 'on-board-diagnostics-scanner-for-woocommerce' ), implode( ', ', $labels ) );
 	?>
 	<svg class="tobd__history" viewBox="0 0 <?php echo (int) $width; ?> <?php echo (int) $height; ?>" role="img" aria-label="<?php echo esc_attr( $summary ); ?>" focusable="false">
 		<rect class="tobd__band tobd--good" x="<?php echo (int) $left; ?>" y="<?php echo esc_attr( (string) $y( 100 ) ); ?>" width="<?php echo (int) ( $width - $left - $right ); ?>" height="<?php echo esc_attr( (string) ( $y( 80 ) - $y( 100 ) ) ); ?>" />

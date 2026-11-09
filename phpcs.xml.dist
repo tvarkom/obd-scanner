@@ -17,7 +17,7 @@
 	<rule ref="WordPress.WP.I18n">
 		<properties>
 			<property name="text_domain" type="array">
-				<element value="obd-scanner"/>
+				<element value="on-board-diagnostics-scanner-for-woocommerce"/>
 			</property>
 		</properties>
 	</rule>

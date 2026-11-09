@@ -4,8 +4,8 @@
 
 The plugin is procedural WordPress code: a main file and `includes/`, every function, constant
 and option prefixed `tvarkom_obd` / `TVARKOM_OBD`. It supports PHP 7.4+ and WordPress 6.5+, and
-needs WooCommerce. Text domain: `obd-scanner` (change it everywhere if WordPress.org assigns
-another slug).
+needs WooCommerce. Text domain: `on-board-diagnostics-scanner-for-woocommerce`, the WordPress.org slug
+(it must always equal the slug; the repo and folder are `obd-scanner`).
 
 ## How it works
 
@@ -60,7 +60,8 @@ Checkout Speed Audit plugin. Locally, without PHP installed: `PHP=7.4 npx @php-w
 
 ## Release
 
-Build the zip from a tagged commit with only the shipped files: `obd-scanner.php`, `uninstall.php`,
+Build the zip from a tagged commit, its folder named after the slug
+(`on-board-diagnostics-scanner-for-woocommerce/`), with only the shipped files: `obd-scanner.php`, `uninstall.php`,
 `readme.txt`, `includes/`, `assets/`, `legal/`.
 
 `legal/privacy-policy.txt` is tvarkom's one privacy policy, shared with the Checkout Speed Audit

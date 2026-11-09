@@ -50,12 +50,48 @@ class Tvarkom_OBD_Connect_Test extends Tvarkom_OBD_Test_Case {
 		// The pipeline's site checks: counts and flags only.
 		$health = $audit['body']['detailed']['site_health'];
 		$this->assertSame(
-			array( 'core_update_available', 'theme_updates', 'wp_debug', 'debug_display', 'search_engines_blocked', 'myisam_tables', 'non_utf8mb4_tables', 'expired_transients', 'administrators', 'file_editor_enabled' ),
+			array(
+				'core_update_available',
+				'theme_updates',
+				'wp_debug',
+				'debug_display',
+				'search_engines_blocked',
+				'myisam_tables',
+				'non_utf8mb4_tables',
+				'expired_transients',
+				'administrators',
+				'file_editor_enabled',
+				'upload_max_bytes',
+				'missing_php_extensions',
+				'disk_free_bytes',
+				'disk_total_bytes',
+				'load_average_1m',
+				'cpu_cores',
+				'memory_total_kb',
+				'memory_available_kb',
+				'paused_plugins',
+				'paused_themes',
+				'fatal_errors_7d',
+				'core_auto_updates',
+				'plugin_auto_updates',
+				'permalinks_plain',
+				'db_latency_ms',
+				'spam_comments',
+				'auto_drafts',
+				'old_revisions',
+				'core_files_modified',
+				'core_files_missing',
+				'wp_config_mode',
+				'admin_username',
+				'registration_open',
+				'registration_role',
+			),
 			array_keys( $health )
 		);
 		foreach ( $health as $key => $value ) {
-			$this->assertTrue( null === $value || is_bool( $value ) || is_int( $value ), $key );
+			$this->assertTrue( null === $value || is_scalar( $value ) || is_array( $value ), $key );
 		}
+		$this->assertTrue( is_array( $health['missing_php_extensions'] ) );
 
 		$settings = tvarkom_obd_settings();
 		$this->assertSame( 'tvk_test', $settings['api_key'] );

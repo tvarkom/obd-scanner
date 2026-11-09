@@ -14,11 +14,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * The site checks.
  *
- * @return array<string, bool|int|null>
+ * @return array<string, mixed>
  */
 function tvarkom_obd_site_health() {
 	$tables = tvarkom_obd_table_engines();
-	return array(
+	$checks = array(
 		'core_update_available'  => tvarkom_obd_core_update_available(),
 		'theme_updates'          => tvarkom_obd_theme_updates(),
 		'wp_debug'               => defined( 'WP_DEBUG' ) && WP_DEBUG,
@@ -31,6 +31,8 @@ function tvarkom_obd_site_health() {
 		'administrators'         => tvarkom_obd_administrators(),
 		'file_editor_enabled'    => ! ( defined( 'DISALLOW_FILE_EDIT' ) && DISALLOW_FILE_EDIT ) && wp_is_file_mod_allowed( 'capability_edit_themes' ),
 	);
+	// The server, WordPress, database and security checks (includes/server-checks.php, wordpress-checks.php).
+	return array_merge( $checks, tvarkom_obd_server_checks(), tvarkom_obd_wordpress_checks() );
 }
 
 /**

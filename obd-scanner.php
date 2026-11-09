@@ -38,6 +38,8 @@ require_once __DIR__ . '/includes/funnel.php';
 require_once __DIR__ . '/includes/metrics.php';
 require_once __DIR__ . '/includes/detailed.php';
 require_once __DIR__ . '/includes/site-health.php';
+require_once __DIR__ . '/includes/server-checks.php';
+require_once __DIR__ . '/includes/wordpress-checks.php';
 require_once __DIR__ . '/includes/class-tvarkom-obd-profiler.php';
 require_once __DIR__ . '/includes/profile.php';
 require_once __DIR__ . '/includes/profile-report.php';

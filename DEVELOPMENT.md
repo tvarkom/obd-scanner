@@ -46,7 +46,9 @@ The page (admin.php) ──▶ GET /v1/results ──▶ dashboard (dashboard.ph
 | `includes/analysis.php` | The analysis (0.2.0): the free sections from `latest.analysis`, checked and escaped; paid ones skipped |
 | `includes/charts.php` | The store profile, sales and checkout, catalog and operations as charts, from the analysis's figures |
 | `includes/pipeline.php` | The store pipeline: every check as a coloured job in a stage, a log-style panel per job (no cause, no fix) |
-| `includes/site-health.php` | The site checks sent as `detailed.site_health` for the pipeline (updates, debug output, search visibility, table engines, transients, administrators, file editor) |
+| `includes/site-health.php` | The site checks sent as `detailed.site_health` for the pipeline (updates, debug output, search visibility, table engines, transients, administrators, file editor), merged with the two files below |
+| `includes/server-checks.php` | Upload limit, PHP extensions, disk space, load and memory (null when the host doesn't let PHP read them) |
+| `includes/wordpress-checks.php` | Paused plugins and themes, fatal errors (7 days, a count from the log), automatic updates, permalinks, database latency and clutter, core checksums (api.wordpress.org), wp-config.php permissions, an "admin" username, open registration |
 | `includes/business.php`, `funnel.php`, `detailed.php`, `profile*.php`, `class-tvarkom-obd-profiler.php` | The Checkout Speed Audit's collectors, ported with the `tvarkom_obd` prefix (0.2.0): business context, daily shop totals (table `tvarkom_obd_funnel`), detailed diagnostics, the checkout profiler (header `X-Tvarkom-Obd-Profile`) |
 | `includes/admin.php` | The page, the scan button and its handler, assets, privacy policy text |
 | `uninstall.php` | Removes the option, lock and token |

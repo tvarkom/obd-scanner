@@ -33,6 +33,10 @@ abstract class Tvarkom_OBD_Test_Case extends WP_UnitTestCase {
 		$this->requests  = array();
 		$this->responses = array();
 		add_filter( 'pre_http_request', array( $this, 'fake_http' ), 1, 3 );
+		// WordPress's own update checks run on admin_init and would ask wordpress.org; tests are offline.
+		remove_action( 'admin_init', '_maybe_update_core' );
+		remove_action( 'admin_init', '_maybe_update_plugins' );
+		remove_action( 'admin_init', '_maybe_update_themes' );
 		delete_option( TVARKOM_OBD_OPTION );
 		delete_option( TVARKOM_OBD_LOCK );
 	}

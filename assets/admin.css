@@ -160,7 +160,7 @@
 .tobd__chips li { margin: 0; padding: 5px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); font-size: 13px; }
 .tobd__analysis--commercial .tobd__h3 { margin-top: 8px; padding-top: 16px; border-top: 1px solid var(--line); }
 
-/* Pipeline: stages as columns of jobs, a log-style panel per job */
+/* Pipeline: status icons, stage cards, a log-style panel per job */
 .tobd__pipeline { --st-red: #dc2626; --st-orange: #ea580c; --st-yellow: #ca8a04; --st-green: #15803d; --st-grey: #8a8c86; }
 .tobd__icon { width: 18px; height: 18px; flex: 0 0 18px; vertical-align: -4px; }
 .tobd__icon circle { stroke: none; }
@@ -170,29 +170,27 @@
 .tobd__icon--yellow circle { fill: var(--st-yellow); }
 .tobd__icon--green circle { fill: var(--st-green); }
 .tobd__icon--grey circle { fill: var(--st-grey); }
-.tobd__pipeline-legend { margin: 0 0 16px; }
-.tobd__pipeline-legend li { display: inline-flex; align-items: center; gap: 6px; }
-.tobd__stages { display: flex; gap: 40px; overflow-x: auto; padding: 4px 2px 12px; }
-.tobd__stage { position: relative; flex: 1 1 0; min-width: 150px; }
-.tobd p.tobd__stage-name { display: flex; align-items: center; gap: 8px; height: 22px; margin: 0 0 12px; overflow: hidden; font-size: 13px; font-weight: 700; white-space: nowrap; color: var(--ink); }
-/* GitLab-style links: a stub from each job to a bus between the columns, the buses joined at the first job */
-.tobd__jobs { position: relative; margin: 0; padding: 0; list-style: none; }
-.tobd__jobs li { position: relative; margin: 0 0 10px; }
-.tobd__jobs li:last-child { margin-bottom: 0; }
-.tobd__stage:not(:first-child) .tobd__jobs li::before,
-.tobd__stage:not(:last-child) .tobd__jobs li::after { content: ""; position: absolute; top: 17px; width: 20px; border-top: 2px solid var(--line-strong); }
-.tobd__stage:not(:first-child) .tobd__jobs li::before { left: -20px; }
-.tobd__stage:not(:first-child) .tobd__jobs li:first-child::before { left: -40px; width: 40px; }
-.tobd__stage:not(:last-child) .tobd__jobs li::after { right: -20px; }
-.tobd__stage:not(:first-child) .tobd__jobs::before,
-.tobd__stage:not(:last-child) .tobd__jobs::after { content: ""; position: absolute; top: 17px; bottom: 17px; border-left: 2px solid var(--line-strong); }
-.tobd__stage:not(:first-child) .tobd__jobs::before { left: -21px; }
-.tobd__stage:not(:last-child) .tobd__jobs::after { right: -21px; }
-.tobd .tobd__job { position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; width: 100%; height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); font-size: 13px; text-align: left; cursor: pointer; }
-.tobd .tobd__job:hover { border-color: var(--line-strong); background: var(--paper); }
-.tobd .tobd__job[aria-expanded="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
-.tobd__job-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tobd__job-panels { margin-top: 8px; }
+/* GitLab's pipeline graph: stage cards on a grey band, joined by one line at the title's height */
+.tobd__stages { display: flex; align-items: flex-start; gap: 24px; overflow-x: auto; padding: 16px; border-radius: 8px; background: #f6f6f3; }
+.tobd__stage { position: relative; flex: 1 1 0; min-width: 170px; padding: 10px 6px 6px; border: 1px solid #dcdcd5; border-radius: 8px; background: var(--surface); }
+.tobd__stage:not(:last-child)::after { content: ""; position: absolute; top: 22px; right: -25px; width: 24px; border-top: 2px solid #dcdcd5; }
+.tobd h3.tobd__stage-name { margin: 0 0 6px; padding: 0 8px; overflow: hidden; font-size: 14px; font-weight: 700; line-height: 24px; white-space: nowrap; text-overflow: ellipsis; color: var(--ink); }
+.tobd__jobs { margin: 0; padding: 0; list-style: none; }
+.tobd__jobs li { margin: 0; }
+.tobd .tobd__job { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 38px; padding: 6px; border: 0; border-radius: 6px; background: transparent; color: var(--ink); font-size: 13px; text-align: left; cursor: pointer; }
+.tobd .tobd__job:hover { background: #f1f1ed; }
+.tobd .tobd__job[aria-expanded="true"] { background: #ecece6; box-shadow: inset 0 0 0 1px var(--line-strong); }
+.tobd__job .tobd__icon { width: 20px; height: 20px; flex: 0 0 20px; border-radius: 50%; }
+.tobd__job--red .tobd__icon { box-shadow: 0 0 0 3px #fbd5d5; }
+.tobd__job--orange .tobd__icon { box-shadow: 0 0 0 3px #fde0cc; }
+.tobd__job--yellow .tobd__icon { box-shadow: 0 0 0 3px #f8ebbf; }
+.tobd__job--green .tobd__icon { box-shadow: 0 0 0 3px #c9ead3; }
+.tobd__job--grey .tobd__icon { box-shadow: 0 0 0 3px #e3e3df; }
+.tobd__job-name { flex: 1 1 auto; min-width: 0; line-height: 1.3; overflow-wrap: anywhere; }
+.tobd__job-action { flex: 0 0 22px; width: 22px; height: 22px; padding: 3px; border: 1px solid var(--line-strong); border-radius: 50%; background: var(--surface); transition: transform 0.15s; }
+.tobd__job-action path { fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.tobd__job[aria-expanded="true"] .tobd__job-action { transform: rotate(90deg); }
+.tobd__job-panels { margin-top: 16px; }
 .tobd__job-panel { margin: 0 0 12px; padding: 16px 18px; border-left: 4px solid var(--st-grey); border-radius: 10px; background: #1c1d1b; color: #e8e8e3; font: 13px/1.6 var(--mono); }
 .tobd-js .tobd__job-panel { display: none; }
 .tobd-js .tobd__job-panel.is-open { display: block; }

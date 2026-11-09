@@ -331,6 +331,8 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 
 		$this->assertStringContainsString( 'Scanner pipeline', $html );
 		$this->assertStringNotContainsString( 'tobd__pipeline-legend', $html, 'no captions' );
+		$this->assertStringContainsString( '<h3 class="tobd__stage-name">', $html, 'each stage is a card with its name as the title' );
+		$this->assertStringContainsString( 'tobd__job-action', $html, 'each job has its round button, as in GitLab' );
 		$this->assertStringContainsString( 'tobd__job--red', $html );
 		$this->assertStringContainsString( 'aria-controls="tobd-job-0-0"', $html );
 		$this->assertStringContainsString( 'id="tobd-job-0-0"', $html );

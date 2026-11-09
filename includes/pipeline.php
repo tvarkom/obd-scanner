@@ -106,7 +106,8 @@ function tvarkom_obd_job_icon( $status ) {
 }
 
 /**
- * The pipeline: a legend, the stages as columns of jobs, and one panel per job (shown on click).
+ * The pipeline, laid out like GitLab's: each stage a card listing its jobs, the cards joined by a
+ * line, and one panel per job (shown on click).
  *
  * @param array<int, array{id: string, name: string, status: string, jobs: array<int, array<string, mixed>>}> $stages From tvarkom_obd_parse_pipeline().
  * @return void
@@ -135,15 +136,16 @@ function tvarkom_obd_render_pipeline( array $stages ) {
 		<div class="tobd__stages">
 			<?php foreach ( $stages as $s => $stage ) : ?>
 				<div class="tobd__stage">
-					<p class="tobd__stage-name"><?php echo wp_kses( tvarkom_obd_job_icon( $stage['status'] ), $icon_kses ); ?> <?php echo esc_html( $stage['name'] ); ?></p>
+					<h3 class="tobd__stage-name"><?php echo esc_html( $stage['name'] ); ?></h3>
 					<ul class="tobd__jobs">
 						<?php foreach ( $stage['jobs'] as $j => $job ) : ?>
 							<?php $panel = 'tobd-job-' . $s . '-' . $j; ?>
 							<li>
-								<button type="button" class="tobd__job tobd__job--<?php echo esc_attr( $job['status'] ); ?>" title="<?php echo esc_attr( $job['name'] ); ?>" aria-expanded="false" aria-controls="<?php echo esc_attr( $panel ); ?>">
+								<button type="button" class="tobd__job tobd__job--<?php echo esc_attr( $job['status'] ); ?>" aria-expanded="false" aria-controls="<?php echo esc_attr( $panel ); ?>">
 									<?php echo wp_kses( tvarkom_obd_job_icon( $job['status'] ), $icon_kses ); ?>
 									<span class="tobd__job-name"><?php echo esc_html( $job['name'] ); ?></span>
 									<span class="screen-reader-text"><?php echo esc_html( tvarkom_obd_job_status_label( $job['status'] ) ); ?></span>
+									<svg class="tobd__job-action" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6.5 4.5l3.5 3.5-3.5 3.5" /></svg>
 								</button>
 							</li>
 						<?php endforeach; ?>

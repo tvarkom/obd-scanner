@@ -111,6 +111,25 @@
 @keyframes tobd-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .tobd__spinner { animation: none; } }
 
+/* Full analysis (plugin 0.2.0): the report's sections */
+.tobd h2.tobd__part { margin: 32px 0 12px; padding: 0; font-size: 20px; font-weight: 700; color: var(--ink); }
+.tobd__impact { margin-top: 12px; padding: 12px 14px; border-radius: 10px; background: var(--warn-soft); color: var(--ink); font-size: 14px; font-weight: 600; line-height: 1.5; }
+.tobd__summary .tobd__lead { max-width: none; }
+.tobd__text { margin: 0 0 10px; font-size: 14px; line-height: 1.6; }
+.tobd__analysis .tobd__note { margin: 0 0 12px; }
+.tobd__list { margin: 0 0 14px 18px; padding: 0; list-style: disc; }
+.tobd__list li { margin: 0 0 6px; font-size: 14px; line-height: 1.55; }
+.tobd__pairs { margin: 0 0 14px; }
+.tobd__pairs dt { margin-top: 10px; font-size: 14px; font-weight: 600; }
+.tobd__pairs dd { margin: 2px 0 0; font-size: 13px; line-height: 1.55; color: var(--muted); }
+.tobd__status { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: var(--paper); border: 1px solid var(--line); font-size: 11px; font-weight: 600; color: var(--muted); vertical-align: 2px; }
+.tobd__table-wrap { margin: 0 0 16px; overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+.tobd__table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tobd__table th, .tobd__table td { padding: 8px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.tobd__table thead th { background: var(--paper); font-weight: 600; white-space: nowrap; }
+.tobd__table tbody th { width: 40%; font-weight: 600; }
+.tobd__table tr:last-child th, .tobd__table tr:last-child td { border-bottom: 0; }
+
 /* Scan button */
 .tobd__scanbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; margin: 0 0 16px; }
 .tobd__scanbar .tobd__btn { margin-top: 0; }

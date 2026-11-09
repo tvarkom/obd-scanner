@@ -38,26 +38,15 @@ class Tvarkom_OBD_Connect_Test extends Tvarkom_OBD_Test_Case {
 
 		$audit = $this->requests[2];
 		$this->assertSame( 'Bearer tvk_test', $audit['headers']['Authorization'] );
-		$this->assertSame( array( 'product', 'website', 'email', 'pages', 'metrics' ), array_keys( $audit['body'] ) );
+		$this->assertSame( array( 'product', 'website', 'email', 'pages', 'metrics', 'detailed' ), array_keys( $audit['body'] ) );
 		$this->assertSame( 'obd', $audit['body']['product'] );
 		$this->assertSame( get_option( 'admin_email' ), $audit['body']['email'] );
-		$this->assertSame(
-			array(
-				'php_version',
-				'autoloaded_kb',
-				'active_plugin_count',
-				'object_cache_enabled',
-				'object_cache_type',
-				'action_scheduler_pending',
-				'action_scheduler_past_due',
-				'action_scheduler_failed',
-				'action_scheduler_failed_7d',
-				'cron_disabled',
-				'cron_oldest_overdue_seconds',
-			),
-			array_keys( $audit['body']['metrics'] ),
-			'only the store figures listed on the page and in the readme'
-		);
+		// 0.2.0: the same data as the Checkout Speed Audit (metrics schema 3 and the detailed data).
+		$this->assertSame( 3, $audit['body']['metrics']['schema'] );
+		$this->assertArrayHasKey( 'order_tier', $audit['body']['metrics'] );
+		$this->assertArrayHasKey( 'currency', $audit['body']['metrics'] );
+		$this->assertArrayHasKey( 'top_autoloaded_keys', $audit['body']['detailed'] );
+		$this->assertArrayHasKey( 'checkout_profile', $audit['body']['detailed'] );
 
 		$settings = tvarkom_obd_settings();
 		$this->assertSame( 'tvk_test', $settings['api_key'] );

@@ -257,6 +257,8 @@ function tvarkom_obd_render_connect( $reconnect ) {
 		__( 'Autoloaded options, PHP and object cache', 'on-board-diagnostics-scanner-for-woocommerce' ),
 		__( 'WooCommerce background tasks', 'on-board-diagnostics-scanner-for-woocommerce' ),
 		__( 'HTTPS certificate, SPF and DMARC records', 'on-board-diagnostics-scanner-for-woocommerce' ),
+		__( 'Your checkout profiled: the plugins, hooks and queries that take the time', 'on-board-diagnostics-scanner-for-woocommerce' ),
+		__( 'Your sales and checkout in business terms, with the modelled impact of slow pages', 'on-board-diagnostics-scanner-for-woocommerce' ),
 		__( 'A score from 0 to 100, and how it changes from scan to scan', 'on-board-diagnostics-scanner-for-woocommerce' ),
 	);
 	$link   = '<a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>';
@@ -282,14 +284,26 @@ function tvarkom_obd_render_connect( $reconnect ) {
 			</div>
 			<div>
 				<dt><?php esc_html_e( 'With each scan you request', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dt>
-				<dd><?php esc_html_e( 'Your store, cart and checkout addresses, the admin email, and these store figures: PHP version, autoloaded options size, number of active plugins, object cache type, and counts of pending, overdue and failed background tasks and how late WP-Cron is. tvarkom\'s scanner then loads your public pages like a visitor.', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dd>
+				<dd><?php esc_html_e( 'Your store, cart and checkout addresses and the admin email. tvarkom\'s scanner then loads your public pages like a visitor.', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dd>
+			</div>
+			<div>
+				<dt><?php esc_html_e( 'Store data', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dt>
+				<dd><?php esc_html_e( 'PHP, WordPress and WooCommerce versions; database, options table and autoloaded options sizes, with the names and sizes of the largest autoloaded options and of tables left by removed plugins; the number of active plugins and the object cache type; background task and WP-Cron counts, with the names of failed and late tasks (error messages stripped of emails, links, IP addresses and long numbers); PHP settings such as the memory limit; and your monthly order volume as a range, for example 50–200.', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dd>
+			</div>
+			<div>
+				<dt><?php esc_html_e( 'Business context', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dt>
+				<dd><?php esc_html_e( 'So the analysis can speak in business terms: country and currency; paid, failed, pending and cancelled orders in the last 30 days; gross sales and average order value in your store\'s currency; how many customers were new or returning, as two counts; product and variation counts and whether stock management is on; the IDs of your payment gateways and shipping methods (never their settings); checkout type, order storage, database and web server, outdated template overrides, pending plugin updates and any backup plugin; the domain your store\'s emails come from (not the address); how many products were added to the cart, checkouts opened and orders placed over the last 30 days, as totals the plugin counts on your store without cookies or anything about the shopper; and how many orders came from each source (search, ads, referrals, direct), from WooCommerce Order Attribution.', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dd>
+			</div>
+			<div>
+				<dt><?php esc_html_e( 'A checkout profile', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dt>
+				<dd><?php esc_html_e( 'One checkout page load on your server, with one product in a temporary cart that is never saved (nothing is ordered): plugin, theme and hook names with their timings, database query shapes with every value replaced by "?", the host names of outside services called, and object cache hit and miss counts.', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dd>
 			</div>
 			<div class="tobd__never">
 				<dt><?php esc_html_e( 'Never sent', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dt>
-				<dd><?php esc_html_e( 'Customers, orders, sales, products, option contents and task names.', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dd>
+				<dd><?php esc_html_e( 'Customer records, order details, option contents and task arguments.', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dd>
 			</div>
 		</dl>
-		<p class="tobd__meta"><?php esc_html_e( 'tvarkom keeps each scan\'s results linked to your store for 12 months, to show them here and compare scans. Nothing on your store changes, and nothing is sent unless you click a scan button.', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></p>
+		<p class="tobd__meta"><?php esc_html_e( 'tvarkom keeps each scan\'s results and analysis, including the business context and sales figures above, linked to your store for 12 months, to show them here and compare scans. Nothing on your store changes, and nothing is sent unless you click a scan button.', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></p>
 
 		<form id="tobd-connect-form" class="tobd-scan-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 			<input type="hidden" name="action" value="tvarkom_obd_scan">
@@ -367,7 +381,7 @@ function tvarkom_obd_privacy_policy_content() {
 	if ( ! function_exists( 'wp_add_privacy_policy_content' ) ) {
 		return;
 	}
-	$content  = '<p>' . esc_html__( 'This site uses the On-board Diagnostics Scanner plugin, by tvarkom (MB TVARKOM SOFTWARE, Lithuania). When an administrator requests a scan, the store\'s address, its cart and checkout page addresses, the site\'s admin email and aggregate technical figures (PHP version, autoloaded options size, number of active plugins, object cache type, background task counts and WP-Cron delay) are sent to tvarkom each time an administrator requests a scan (at most once a week), and tvarkom\'s scanner loads the store\'s public pages. No customer or order data is sent. tvarkom keeps each scan\'s results linked to the store for 12 months.', 'on-board-diagnostics-scanner-for-woocommerce' ) . '</p>';
+	$content  = '<p>' . esc_html__( 'This site uses the On-board Diagnostics Scanner plugin, by tvarkom (MB TVARKOM SOFTWARE, Lithuania). When an administrator requests a scan (at most once a week), the store\'s address, its cart and checkout page addresses and the site\'s admin email are sent to tvarkom, with aggregate store data, such as software versions, database sizes, background task counts, order counts, the 30-day gross sales and average order value, new and returning customer counts, daily shop activity totals and order source counts, and a profile of one checkout page load. Customers\' names, emails and addresses are not sent. tvarkom keeps each scan\'s results and analysis, including these business figures, linked to the store for 12 months, and shows them on the plugin\'s page; nothing is emailed.', 'on-board-diagnostics-scanner-for-woocommerce' ) . '</p>';
 	$content .= '<p><a href="' . esc_url( 'https://tvarkom.com/privacy/' ) . '">' . esc_html__( 'tvarkom Privacy Policy', 'on-board-diagnostics-scanner-for-woocommerce' ) . '</a></p>';
 	wp_add_privacy_policy_content( 'On-board Diagnostics Scanner', wp_kses_post( $content ) );
 }

@@ -55,14 +55,15 @@ function tvarkom_obd_send_scan() {
 		'POST',
 		'/v1/audits',
 		array(
-			'product' => 'obd',
-			'website' => home_url( '/' ),
-			'email'   => (string) get_option( 'admin_email' ),
-			'pages'   => array(
+			'product'  => 'obd',
+			'website'  => home_url( '/' ),
+			'email'    => (string) get_option( 'admin_email' ),
+			'pages'    => array(
 				'cart'     => wc_get_cart_url(),
 				'checkout' => wc_get_checkout_url(),
 			),
-			'metrics' => tvarkom_obd_collect_metrics(),
+			'metrics'  => tvarkom_obd_collect_metrics(),
+			'detailed' => tvarkom_obd_collect_detailed(),
 		),
 		tvarkom_obd_settings()['api_key']
 	);

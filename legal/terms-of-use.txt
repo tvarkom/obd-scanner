@@ -3,7 +3,7 @@ On-board Diagnostics Scanner
 
 The terms for using the audit service of the On-board Diagnostics Scanner plugin for WooCommerce, by tvarkom.
 
-Last updated: 9 November 2026
+Last updated: 9 November 2026 (version 0.2.0)
 
 Who we are
 ----------
@@ -15,7 +15,7 @@ By connecting your store with the On-board Diagnostics Scanner plugin ("the plug
 What the service does
 ---------------------
 
-When you click "Connect and scan", and later each time you click "Scan now", tvarkom scans your store, and the plugin shows the results on its page in your store's admin: a score, the checks that cost points, the measurements and how the score changes over time. Our scanner loads your store's public pages like a visitor would and measures response times, page weight and caching, and the scan also uses a few figures the plugin reads from your store, as described in our Privacy Policy (privacy-policy.txt, shipped with the plugin). Neither the scanner nor the plugin changes anything on your store. Nothing is emailed.
+When you click "Connect and scan", and later each time you click "Scan now", tvarkom scans your store, and the plugin shows the results on its page in your store's admin: a score, the checks that cost points, the measurements and how the score changes over time. Our scanner loads your store's public pages like a visitor would and measures response times, page weight and caching, and the scan also uses data the plugin reads from your store, including your store's business context and a profile of one checkout page load on your store's server, as described in our Privacy Policy (privacy-policy.txt, shipped with the plugin). Neither the scanner nor the plugin changes anything on your store, apart from a small table of daily shop totals the plugin keeps. Nothing is emailed.
 
 Results describe your store at the moment of each scan. Results can vary between audits with traffic, hosting and caching.
 

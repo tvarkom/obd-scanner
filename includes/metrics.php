@@ -1,7 +1,9 @@
 <?php
 /**
- * The store data sent with each scan: software and database figures the dashboard and its score
- * use, as aggregate counts and sizes. No customer data, no orders, no sales.
+ * Store metrics for the audit (schema 3): the technical ones here, and the business context
+ * from includes/business.php. Only aggregate counts, sizes, settings and the 30-day sales totals
+ * (in the store's currency, for the report only): no customer data, no order contents. Every query is a COUNT/SUM on an indexed column
+ * or a read of the table sizes MySQL already keeps, so it's light even on shared hosting.
  *
  * @package OBDScanner
  */
@@ -11,16 +13,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Collects the metrics sent with a scan. tvarkom's scanner needs every field below to score the
- * store; the autoloaded options and background task figures each cost points when they're
- * unhealthy, and the dashboard shows them.
+ * Collects the metrics sent with an audit. Schema 3 keeps every schema 1 field (the audit tool
+ * reads them) and adds the business fields, with sales in the store's currency (schema 2 sent
+ * euro ranges).
  *
  * @return array<string, mixed>
  */
 function tvarkom_obd_collect_metrics() {
+	$sizes     = tvarkom_obd_table_sizes();
 	$scheduler = tvarkom_obd_scheduler_counts();
-	return array(
+	$cron      = tvarkom_obd_cron_overdue_seconds();
+
+	$technical = array(
+		'schema'                      => 3,
 		'php_version'                 => PHP_VERSION,
+		'wordpress_version'           => get_bloginfo( 'version' ),
+		'woocommerce_version'         => defined( 'WC_VERSION' ) ? WC_VERSION : null,
+		'options_table_size_mb'       => $sizes['options'],
+		'database_size_mb'            => $sizes['total'],
 		'autoloaded_kb'               => tvarkom_obd_autoloaded_kb(),
 		'active_plugin_count'         => tvarkom_obd_active_plugin_count(),
 		'object_cache_enabled'        => (bool) wp_using_ext_object_cache(),
@@ -30,7 +40,47 @@ function tvarkom_obd_collect_metrics() {
 		'action_scheduler_failed'     => $scheduler['failed'],
 		'action_scheduler_failed_7d'  => $scheduler['failed_7d'],
 		'cron_disabled'               => defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON,
-		'cron_oldest_overdue_seconds' => tvarkom_obd_cron_overdue_seconds(),
+		'cron_oldest_overdue_seconds' => $cron,
+		'order_tier'                  => tvarkom_obd_order_tier(),
+	);
+	return array_merge( $technical, tvarkom_obd_collect_business() );
+}
+
+/**
+ * Sizes of this site's tables in MB, from information_schema (data + indexes).
+ *
+ * @return array{options: float|null, total: float|null}
+ */
+function tvarkom_obd_table_sizes() {
+	global $wpdb;
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- one read of table metadata per audit.
+	$rows = $wpdb->get_results(
+		$wpdb->prepare(
+			'SELECT TABLE_NAME AS name, DATA_LENGTH + INDEX_LENGTH AS bytes FROM information_schema.TABLES WHERE TABLE_SCHEMA = %s AND TABLE_NAME LIKE %s',
+			DB_NAME,
+			$wpdb->esc_like( $wpdb->prefix ) . '%'
+		)
+	);
+	if ( empty( $rows ) ) {
+		return array(
+			'options' => null,
+			'total'   => null,
+		);
+	}
+	$total   = 0;
+	$options = null;
+	foreach ( $rows as $row ) {
+		$total += (int) $row->bytes;
+		if ( $row->name === $wpdb->options ) {
+			$options = (int) $row->bytes;
+		}
+	}
+	$mb = function ( $bytes ) {
+		return null === $bytes ? null : round( $bytes / 1048576, 1 );
+	};
+	return array(
+		'options' => $mb( $options ),
+		'total'   => $mb( $total ),
 	);
 }
 
@@ -44,7 +94,7 @@ function tvarkom_obd_autoloaded_kb() {
 	// WordPress 6.6+ stores several "autoload" values; older versions use "yes".
 	$values       = function_exists( 'wp_autoload_values_to_autoload' ) ? wp_autoload_values_to_autoload() : array( 'yes' );
 	$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
-	// phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- one SUM per scan; no API gives the total.
+	// phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
 	$bytes = $wpdb->get_var(
 		$wpdb->prepare( "SELECT SUM(LENGTH(option_value)) FROM {$wpdb->options} WHERE autoload IN ($placeholders)", $values )
 	);
@@ -136,4 +186,25 @@ function tvarkom_obd_cron_overdue_seconds() {
 		return 0;
 	}
 	return max( 0, time() - (int) min( array_keys( $crons ) ) );
+}
+
+/**
+ * Paid and on-hold orders in the last 30 days as a range (schema 1; the audit tool reads it).
+ * Schema 2 also sends the exact number (orders_30d, includes/business.php).
+ *
+ * @return string 0-10 | 10-50 | 50-200 | 200-1000 | 1000+
+ */
+function tvarkom_obd_order_tier() {
+	$orders = tvarkom_obd_paid_orders_30d();
+
+	if ( $orders < 10 ) {
+		return '0-10';
+	}
+	if ( $orders < 50 ) {
+		return '10-50';
+	}
+	if ( $orders < 200 ) {
+		return '50-200';
+	}
+	return $orders < 1000 ? '200-1000' : '1000+';
 }

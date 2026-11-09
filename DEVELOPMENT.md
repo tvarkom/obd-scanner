@@ -40,9 +40,11 @@ The page (admin.php) ──▶ GET /v1/results ──▶ dashboard (dashboard.ph
 | `includes/settings.php` | The option `tvarkom_obd`: key, `connected_at`, last result |
 | `includes/api.php` | Gateway requests, registration, `GET /v1/results` and its checks |
 | `includes/rest.php` | `GET /wp-json/tvarkom-obd/v1/verify`, the registration's domain check |
-| `includes/metrics.php` | The store figures sent with each scan |
+| `includes/metrics.php` | The store metrics sent with each scan (schema 3, as the Checkout Speed Audit) |
 | `includes/scan.php` | One scan request and the lock |
 | `includes/dashboard.php` | The dashboard's charts and texts |
+| `includes/analysis.php` | The full analysis (0.2.0): the report's sections from `latest.analysis`, checked and escaped |
+| `includes/business.php`, `funnel.php`, `detailed.php`, `profile*.php`, `class-tvarkom-obd-profiler.php` | The Checkout Speed Audit's collectors, ported with the `tvarkom_obd` prefix (0.2.0): business context, daily shop totals (table `tvarkom_obd_funnel`), detailed diagnostics, the checkout profiler (header `X-Tvarkom-Obd-Profile`) |
 | `includes/admin.php` | The page, the scan button and its handler, assets, privacy policy text |
 | `uninstall.php` | Removes the option, lock and token |
 

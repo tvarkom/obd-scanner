@@ -100,7 +100,8 @@ function tvarkom_obd_register() {
  *
  * - status:       none | scanning | failed | ready
  * - next_scan_at: Unix seconds, 0 when a scan may run now
- * - latest:       null, or {completed_at (Unix seconds), score (int|null), level, metrics, lost_points}
+ * - latest:       null, or {completed_at (Unix seconds), score (int|null), level, metrics, lost_points,
+ *                 analysis (the full analysis, tvarkom_obd_parse_analysis(), or null before 0.2.0's scans)}
  * - history:      list of {completed_at, score}, oldest first
  *
  * @param int $timeout Seconds to wait for the gateway.
@@ -162,6 +163,7 @@ function tvarkom_obd_parse_results( array $body ) {
 			'level'        => isset( $l['level'] ) && in_array( $l['level'], array( 'PASS', 'WARNING', 'CRITICAL_RISK' ), true ) ? $l['level'] : '',
 			'metrics'      => $metrics,
 			'lost_points'  => $lost,
+			'analysis'     => tvarkom_obd_parse_analysis( isset( $l['analysis'] ) ? $l['analysis'] : null ),
 		);
 	}
 

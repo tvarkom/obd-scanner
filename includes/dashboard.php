@@ -151,7 +151,8 @@ function tvarkom_obd_render_dashboard( array $results ) {
 	if ( null === $latest ) {
 		return;
 	}
-	$metrics = $latest['metrics'];
+	$metrics  = $latest['metrics'];
+	$analysis = isset( $latest['analysis'] ) ? $latest['analysis'] : null;
 	?>
 	<div class="tobd__grid">
 		<section class="tobd__panel tobd__score" aria-labelledby="tobd-score-title">
@@ -171,6 +172,11 @@ function tvarkom_obd_render_dashboard( array $results ) {
 			<?php tvarkom_obd_render_lost_points( $latest['lost_points'] ); ?>
 		</section>
 	</div>
+	<?php
+	if ( null !== $analysis ) {
+		tvarkom_obd_render_analysis_summary( $analysis['summary'] );
+	}
+	?>
 
 	<section class="tobd__panel" aria-labelledby="tobd-speed-title">
 		<h2 class="tobd__h2" id="tobd-speed-title"><?php esc_html_e( 'Server response', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
@@ -244,6 +250,10 @@ function tvarkom_obd_render_dashboard( array $results ) {
 		<?php tvarkom_obd_render_history( $results['history'] ); ?>
 	</section>
 	<?php
+	if ( null !== $analysis && ! empty( $analysis['sections'] ) ) {
+		echo '<h2 class="tobd__part">' . esc_html__( 'Full analysis', 'on-board-diagnostics-scanner-for-woocommerce' ) . '</h2>';
+		tvarkom_obd_render_analysis_sections( $analysis['sections'] );
+	}
 }
 
 /**

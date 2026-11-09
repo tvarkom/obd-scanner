@@ -130,4 +130,65 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$this->assertStringContainsString( '&lt;script&gt;', $html );
 		$this->assertStringContainsString( 'Other check', $html );
 	}
+
+	public function test_the_full_analysis_is_shown_without_markup() {
+		$body                       = $this->ready_results();
+		$body['latest']['analysis'] = array(
+			'schema'   => 1,
+			'summary'  => array(
+				'headline' => 'Store performance risk: High',
+				'text'     => 'Your store has serious speed problems.',
+				'impact'   => 'Modelled sales at risk: about 450 € – 6 300 € a month.',
+			),
+			'sections' => array(
+				array(
+					'id'      => 'technical',
+					'heading' => 'Technical findings',
+					'blocks'  => array(
+						array(
+							'type'   => 'heading',
+							'text'   => 'Server & checkout speed',
+							'status' => 'Needs attention',
+						),
+						array(
+							'type'  => 'list',
+							'items' => array( 'Homepage: <b>0.95 s</b>', 42 ),
+						),
+						array(
+							'type'  => 'pairs',
+							'items' => array(
+								array(
+									'term' => 'Slow server',
+									'text' => 'Every page waits for it.',
+								),
+							),
+						),
+						array(
+							'type' => 'table',
+							'head' => array( 'What', 'Yours' ),
+							'rows' => array( array( 'Files', '90' ) ),
+						),
+						array( 'type' => 'script' ),
+					),
+				),
+			),
+		);
+		$this->respond( 'GET', '/v1/results', 200, $body );
+		$html = $this->render_page();
+
+		$this->assertStringContainsString( 'Your store has serious speed problems.', $html );
+		$this->assertStringContainsString( 'Modelled sales at risk', $html );
+		$this->assertStringContainsString( 'Full analysis', $html );
+		$this->assertStringContainsString( '<span class="tobd__status">Needs attention</span>', $html );
+		$this->assertStringContainsString( 'Homepage: &lt;b&gt;0.95 s&lt;/b&gt;', $html );
+		$this->assertStringNotContainsString( '<b>0.95', $html );
+		$this->assertStringContainsString( '<dt>Slow server</dt>', $html );
+		$this->assertStringContainsString( '<td>90</td>', $html );
+	}
+
+	public function test_scans_before_0_2_0_have_no_analysis() {
+		$this->respond( 'GET', '/v1/results', 200, $this->ready_results() );
+		$this->assertStringNotContainsString( 'Full analysis', $this->render_page() );
+		$this->assertNull( tvarkom_obd_parse_analysis( array( 'schema' => 2 ) ) );
+	}
 }

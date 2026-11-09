@@ -13,7 +13,7 @@ class Tvarkom_OBD_Connect_Test extends Tvarkom_OBD_Test_Case {
 
 	public function test_nothing_is_sent_before_connecting() {
 		$this->sign_in_shop_manager();
-		do_action( 'admin_init' );
+		$this->run_plugin_admin_init();
 		$html = $this->render_page();
 		$this->assertSame( 'not_connected', tvarkom_obd_scan() );
 

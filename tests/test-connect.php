@@ -19,7 +19,8 @@ class Tvarkom_OBD_Connect_Test extends Tvarkom_OBD_Test_Case {
 
 		$this->assertSame( array(), $this->requests );
 		$this->assertStringContainsString( 'Connect and scan', $html );
-		$this->assertStringContainsString( 'https://tvarkom.com/privacy/', $html );
+		$this->assertStringContainsString( 'obd-scanner/legal/privacy-policy.txt', $html );
+		$this->assertStringContainsString( 'obd-scanner/legal/terms-of-use.txt', $html );
 		$this->assertFalse( wp_next_scheduled( TVARKOM_OBD_CRON ) );
 	}
 

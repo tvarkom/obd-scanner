@@ -1,0 +1,165 @@
+PRIVACY POLICY
+Checkout Speed Audit and On-board Diagnostics Scanner
+
+What personal data the audit service of tvarkom's WooCommerce plugins (Checkout Speed Audit and On-board Diagnostics Scanner) and tvarkom's website handle, why, who processes it for us and how long we keep it.
+
+Last updated: 9 November 2026
+
+Who we are
+----------
+
+The data controller is MB TVARKOM SOFTWARE ("tvarkom", "we", "us"), a small partnership (mažoji bendrija) registered in Lithuania under company code 308171668, registered office Gedimino g. 22A-14, 44319 Kaunas, Lithuania. For privacy questions and data requests, email privacy@tvarkom.com.
+
+The plugin's audit service
+--------------------------
+
+The Checkout Speed Audit plugin contacts tvarkom for the first time when an administrator clicks "Send me the Report"; before that, it sends nothing. From then on it sends:
+
+* Registration (first audit only): your store's address, the report email and the address of the plugin's verification endpoint. We fetch a one-time token from that endpoint to confirm the request comes from your store, then issue a key for your domain. Unfinished registrations are deleted after 7 days.
+
+* Each audit: your store's address, its cart and checkout page addresses and the report email. The request also reaches us from your store's server IP address, which we use for our limits.
+
+* Store data, with each report request: PHP, WordPress and WooCommerce versions; database, options table and autoloaded options sizes; the number of active plugins and the object cache type; background task (Action Scheduler) counts and how late WP-Cron runs; the number of orders in the last 30 days as a range (for example 50–200); the names and sizes of the largest autoloaded options and of database tables left by removed plugins; PHP settings such as the memory limit; failed and late background task names, with error messages stripped of email addresses, links, IP addresses and long numbers; and a profile of one checkout page load on your store's server, with a temporary cart: plugin, theme and hook names with their timings, database query shapes with every value replaced by "?", the host names of outside services called, and object cache hit and miss counts. Option, table, task, hook and host names are chosen by plugins; before they're sent, the plugin replaces any email address, run of six or more digits, or long hexadecimal or UUID identifier in them with a placeholder.
+
+* Business context, with each report request, so the report can explain its findings in business terms: your store's country and currency; the number of paid and on-hold orders in the last 30 days, and of failed, pending and cancelled orders; gross sales in the last 30 days and the average order value, as exact amounts in your store's currency, which we use only to write your report and never keep; how many customers in the last 30 days were new and how many returning, as two counts; the number of published products and variations and whether stock management is on; the IDs of the enabled payment gateways and shipping methods (never their settings or keys); whether checkout uses the Checkout block or the classic shortcode and whether High-Performance Order Storage is on; the database and web server product; how many of your theme's WooCommerce template overrides are outdated; how many plugins have an update waiting; and the name of an active backup plugin, if any; the domain your store's emails come from (never the address); how many products were added to the cart, checkout pages opened and orders placed over the last 30 days, which the plugin counts on your store's server as daily totals, without cookies, browser scripts or anything about the shopper, keeping 35 days and deleting them when you uninstall it; and how many orders in the last 30 days came from each source type and from the 10 most common campaign sources, from WooCommerce Order Attribution (a campaign name that looks like an email address, a long number or an identifier is counted as "other", never sent).
+
+The plugin lists the store data and the business context above the "Send me the Report" button. The plugin doesn't read customers' names, email addresses or postal addresses, order contents, option contents or task arguments for them, and sends sales only as the two 30-day totals above. For a sole trader, sales can relate to a person: that's why we use them only to write the report you asked for, and our database never stores them.
+
+* Next scan date and exchange rates: once your store is registered (after the first click), the plugin asks us, each time you open its page and before each audit, when your store may scan again. It sends only your store's key; our answer also carries the European Central Bank's daily euro rates, which we fetch from the ECB ourselves and which plugin versions before 0.12.0 used (your store doesn't contact the ECB). Before the first click, opening the page contacts nobody.
+
+What the scan reads. Our scanner then loads your store's public homepage, cart and checkout pages the way a visitor would, without running their JavaScript: it measures response times, page size and caching, and reads response headers and public platform markers. It doesn't log in, submit forms, place orders or read anything that isn't public.
+
+What a report contains. Your store's address, the health score and risk level, the findings and recommendations, and the measurements: response times, page weight, files, caching and marketing trackers. The report also contains the store data and what we found in it, and names the report email it was prepared for.
+
+One report a week. Each store can request one free report per week. We use the store's audit requests to apply this.
+
+Where your report goes. We email it to the report email only. We keep no copy of it: our report mailbox (checkoutspeedaudit@tvarkom.com) gets a short notice for each report sent, with your store's domain, the time and whether it was sent, so we have a record of our deliveries; the notice never contains the report, its findings or the report email. Our database keeps no copy of the report or of the store data once it's sent; it keeps the audit results described below. Until 6 November 2026 the report mailbox received a copy of each report; those copies are deleted 12 months after they were sent.
+
+Your audit history. We retain audit results linked to your store for support and comparison over time. For each report sent (and each completed On-board Diagnostics Scanner scan, below) we keep: the health score and risk level; which scoring rules and fix plan items applied, as short identifiers, and, since 9 November 2026, how many points each scoring rule cost; the server, cart and checkout response times; page weight and number of files; the autoloaded options size; the PHP version and object cache type; the days left on your HTTPS certificate; and whether SPF and DMARC records were found. We don't keep the report, its text, the report email, option, table, task or hook names, or error messages. These results are not anonymous: they are linked to your store through its audit request, which holds the report email and IP address until those are erased after 90 days. We use them to answer you about your reports and how your store's results change over time, and, across stores, to improve our scanner and its recommendations. We keep them for 12 months after each audit, a period we'll review against how useful they turn out to be, and delete them sooner on request.
+
+Your store's profile. We keep the latest business context of each store (not the report, the store data, the checkout profile or any sales amount), replaced by each new report request. We use it as totals across stores, for example how many stores per country, size or checkout type, to understand which stores use the plugin, and to support your store when you contact us.
+
+Legal basis (Art. 6 GDPR), by purpose:
+* Registering your store, scanning it and emailing the report you ask for: providing the service you request (Art. 6(1)(b)).
+* The report email address when it belongs to someone other than the store's owner, such as an employee or an agency: our legitimate interest in delivering the report the store asked for to the person it chose (Art. 6(1)(f)).
+* The audit history: our legitimate interests in supporting your store, comparing its results over time, and improving our scanner and recommendations (Art. 6(1)(f)).
+* The store profile and its statistics; the IP address, audit requests and limits; the notices and alerts in our mailboxes: our legitimate interests in understanding who uses our free plugin, supporting stores that contact us, preventing abuse of the plugin, and keeping a record of what we sent and what went wrong (Art. 6(1)(f)).
+You can object at any time: email privacy@tvarkom.com and we'll delete your store's audit history and profile, or stop running scans or uninstall the plugin, and nothing more is sent.
+
+Uninstalling the plugin deletes everything it keeps on your store: its settings, its key and the table of daily totals. Records already on our side follow the periods in "How long we keep it" below, or are deleted sooner on request.
+
+The On-board Diagnostics Scanner plugin
+---------------------------------------
+
+Our second plugin, On-board Diagnostics Scanner for WooCommerce, shows its results on its own page in your store's admin instead of emailing a report. It contacts tvarkom for the first time when an administrator clicks "Connect and scan"; before that, it sends nothing. From then on it sends:
+
+* Connecting (and again if the store's key stops working): your store's address, your site's admin email (WordPress Settings → General) as the contact address of your store's registration, and the address of the plugin's verification endpoint, which we check as described above. We send no reports and no marketing to that email.
+
+* Each scan, right after connecting and then once a week on its own: your store's address, its cart and checkout page addresses, the admin email, and these store figures: the PHP version, the autoloaded options size, the number of active plugins, the object cache type, background task (Action Scheduler) counts, and whether and how late WP-Cron runs. It sends no business context, no names of options, tables, tasks or plugins, no checkout profile, and nothing about customers, orders or sales. The request also reaches us from your store's server IP address, which we use for our limits.
+
+* The dashboard: each time an administrator opens the plugin's page, it asks us for your store's results, sending only the store's key. We answer with your store's audit history (above): the score and risk level, the scoring rules that cost points and how many, and the measurements, and with the date of the next scan. We never send it the fix plan.
+
+Our scanner reads your store's public pages, its HTTPS certificate and your domain's public SPF and DMARC records, as for the other plugin. We email nothing for these scans: no report, no failure notice, and no notice in our report mailbox. Both plugins share your store's registration, its one scan a week and its audit history; registering with one of them gives the store a new key, so the other one registers again on its next scan.
+
+Legal basis: scanning your store and showing you its results, now and every week as you asked when you connected it, is providing the service you request (Art. 6(1)(b)); the audit history, the limits and the IP address are covered by the legitimate interests listed above (Art. 6(1)(f)). To stop, deactivate or delete the plugin: nothing more is sent. Deleting it removes its settings and key from your store.
+
+Emails we send
+--------------
+
+We email the Checkout Speed Audit's reports to the report email, from checkoutspeedaudit@tvarkom.com (the On-board Diagnostics Scanner emails nothing). Once an email reaches your inbox, it stays there until you delete it.
+
+If something goes wrong, for example our scanner can't reach your store or a report can't be delivered, our team gets an alert in our mailbox naming your store and, in its text, the report email, so we can fix it or run the audit by hand. Alerts never contain your report.
+
+Free report from our website
+----------------------------
+
+On tvarkom.com you can ask for a free Checkout Speed Audit of a WooCommerce store without installing the plugin: you give the store's address and your email, and you can tick a box, unticked by default, to let us contact you about your report.
+
+* What we receive: the store's address, your email, whether you ticked the box, and the IP address your request comes from, which we use for our limits (3 requests per email a day, 3 per IP address an hour).
+
+* Confirmation first: we email you a link, and nothing runs until you click it within 24 hours. If you don't, nothing more is sent. The request itself is deleted 7 days after it was made either way.
+
+* The report: our scanner then loads the store's public pages from outside, as described in "What the scan reads", and we email the report to you, with a link to the plugin. It contains none of the store data the plugin sends. Each store can have one such report a week.
+
+* Contacting you: only if you ticked the box, we may contact you about your report. We keep that agreement until you withdraw it: reply to any of our emails or write to privacy@tvarkom.com. If you didn't tick it, we use your email only for the confirmation and the report.
+
+* Our records: when you confirm, an alert in our mailbox tells our team the store, your email and whether you ticked the box. The request is then kept like a plugin audit request (24 months; your email and IP address erased after 90 days), and its results in the audit history (12 months).
+
+Legal basis: providing the report you ask for (Art. 6(1)(b)); the limits, the IP address and the alert: our legitimate interest in preventing abuse and knowing what we sent (Art. 6(1)(f)); contacting you about your report: your consent (Art. 6(1)(a)), which you can withdraw at any time.
+
+Forms on our former website
+---------------------------
+
+Until November 2026, tvarkom.com had a free store audit form, an early-access waitlist for tvarkom Lead Time Management and an engineering enquiry form. Those forms were removed; the free report form above is new and separate. On 5 November 2026 we deleted what they had stored in our database: the audits requested on tvarkom.com and their reports, the waitlist sign-ups and the enquiries. Copies of sign-ups and enquiries remain in our mailboxes (see below), and deleted data can remain in database snapshots for 5 days.
+
+tvarkom's website
+-----------------
+
+tvarkom.com has no analytics and no browser storage of its own, and its only form is the free report form described above. When you visit it, our hosting provider and Cloudflare process your IP address and the pages you request to deliver the site and protect it from abuse. Cloudflare's bot protection runs a short check in your browser and sets one security cookie, cf_clearance (HttpOnly, up to one year), which tells Cloudflare your browser passed it; it isn't used for tracking or advertising. Legal basis: our legitimate interest in running a secure website (Art. 6(1)(f)); the cookie is strictly necessary for that security.
+
+When you email us
+-----------------
+
+We keep your messages and contact details to answer you and, if you become a client, to do the work. Legal basis: taking steps at your request or performing a contract (Art. 6(1)(b)), or our legitimate interest in answering enquiries (Art. 6(1)(f)).
+
+Who processes data for us
+-------------------------
+
+* Fly.io: hosts our website, our API and our scanner, with their databases and logs, on servers in Amsterdam, Netherlands.
+
+* Cloudflare: DNS and network protection for tvarkom.com.
+
+* Resend: delivers our emails, including the attached reports. It keeps delivery information under its own retention policy, which we don't set.
+
+* Google: Google Workspace hosts our mailbox.
+
+* European Central Bank: we fetch its public exchange rates; no personal data is sent to it.
+
+Some of these providers are based in the United States. Where data leaves the EU, they process it under an EU adequacy decision, such as the EU-US Data Privacy Framework, or Standard Contractual Clauses. We don't sell your data or use it for advertising. We don't take payments.
+
+How long we keep it
+-------------------
+
+These periods are applied automatically by our software:
+
+* Failed audits (the request and any store data sent with it): 15 days after they failed. If our scanning service is restarted in the middle of an audit too many times, it keeps that audit for our engineers to inspect for 15 days.
+
+* Audit requests (store, page addresses and time): 24 months, for our limits and records. The email address and IP address in them are erased after 90 days.
+
+* Plugin registrations (store and the latest report email): the email is deleted after 12 months without activity, and the registration 24 months after the store's last audit. Activity means a successful audit, a registration or a reconnection.
+
+* Audit results (the audit history, which the On-board Diagnostics Scanner also shows in your store's admin): 12 months after each audit, or sooner on request. They're also deleted with their audit request.
+
+* Store profiles: replaced by each report request, and deleted with the store's registration (at the latest 24 months after its last audit), or sooner on request.
+
+* Exchange rates: only the latest day's.
+
+* Free report requests from tvarkom.com (store, email, IP address, your choice about being contacted): 7 days after the request, confirmed or not. A confirmed one is then kept as an audit request and audit results, as above.
+
+* Your agreement to be contacted about your report: until you withdraw it.
+
+Mailboxes and other copies:
+
+* Our report mailbox (checkoutspeedaudit@tvarkom.com) holds the notices of reports sent (store domain, time, status) and the alerts about failed scans and deliveries and about free reports confirmed on tvarkom.com, which name the store and the report email. We delete them 12 months after they arrive. It also holds the copies of reports sent before 6 November 2026, which we delete 12 months after they were sent.
+
+* Our other mailboxes hold copies of past waitlist sign-ups and enquiries, and the emails you send us. They have no automatic deletion: we keep these messages for as long as we need them to deal with your request and any follow-up, and longer only where the law requires it, for example for records of work we do for you.
+
+* Database snapshots: our hosting provider takes daily snapshots of our databases, plus one before some updates, and deletes each after 5 days. We don't keep any other backups of the database. Data we've deleted can remain in a snapshot until it expires. We use snapshots only to restore our service, and if we restore one, we delete again anything that had already been deleted.
+
+* Logs: our service logs record store addresses and technical identifiers, not report contents or email addresses. Our hosting provider keeps them for about 7 days.
+
+* Our scanning service keeps a working copy of a report only while the scan runs and the report is emailed.
+
+* Google Analytics: tvarkom.com used Google Analytics, only with visitors' consent, until November 2026. Data collected then is kept for 14 months.
+
+Your rights
+-----------
+
+You can ask us for a copy of your data, to correct or delete it, to restrict or object to how we use it, or to receive it in a portable format. Email privacy@tvarkom.com and we'll reply within one month. For help with the plugin or a report, email support@tvarkom.com.
+
+You can also complain to the Lithuanian supervisory authority, the State Data Protection Inspectorate (vdai.lrv.lt (https://vdai.lrv.lt/en/)), or to the authority where you live.
+
+Changes
+-------
+
+This policy is published at https://tvarkom.com/privacy/ and shipped with both plugins. If we change how we handle your data, we'll update it and the date at the top.

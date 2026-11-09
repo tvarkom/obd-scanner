@@ -57,8 +57,8 @@ The plugin never sends customer data, orders, sales, products, option contents o
 
 Uninstalling the plugin deletes its settings and key from your store; records on tvarkom's side follow the periods above. To have them deleted sooner, email privacy@tvarkom.com.
 
-* Terms of Use: https://tvarkom.com/terms/
-* Privacy Policy: https://tvarkom.com/privacy/
+* Privacy Policy: https://tvarkom.com/privacy/ (also shipped with the plugin, `legal/privacy-policy.txt`)
+* Terms of Use: shipped with the plugin, `legal/terms-of-use.txt`
 
 == Frequently Asked Questions ==
 

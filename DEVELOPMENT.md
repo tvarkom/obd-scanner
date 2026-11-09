@@ -60,4 +60,8 @@ Checkout Speed Audit plugin. Locally, without PHP installed: `PHP=7.4 npx @php-w
 ## Release
 
 Build the zip from a tagged commit with only the shipped files: `obd-scanner.php`, `uninstall.php`,
-`readme.txt`, `includes/`, `assets/`.
+`readme.txt`, `includes/`, `assets/`, `legal/`.
+
+`legal/privacy-policy.txt` is tvarkom's one privacy policy, shared with the Checkout Speed Audit
+plugin and published at tvarkom.com/privacy/ (website repo `content/privacy-policy.txt`): keep the
+copies identical. `legal/terms-of-use.txt` is this plugin's own.

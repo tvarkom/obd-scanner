@@ -36,6 +36,17 @@ function tvarkom_obd_page_url() {
 }
 
 /**
+ * The URL of one of the legal texts that ship with the plugin (legal/), so the version the
+ * administrator agrees to is the one installed. The privacy policy is also at tvarkom.com/privacy/.
+ *
+ * @param string $file File name in legal/: terms-of-use.txt or privacy-policy.txt.
+ * @return string
+ */
+function tvarkom_obd_legal_url( $file ) {
+	return plugins_url( 'legal/' . $file, TVARKOM_OBD_FILE );
+}
+
+/**
  * A "Dashboard" link on the Plugins screen.
  *
  * @param array<int|string, string> $links The plugin's action links.
@@ -293,8 +304,8 @@ function tvarkom_obd_render_connect( $reconnect ) {
 				printf(
 					/* translators: 1: link to the Terms of Use, 2: link to the Privacy Policy. */
 					esc_html__( 'By clicking “Connect and scan”, you agree to send this data to tvarkom now and once a week, and accept tvarkom\'s %1$s and %2$s.', 'obd-scanner' ),
-					sprintf( $link, esc_url( 'https://tvarkom.com/terms/' ), esc_html__( 'Terms of Use', 'obd-scanner' ) ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
-					sprintf( $link, esc_url( 'https://tvarkom.com/privacy/' ), esc_html__( 'Privacy Policy', 'obd-scanner' ) ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
+					sprintf( $link, esc_url( tvarkom_obd_legal_url( 'terms-of-use.txt' ) ), esc_html__( 'Terms of Use', 'obd-scanner' ) ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
+					sprintf( $link, esc_url( tvarkom_obd_legal_url( 'privacy-policy.txt' ) ), esc_html__( 'Privacy Policy', 'obd-scanner' ) ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
 				);
 				?>
 			</p>

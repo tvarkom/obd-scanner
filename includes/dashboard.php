@@ -131,6 +131,16 @@ function tvarkom_obd_number( array $metrics, $id ) {
 }
 
 /**
+ * A size in KB as "950 KB" or "1.8 MB".
+ *
+ * @param float $kb Kilobytes.
+ * @return string
+ */
+function tvarkom_obd_size( $kb ) {
+	return (string) size_format( (int) round( $kb * 1024 ), $kb >= 1024 ? 1 : 0 );
+}
+
+/**
  * Renders the dashboard for results with a latest audit.
  *
  * @param array{status: string, next_scan_at: int, latest: array<string, mixed>|null, history: array<int, array{completed_at: int, score: int}>} $results From tvarkom_obd_fetch_results().
@@ -194,7 +204,7 @@ function tvarkom_obd_render_dashboard( array $results ) {
 			<h2 class="tobd__h2" id="tobd-page-title"><?php esc_html_e( 'Homepage weight', 'obd-scanner' ); ?></h2>
 			<?php
 			$kb = tvarkom_obd_number( $metrics, 'page_weight_kb' );
-			tvarkom_obd_render_bar( __( 'Size, with every file it loads', 'obd-scanner' ), $kb, null === $kb ? '' : size_format( (int) round( $kb * 1024 ), 1 ), 3584, 3584, 5376 );
+			tvarkom_obd_render_bar( __( 'Size, with every file it loads', 'obd-scanner' ), $kb, null === $kb ? '' : tvarkom_obd_size( $kb ), 3584, 3584, 5376 );
 			$files = tvarkom_obd_number( $metrics, 'requests' );
 			tvarkom_obd_render_bar( __( 'Files', 'obd-scanner' ), $files, null === $files ? '' : number_format_i18n( $files ), 60, 60, 90 );
 			?>
@@ -205,7 +215,7 @@ function tvarkom_obd_render_dashboard( array $results ) {
 			<h2 class="tobd__h2" id="tobd-db-title"><?php esc_html_e( 'Database and server', 'obd-scanner' ); ?></h2>
 			<?php
 			$autoload = tvarkom_obd_number( $metrics, 'autoload_kb' );
-			tvarkom_obd_render_bar( __( 'Autoloaded options', 'obd-scanner' ), $autoload, null === $autoload ? '' : size_format( (int) round( $autoload * 1024 ), 1 ), 800, 2048, 3072, true );
+			tvarkom_obd_render_bar( __( 'Autoloaded options', 'obd-scanner' ), $autoload, null === $autoload ? '' : tvarkom_obd_size( $autoload ), 800, 2048, 3072, true );
 			?>
 			<p class="tobd__note"><?php esc_html_e( 'Settings WordPress loads on every request. Reference: under 800 KB; above 2 MB is critical.', 'obd-scanner' ); ?></p>
 			<dl class="tobd__facts">
@@ -255,6 +265,7 @@ function tvarkom_obd_render_gauge( $score, $level ) {
 	}
 	?>
 	<div class="tobd__gauge tobd--<?php echo esc_attr( $tone ); ?>">
+		<div class="tobd__dial">
 		<svg viewBox="0 0 240 132" role="img" aria-labelledby="tobd-gauge-label" focusable="false">
 			<title id="tobd-gauge-label">
 				<?php
@@ -272,6 +283,7 @@ function tvarkom_obd_render_gauge( $score, $level ) {
 			<?php endif; ?>
 		</svg>
 		<p class="tobd__gauge-number"><span class="tobd__score-value"><?php echo null === $score ? '—' : esc_html( (string) $score ); ?></span><span class="tobd__score-of">/100</span></p>
+		</div>
 		<p class="tobd__badge"><?php echo esc_html( tvarkom_obd_level_label( $level ) ); ?></p>
 	</div>
 	<?php

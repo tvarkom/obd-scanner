@@ -62,7 +62,8 @@
 /* Score gauge */
 .tobd__score { text-align: center; }
 .tobd__score .tobd__h2 { text-align: left; }
-.tobd__gauge { position: relative; max-width: 280px; margin: 0 auto; }
+.tobd__gauge { max-width: 280px; margin: 0 auto; }
+.tobd__dial { position: relative; }
 .tobd__gauge svg { display: block; width: 100%; height: auto; }
 .tobd__gauge-track, .tobd__gauge-value { fill: none; stroke-width: 18; stroke-linecap: round; }
 .tobd__gauge-track { stroke: var(--paper); }
@@ -97,9 +98,9 @@
 .tobd__fact dd { margin: 2px 0 0; font-size: 15px; font-weight: 600; }
 
 /* History */
-.tobd__history { display: block; width: 100%; height: auto; }
+.tobd__history { display: block; width: 100%; max-width: 760px; height: auto; margin: 0 auto; }
 .tobd__band { fill: var(--tone-soft); }
-.tobd__axis { fill: var(--muted); font-size: 11px; }
+.tobd__axis { fill: var(--muted); font-size: 10px; }
 .tobd__line { fill: none; stroke: var(--ink); stroke-width: 2; }
 .tobd__dot { fill: var(--surface); stroke: var(--ink); stroke-width: 2; }
 

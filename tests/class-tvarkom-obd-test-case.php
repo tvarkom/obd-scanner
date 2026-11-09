@@ -78,6 +78,9 @@ abstract class Tvarkom_OBD_Test_Case extends WP_UnitTestCase {
 	 * @return array|WP_Error
 	 */
 	public function fake_http( $pre, $args, $url ) {
+		if ( false !== $pre ) {
+			return $pre; // Already answered by a test's own fake (e.g. wordpress.org).
+		}
 		if ( 0 !== strpos( $url, TVARKOM_OBD_API_URL . '/' ) ) {
 			return new WP_Error( 'http_request_failed', 'Tests are offline: ' . $url );
 		}

@@ -12,7 +12,7 @@ A free health dashboard for your WooCommerce store: server, cart and checkout sp
 
 == Description ==
 
-On-board Diagnostics adds a **WooCommerce → OBD Scanner** page that shows how healthy your store is, right in wp-admin. Click once, and tvarkom's free scanner checks your store; scan it again once a week to follow your score.
+On-board Diagnostics adds a **WooCommerce → Store Scanner** page that shows how healthy your store is, right in wp-admin. Click once, and tvarkom's free scanner checks your store; scan it again once a week to follow your score.
 
 The dashboard shows:
 
@@ -29,7 +29,7 @@ tvarkom's scanner measures your store from outside, the way a shopper's browser 
 = How it works =
 
 1. Install and activate the plugin. Nothing is sent yet.
-2. Open **WooCommerce → OBD Scanner** and click **Connect and scan**, right under the list of what is sent.
+2. Open **WooCommerce → Store Scanner** and click **Connect and scan**, right under the list of what is sent.
 3. The first scan takes a few minutes; the page updates itself when the results arrive.
 4. After that, click **Scan now** whenever you want fresh results, once a week at most. Until then the button shows the date of your next scan, and the dashboard shows the latest results and the score history.
 

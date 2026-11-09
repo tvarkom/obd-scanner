@@ -1,6 +1,6 @@
 <?php
 /**
- * The admin page (WooCommerce → OBD Scanner): before connecting, what the plugin does and sends,
+ * The admin page (WooCommerce → Store Scanner): before connecting, what the plugin does and sends,
  * and the "Connect and scan" button; after, the dashboard or the scan in progress.
  *
  * @package OBDScanner
@@ -19,7 +19,7 @@ function tvarkom_obd_admin_menu() {
 	add_submenu_page(
 		'woocommerce',
 		__( 'On-board Diagnostics', 'on-board-diagnostics-scanner-for-woocommerce' ),
-		__( 'OBD Scanner', 'on-board-diagnostics-scanner-for-woocommerce' ),
+		__( 'Store Scanner', 'on-board-diagnostics-scanner-for-woocommerce' ),
 		'manage_woocommerce',
 		'tvarkom-obd',
 		'tvarkom_obd_render_page'

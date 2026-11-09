@@ -1,5 +1,5 @@
 /**
- * On-board Diagnostics page (WooCommerce → OBD Scanner).
+ * On-board Diagnostics page (WooCommerce → Store Scanner).
  *
  * - While a scan runs ([data-tobd-refresh] on the page), reloads the page every 20 seconds, at
  *   most 30 times in a row (10 minutes), without the one-time result notice in the address.

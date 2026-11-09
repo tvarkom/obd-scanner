@@ -110,11 +110,13 @@ function tvarkom_obd_render_page() {
 			<p class="tobd__store"><?php echo esc_html( (string) wp_parse_url( home_url(), PHP_URL_HOST ) ); ?></p>
 		</header>
 		<?php
-		if ( isset( $messages[ $notice ] ) ) {
+		$connected = tvarkom_obd_is_connected();
+		// Once connected, a requested scan shows as the scan's own status, not as a second notice.
+		if ( isset( $messages[ $notice ] ) && ! ( $connected && 'queued' === $notice ) ) {
 			tvarkom_obd_render_notice( $messages[ $notice ][0], $messages[ $notice ][1] );
 		}
-		if ( tvarkom_obd_is_connected() ) {
-			tvarkom_obd_render_connected();
+		if ( $connected ) {
+			tvarkom_obd_render_connected( 'queued' === $notice );
 		} else {
 			tvarkom_obd_render_connect( false );
 		}
@@ -138,9 +140,10 @@ function tvarkom_obd_render_notice( $type, $text ) {
 /**
  * The page once connected: the results from tvarkom, or what's happening, and the scan button.
  *
+ * @param bool $requested Whether a scan was requested just now (tvarkom accepted it).
  * @return void
  */
-function tvarkom_obd_render_connected() {
+function tvarkom_obd_render_connected( $requested = false ) {
 	$results = tvarkom_obd_fetch_results();
 
 	if ( is_string( $results ) ) {
@@ -159,10 +162,8 @@ function tvarkom_obd_render_connected() {
 		tvarkom_obd_render_waiting( $results['status'], $results['next_scan_at'] );
 		return;
 	}
-	if ( 'scanning' === $results['status'] ) {
-		echo '<div class="tobd__live" data-tobd-refresh="1">';
-		tvarkom_obd_render_notice( 'info', __( 'A new scan is running. This page updates itself when it\'s done.', 'on-board-diagnostics-scanner-for-woocommerce' ) );
-		echo '</div>';
+	if ( 'scanning' === $results['status'] || ( $requested && 'ready' === $results['status'] ) ) {
+		tvarkom_obd_render_scan_progress( (int) $results['latest']['completed_at'] );
 	} else {
 		if ( 'failed' === $results['status'] ) {
 			tvarkom_obd_render_notice( 'warning', __( 'The latest scan couldn\'t be completed, so these are the results of the one before. A failed scan doesn\'t count: you can scan again now.', 'on-board-diagnostics-scanner-for-woocommerce' ) );
@@ -170,6 +171,35 @@ function tvarkom_obd_render_connected() {
 		tvarkom_obd_render_scan_button( $results['next_scan_at'] );
 	}
 	tvarkom_obd_render_dashboard( $results );
+}
+
+/**
+ * While a new scan runs over earlier results: one status bar with a spinner, saying which scan the
+ * page shows meanwhile. The page reloads itself (assets/admin.js).
+ *
+ * @param int $shown When the scan on the page completed (Unix seconds).
+ * @return void
+ */
+function tvarkom_obd_render_scan_progress( $shown ) {
+	?>
+	<div class="tobd__progress" data-tobd-refresh="1" role="status">
+		<span class="tobd__spinner" aria-hidden="true"></span>
+		<div>
+			<p class="tobd__progress-title"><?php esc_html_e( 'Scanning your store…', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></p>
+			<p>
+				<?php
+				echo esc_html(
+					sprintf(
+						/* translators: %s: date and time of the scan shown on the page. */
+						__( 'This usually takes 2 to 5 minutes, and this page updates itself when it\'s done. Until then, you\'re seeing your scan from %s.', 'on-board-diagnostics-scanner-for-woocommerce' ),
+						tvarkom_obd_datetime( $shown )
+					)
+				);
+				?>
+			</p>
+		</div>
+	</div>
+	<?php
 }
 
 /**
@@ -364,13 +394,25 @@ function tvarkom_obd_admin_assets( $hook_suffix ) {
 	if ( 'woocommerce_page_tvarkom-obd' !== $hook_suffix ) {
 		return;
 	}
-	wp_enqueue_style( 'tvarkom-obd-admin', plugins_url( 'assets/admin.css', TVARKOM_OBD_FILE ), array(), TVARKOM_OBD_VERSION );
-	wp_enqueue_script( 'tvarkom-obd-admin', plugins_url( 'assets/admin.js', TVARKOM_OBD_FILE ), array(), TVARKOM_OBD_VERSION, true );
+	wp_enqueue_style( 'tvarkom-obd-admin', plugins_url( 'assets/admin.css', TVARKOM_OBD_FILE ), array(), tvarkom_obd_asset_version( 'assets/admin.css' ) );
+	wp_enqueue_script( 'tvarkom-obd-admin', plugins_url( 'assets/admin.js', TVARKOM_OBD_FILE ), array(), tvarkom_obd_asset_version( 'assets/admin.js' ), true );
 	wp_localize_script(
 		'tvarkom-obd-admin',
 		'tvarkomObd',
 		array( 'busy' => __( 'Requesting the scan… this can take up to a minute', 'on-board-diagnostics-scanner-for-woocommerce' ) )
 	);
+}
+
+/**
+ * An asset's version for its URL: the plugin's version and the file's modification time, so a
+ * browser never keeps an old copy after an update, even one that keeps the version number.
+ *
+ * @param string $file Path inside the plugin, e.g. assets/admin.css.
+ * @return string
+ */
+function tvarkom_obd_asset_version( $file ) {
+	$modified = @filemtime( plugin_dir_path( TVARKOM_OBD_FILE ) . $file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- a missing file keeps the plugin's version.
+	return false === $modified ? TVARKOM_OBD_VERSION : TVARKOM_OBD_VERSION . '.' . $modified;
 }
 
 /**

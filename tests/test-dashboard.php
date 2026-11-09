@@ -88,9 +88,33 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$this->respond( 'GET', '/v1/results', 200, $this->ready_results( 'scanning' ) );
 		$html = $this->render_page();
 
-		$this->assertStringContainsString( 'A new scan is running', $html );
+		$this->assertSame( 1, substr_count( $html, 'class="tobd__progress"' ), 'one status bar' );
+		$this->assertStringContainsString( 'Scanning your store…', $html );
+		$this->assertStringContainsString( 'tobd__spinner', $html );
+		$this->assertStringContainsString( 'you&#039;re seeing your scan from', $html );
+		$this->assertStringNotContainsString( 'tobd__notice', $html, 'no second notice' );
 		$this->assertStringContainsString( 'data-tobd-refresh', $html );
 		$this->assertStringContainsString( '<span class="tobd__score-value">40</span>', $html );
+	}
+
+	public function test_a_requested_scan_shows_one_status_bar_not_two_notices() {
+		$this->respond( 'GET', '/v1/results', 200, $this->ready_results() );
+		$_GET['obd_result'] = 'queued';
+		try {
+			$html = $this->render_page();
+		} finally {
+			unset( $_GET['obd_result'] );
+		}
+
+		$this->assertSame( 1, substr_count( $html, 'class="tobd__progress"' ) );
+		$this->assertStringNotContainsString( 'Scan requested', $html );
+		$this->assertStringNotContainsString( 'tobd__scanbar', $html, 'no scan button while scanning' );
+	}
+
+	public function test_assets_change_url_when_their_files_change() {
+		$version = tvarkom_obd_asset_version( 'assets/admin.css' );
+		$this->assertSame( TVARKOM_OBD_VERSION . '.' . filemtime( dirname( __DIR__ ) . '/assets/admin.css' ), $version );
+		$this->assertSame( TVARKOM_OBD_VERSION, tvarkom_obd_asset_version( 'assets/missing.css' ) );
 	}
 
 	public function test_a_failed_scan_can_be_scanned_again() {

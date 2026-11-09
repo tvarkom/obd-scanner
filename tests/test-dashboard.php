@@ -52,6 +52,38 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$this->assertDoesNotMatchRegularExpression( '/\\b(fix plan|Pro|steps?|hours|price|upgrade)\\b/i', wp_strip_all_tags( $html ), 'no fix plan and no paid offer' );
 	}
 
+	public function test_the_score_history_keeps_each_days_last_scan() {
+		$day = strtotime( '2026-11-02 12:00:00 UTC' );
+		$this->assertSame(
+			array(
+				array(
+					'completed_at' => $day - DAY_IN_SECONDS,
+					'score'        => 30,
+				),
+				array(
+					'completed_at' => $day + 3600,
+					'score'        => 70,
+				),
+			),
+			tvarkom_obd_daily_history(
+				array(
+					array(
+						'completed_at' => $day - DAY_IN_SECONDS,
+						'score'        => 30,
+					),
+					array(
+						'completed_at' => $day,
+						'score'        => 50,
+					),
+					array(
+						'completed_at' => $day + 3600,
+						'score'        => 70,
+					),
+				)
+			)
+		);
+	}
+
 	public function test_a_new_scan_keeps_the_latest_results_and_refreshes() {
 		$this->respond( 'GET', '/v1/results', 200, $this->ready_results( 'scanning' ) );
 		$html = $this->render_page();

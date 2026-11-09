@@ -173,6 +173,8 @@ function tvarkom_obd_render_dashboard( array $results ) {
 				echo esc_html( sprintf( __( 'Scanned on %s', 'on-board-diagnostics-scanner-for-woocommerce' ), tvarkom_obd_datetime( (int) $latest['completed_at'] ) ) );
 				?>
 			</p>
+			<h3 class="tobd__h3" id="tobd-history-title"><?php esc_html_e( 'Score over time', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h3>
+			<?php tvarkom_obd_render_history( tvarkom_obd_daily_history( $results['history'] ) ); ?>
 		</section>
 
 		<section class="tobd__panel tobd__lost" aria-labelledby="tobd-lost-title">
@@ -195,10 +197,6 @@ function tvarkom_obd_render_dashboard( array $results ) {
 	tvarkom_obd_render_pipeline( $pipeline );
 	?>
 	<div class="tobd__grid">
-		<section class="tobd__panel" aria-labelledby="tobd-history-title">
-			<h2 class="tobd__h2" id="tobd-history-title"><?php esc_html_e( 'Score over time', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
-			<?php tvarkom_obd_render_history( $results['history'] ); ?>
-		</section>
 		<?php
 		// The other free sections (traffic and marketing), as their texts.
 		tvarkom_obd_render_analysis_sections(
@@ -484,6 +482,22 @@ function tvarkom_obd_render_security( array $metrics ) {
 }
 
 /**
+ * One point per day: the day's last scan (several scans on one day would crowd the chart).
+ *
+ * @param array<int, array{completed_at: int, score: int}> $history Oldest first.
+ * @return array<int, array{completed_at: int, score: int}> Oldest first.
+ */
+function tvarkom_obd_daily_history( array $history ) {
+	$days = array();
+	foreach ( $history as $point ) {
+		$day = wp_date( 'Y-m-d', $point['completed_at'] );
+		unset( $days[ $day ] ); // Keeps the days in order when a later scan replaces an earlier one.
+		$days[ $day ] = $point;
+	}
+	return array_values( $days );
+}
+
+/**
  * The score over time as a line chart, with the risk bands; a note before the second scan.
  *
  * @param array<int, array{completed_at: int, score: int}> $history Oldest first.
@@ -491,11 +505,11 @@ function tvarkom_obd_render_security( array $metrics ) {
  */
 function tvarkom_obd_render_history( array $history ) {
 	if ( count( $history ) < 2 ) {
-		echo '<p class="tobd__empty">' . esc_html__( 'Your score history starts with your second scan.', 'on-board-diagnostics-scanner-for-woocommerce' ) . '</p>';
+		echo '<p class="tobd__empty">' . esc_html__( 'Your score history starts with a scan on a second day.', 'on-board-diagnostics-scanner-for-woocommerce' ) . '</p>';
 		return;
 	}
-	$width  = 640;
-	$height = 200;
+	$width  = 480;
+	$height = 150;
 	$left   = 36;
 	$right  = 12;
 	$top    = 10;

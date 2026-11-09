@@ -64,6 +64,7 @@
 /* Score gauge */
 .tobd__score { text-align: center; }
 .tobd__score .tobd__h2 { text-align: left; }
+.tobd__score .tobd__h3 { margin: 20px 0 8px; padding-top: 16px; border-top: 1px solid var(--line); text-align: left; }
 .tobd__gauge { max-width: 280px; margin: 0 auto; }
 .tobd__dial { position: relative; }
 .tobd__gauge svg { display: block; width: 100%; height: auto; }

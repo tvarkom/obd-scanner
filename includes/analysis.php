@@ -104,6 +104,7 @@ function tvarkom_obd_parse_analysis( $raw ) {
 		'summary'  => $summary,
 		'sections' => $sections,
 		'figures'  => tvarkom_obd_parse_figures( isset( $raw['figures'] ) ? $raw['figures'] : null ),
+		'pipeline' => tvarkom_obd_parse_pipeline( isset( $raw['pipeline'] ) ? $raw['pipeline'] : null ),
 	);
 }
 

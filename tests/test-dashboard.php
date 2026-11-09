@@ -290,4 +290,52 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$this->assertStringContainsString( 'Potential sales impact', $html, 'the modelled impact under the charts' );
 		$this->assertStringNotContainsString( 'Paid and on-hold orders in the last 30 days: 312', $html, 'the sales sentences become the figures' );
 	}
+
+	public function test_the_pipeline_shows_every_job_with_its_colour_and_panel() {
+		$body                       = $this->ready_results();
+		$body['latest']['analysis'] = array(
+			'schema'   => 1,
+			'summary'  => array(),
+			'sections' => array(),
+			'pipeline' => array(
+				'stages' => array(
+					array(
+						'id'     => 'server',
+						'name'   => 'Server',
+						'status' => 'red',
+						'jobs'   => array(
+							array(
+								'id'        => 'homepage_response',
+								'name'      => 'Homepage response',
+								'status'    => 'red',
+								'about'     => 'How long the server took.',
+								'measured'  => '0.95 s',
+								'reference' => '0.30 s or less',
+								'critical'  => 'Over 0.80 s',
+								'points'    => 40,
+							),
+							array(
+								'id'       => 'compression',
+								'name'     => '<script>x</script>',
+								'status'   => 'purple',
+								'measured' => 'none',
+							),
+						),
+					),
+				),
+			),
+		);
+		$this->respond( 'GET', '/v1/results', 200, $body );
+		$html = $this->render_page();
+
+		$this->assertStringContainsString( 'Store pipeline', $html );
+		$this->assertStringContainsString( 'tobd__job--red', $html );
+		$this->assertStringContainsString( 'aria-controls="tobd-job-0-0"', $html );
+		$this->assertStringContainsString( 'id="tobd-job-0-0"', $html );
+		$this->assertStringContainsString( '<dd>0.95 s</dd>', $html );
+		$this->assertStringContainsString( '<dd>−40</dd>', $html );
+		$this->assertStringContainsString( 'tobd__job--grey', $html, 'an unknown colour is grey' );
+		$this->assertStringNotContainsString( '<script>x', $html );
+		$this->assertStringNotContainsString( 'tobd-speed-title', $html, 'the pipeline replaces the metric panels' );
+	}
 }

@@ -5,6 +5,8 @@
  *   most 30 times in a row (10 minutes), without the one-time result notice in the address.
  * - After "Connect and scan" or "Scan now" is clicked, says the request is running and ignores a
  *   second click.
+ * - In the pipeline, a job's button opens its panel (one at a time); without this script every
+ *   panel shows.
  */
 ( function () {
 	'use strict';
@@ -38,6 +40,28 @@
 	} else {
 		reloads( 0 );
 	}
+
+	var root = document.querySelector( '.tobd' );
+	if ( root ) {
+		root.classList.add( 'tobd-js' );
+	}
+	Array.prototype.forEach.call( document.querySelectorAll( '.tobd__job' ), function ( button ) {
+		button.addEventListener( 'click', function () {
+			var panel = document.getElementById( button.getAttribute( 'aria-controls' ) );
+			var open = 'true' === button.getAttribute( 'aria-expanded' );
+			Array.prototype.forEach.call( document.querySelectorAll( '.tobd__job' ), function ( other ) {
+				other.setAttribute( 'aria-expanded', 'false' );
+			} );
+			Array.prototype.forEach.call( document.querySelectorAll( '.tobd__job-panel' ), function ( other ) {
+				other.classList.remove( 'is-open' );
+			} );
+			if ( panel && ! open ) {
+				button.setAttribute( 'aria-expanded', 'true' );
+				panel.classList.add( 'is-open' );
+				panel.scrollIntoView( { block: 'nearest' } );
+			}
+		} );
+	} );
 
 	Array.prototype.forEach.call( document.querySelectorAll( '.tobd-scan-form' ), function ( form ) {
 		var sent = false;

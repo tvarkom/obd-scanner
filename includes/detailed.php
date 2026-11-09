@@ -25,6 +25,7 @@ function tvarkom_obd_collect_detailed( $with_profile = true ) {
 		'php_configuration'          => tvarkom_obd_php_configuration(),
 		'failed_task_breakdown'      => tvarkom_obd_failed_tasks(),
 		'cron_queue_stalled_actions' => tvarkom_obd_stalled_actions(),
+		'site_health'                => tvarkom_obd_site_health(), // The pipeline's site checks (includes/site-health.php).
 	);
 	if ( $with_profile ) {
 		$detailed['checkout_profile'] = tvarkom_obd_profile_checkout();

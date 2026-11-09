@@ -47,6 +47,15 @@ class Tvarkom_OBD_Connect_Test extends Tvarkom_OBD_Test_Case {
 		$this->assertArrayHasKey( 'currency', $audit['body']['metrics'] );
 		$this->assertArrayHasKey( 'top_autoloaded_keys', $audit['body']['detailed'] );
 		$this->assertArrayHasKey( 'checkout_profile', $audit['body']['detailed'] );
+		// The pipeline's site checks: counts and flags only.
+		$health = $audit['body']['detailed']['site_health'];
+		$this->assertSame(
+			array( 'core_update_available', 'theme_updates', 'wp_debug', 'debug_display', 'search_engines_blocked', 'myisam_tables', 'non_utf8mb4_tables', 'expired_transients', 'administrators', 'file_editor_enabled' ),
+			array_keys( $health )
+		);
+		foreach ( $health as $key => $value ) {
+			$this->assertTrue( null === $value || is_bool( $value ) || is_int( $value ), $key );
+		}
 
 		$settings = tvarkom_obd_settings();
 		$this->assertSame( 'tvk_test', $settings['api_key'] );

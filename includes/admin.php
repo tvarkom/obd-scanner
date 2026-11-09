@@ -295,6 +295,10 @@ function tvarkom_obd_render_connect( $reconnect ) {
 				<dd><?php esc_html_e( 'So the analysis can speak in business terms: country and currency; paid, failed, pending and cancelled orders in the last 30 days; gross sales and average order value in your store\'s currency; how many customers were new or returning, as two counts; product and variation counts and whether stock management is on; the IDs of your payment gateways and shipping methods (never their settings); checkout type, order storage, database and web server, outdated template overrides, pending plugin updates and any backup plugin; the domain your store\'s emails come from (not the address); how many products were added to the cart, checkouts opened and orders placed over the last 30 days, as totals the plugin counts on your store without cookies or anything about the shopper; and how many orders came from each source (search, ads, referrals, direct), from WooCommerce Order Attribution.', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dd>
 			</div>
 			<div>
+				<dt><?php esc_html_e( 'Site checks', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dt>
+				<dd><?php esc_html_e( 'Whether a WordPress or theme update is waiting, whether debug output is shown on your pages, whether search engines are asked not to index the store, how many database tables use the MyISAM engine or a character set other than utf8mb4, how many expired transients are stored, how many administrator accounts exist (a count, no user details), and whether the dashboard file editor is on.', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dd>
+			</div>
+			<div>
 				<dt><?php esc_html_e( 'A checkout profile', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dt>
 				<dd><?php esc_html_e( 'One checkout page load on your server, with one product in a temporary cart that is never saved (nothing is ordered): plugin, theme and hook names with their timings, database query shapes with every value replaced by "?", the host names of outside services called, and object cache hit and miss counts.', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dd>
 			</div>

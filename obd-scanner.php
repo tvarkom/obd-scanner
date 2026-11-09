@@ -37,6 +37,7 @@ require_once __DIR__ . '/includes/business.php';
 require_once __DIR__ . '/includes/funnel.php';
 require_once __DIR__ . '/includes/metrics.php';
 require_once __DIR__ . '/includes/detailed.php';
+require_once __DIR__ . '/includes/site-health.php';
 require_once __DIR__ . '/includes/class-tvarkom-obd-profiler.php';
 require_once __DIR__ . '/includes/profile.php';
 require_once __DIR__ . '/includes/profile-report.php';
@@ -45,6 +46,7 @@ require_once __DIR__ . '/includes/scan.php';
 require_once __DIR__ . '/includes/dashboard.php';
 require_once __DIR__ . '/includes/analysis.php';
 require_once __DIR__ . '/includes/charts.php';
+require_once __DIR__ . '/includes/pipeline.php';
 require_once __DIR__ . '/includes/admin.php';
 
 // Every hook the plugin registers. Nothing contacts tvarkom until an administrator clicks

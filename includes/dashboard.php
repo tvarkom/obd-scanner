@@ -178,6 +178,34 @@ function tvarkom_obd_render_dashboard( array $results ) {
 	}
 	?>
 
+	<?php
+	$pipeline = null !== $analysis ? $analysis['pipeline'] : array();
+	if ( empty( $pipeline ) ) {
+		// Scans before the pipeline: the measured values as their own panels.
+		tvarkom_obd_render_metric_panels( $metrics );
+	}
+	?>
+	<section class="tobd__panel" aria-labelledby="tobd-history-title">
+		<h2 class="tobd__h2" id="tobd-history-title"><?php esc_html_e( 'Score over time', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
+		<?php tvarkom_obd_render_history( $results['history'] ); ?>
+	</section>
+	<?php
+	if ( null !== $analysis && ! empty( $analysis['sections'] ) ) {
+		tvarkom_obd_render_analysis_sections( $analysis['sections'], $analysis['figures'] );
+	}
+	// Under the score and the business charts: every check, stage by stage (includes/pipeline.php).
+	tvarkom_obd_render_pipeline( $pipeline );
+}
+
+/**
+ * The measured values as panels (server response, homepage weight, database and server, security
+ * and email), for scans without a pipeline (before plugin 0.2.0's).
+ *
+ * @param array<string, mixed> $metrics Metric id => value.
+ * @return void
+ */
+function tvarkom_obd_render_metric_panels( array $metrics ) {
+	?>
 	<section class="tobd__panel" aria-labelledby="tobd-speed-title">
 		<h2 class="tobd__h2" id="tobd-speed-title"><?php esc_html_e( 'Server response', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
 		<p class="tobd__intro"><?php esc_html_e( 'How long your server took to start answering each page, the median of several requests from our scanner. Reference: 0.3 seconds or less; above 0.8 seconds is critical.', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></p>
@@ -245,14 +273,7 @@ function tvarkom_obd_render_dashboard( array $results ) {
 		</dl>
 	</section>
 
-	<section class="tobd__panel" aria-labelledby="tobd-history-title">
-		<h2 class="tobd__h2" id="tobd-history-title"><?php esc_html_e( 'Score over time', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
-		<?php tvarkom_obd_render_history( $results['history'] ); ?>
-	</section>
 	<?php
-	if ( null !== $analysis && ! empty( $analysis['sections'] ) ) {
-		tvarkom_obd_render_analysis_sections( $analysis['sections'], $analysis['figures'] );
-	}
 }
 
 /**

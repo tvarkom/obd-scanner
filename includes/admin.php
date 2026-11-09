@@ -268,7 +268,7 @@ function tvarkom_obd_render_connect( $reconnect ) {
 	?>
 	<section class="tobd__panel tobd__connect" aria-labelledby="tobd-connect-title">
 		<?php if ( ! $reconnect ) : ?>
-			<h2 class="tobd__h2 tobd__lead-title" id="tobd-connect-title"><?php esc_html_e( 'See how healthy your store is, every week', 'obd-scanner' ); ?></h2>
+			<h2 class="tobd__h2 tobd__lead-title" id="tobd-connect-title"><?php esc_html_e( 'See how healthy your store is', 'obd-scanner' ); ?></h2>
 			<p class="tobd__lead"><?php esc_html_e( 'On-board Diagnostics connects your store to tvarkom\'s free scanner. It measures your store from outside, like a shopper\'s browser, adds a few figures from inside WordPress, and shows the results here: a score, where points were lost, and how it changes over time.', 'obd-scanner' ); ?></p>
 			<ul class="tobd__checks">
 				<?php foreach ( $checks as $check ) : ?>

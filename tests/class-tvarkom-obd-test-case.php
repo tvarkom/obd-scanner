@@ -40,11 +40,12 @@ abstract class Tvarkom_OBD_Test_Case extends WP_UnitTestCase {
 	/**
 	 * Runs this plugin's own admin_init callbacks, as a wp-admin page load would. WordPress's other
 	 * admin_init work (update checks against wordpress.org, HTTP headers) doesn't belong in a test.
-	 * admin_init counts as fired, as WordPress APIs meant for it check (the suite restores the count).
+	 * They run on a wp-admin screen, during admin_init, as WordPress APIs meant for it check.
 	 */
 	protected function run_plugin_admin_init() {
-		global $wp_filter, $wp_actions;
-		$wp_actions['admin_init'] = 1; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- a test standing in for WordPress's own admin_init.
+		global $wp_filter, $wp_current_filter;
+		set_current_screen( 'dashboard' );
+		$wp_current_filter[] = 'admin_init'; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- standing in for WordPress's own admin_init.
 		foreach ( $wp_filter['admin_init']->callbacks as $callbacks ) {
 			foreach ( $callbacks as $callback ) {
 				if ( is_string( $callback['function'] ) && 0 === strpos( $callback['function'], 'tvarkom_obd_' ) ) {
@@ -52,6 +53,8 @@ abstract class Tvarkom_OBD_Test_Case extends WP_UnitTestCase {
 				}
 			}
 		}
+		array_pop( $wp_current_filter );
+		set_current_screen( 'front' );
 	}
 
 	/**

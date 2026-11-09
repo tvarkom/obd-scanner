@@ -152,25 +152,20 @@ function tvarkom_obd_database_clutter() {
 
 /**
  * Core files that differ from, or are missing against, WordPress.org's official checksums for this
- * version and locale (fetched from api.wordpress.org, as WordPress's own update check does).
- * wp-content isn't checked. Nulls when the checksums couldn't be fetched.
+ * version and locale. wp-content isn't checked. Nulls when the checksums couldn't be fetched.
  *
  * @return array{modified: int|null, missing: int|null}
  */
 function tvarkom_obd_core_file_changes() {
-	$unknown = array(
-		'modified' => null,
-		'missing'  => null,
-	);
-	if ( ! function_exists( 'get_core_checksums' ) ) {
-		require_once ABSPATH . 'wp-admin/includes/update.php';
+	$checksums = tvarkom_obd_core_checksums( get_bloginfo( 'version' ), get_locale() );
+	if ( null === $checksums && 'en_US' !== get_locale() ) {
+		$checksums = tvarkom_obd_core_checksums( get_bloginfo( 'version' ), 'en_US' );
 	}
-	$checksums = get_core_checksums( get_bloginfo( 'version' ), get_locale() );
-	if ( ! is_array( $checksums ) || empty( $checksums ) ) {
-		$checksums = get_core_checksums( get_bloginfo( 'version' ), 'en_US' );
-	}
-	if ( ! is_array( $checksums ) || empty( $checksums ) ) {
-		return $unknown;
+	if ( null === $checksums ) {
+		return array(
+			'modified' => null,
+			'missing'  => null,
+		);
 	}
 	$modified = 0;
 	$missing  = 0;
@@ -189,6 +184,41 @@ function tvarkom_obd_core_file_changes() {
 		'modified' => $modified,
 		'missing'  => $missing,
 	);
+}
+
+/**
+ * WordPress.org's checksums of a release's files (file => md5), from the same API WordPress's
+ * get_core_checksums() uses; null when they can't be fetched. Fetched here because
+ * get_core_checksums() raises a PHP warning when wordpress.org is unreachable, which on a store
+ * that blocks outgoing requests would land in the error log on every scan.
+ *
+ * @param string $version WordPress version.
+ * @param string $locale  Locale, e.g. en_US.
+ * @return array<string, string>|null
+ */
+function tvarkom_obd_core_checksums( $version, $locale ) {
+	$url      = add_query_arg(
+		array(
+			'version' => $version,
+			'locale'  => $locale,
+		),
+		'https://api.wordpress.org/core/checksums/1.0/'
+	);
+	$response = wp_remote_get( $url, array( 'timeout' => 10 ) );
+	if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+		return null;
+	}
+	$body = json_decode( wp_remote_retrieve_body( $response ), true );
+	if ( ! is_array( $body ) || empty( $body['checksums'] ) || ! is_array( $body['checksums'] ) ) {
+		return null;
+	}
+	$checksums = array();
+	foreach ( $body['checksums'] as $file => $md5 ) {
+		if ( is_string( $file ) && is_string( $md5 ) ) {
+			$checksums[ $file ] = $md5;
+		}
+	}
+	return empty( $checksums ) ? null : $checksums;
 }
 
 /**

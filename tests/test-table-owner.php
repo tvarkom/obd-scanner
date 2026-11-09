@@ -100,7 +100,9 @@ class Tvarkom_OBD_Table_Owner_Test extends Tvarkom_OBD_Test_Case {
 	 * Every listed table carries a classification the scanner reads, and never "active".
 	 */
 	public function test_orphaned_tables_carry_a_classification() {
-		foreach ( tvarkom_obd_orphaned_tables() as $table ) {
+		$tables = tvarkom_obd_orphaned_tables();
+		$this->assertIsArray( $tables ); // The suite's tables are temporary, so the list may be empty.
+		foreach ( $tables as $table ) {
 			$this->assertContains( $table['classification'], array( 'not_installed', 'inactive', 'unknown' ) );
 			$this->assertArrayHasKey( 'owner', $table );
 		}

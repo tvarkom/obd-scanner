@@ -67,7 +67,7 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$this->respond( 'GET', '/v1/results', 200, $body );
 		$html = $this->render_page();
 
-		$this->assertStringContainsString( 'couldn\'t be completed', $html );
+		$this->assertStringContainsString( 'couldn&#039;t be completed', $html );
 		$this->assertMatchesRegularExpression( '/<button type="submit" class="tobd__btn"\s*>Scan now/', $html, 'enabled' );
 	}
 
@@ -90,7 +90,7 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 
 	public function test_unreachable_results_say_so() {
 		$this->respond( 'GET', '/v1/results', new WP_Error( 'http_request_failed', 'offline' ) );
-		$this->assertStringContainsString( 'couldn\'t be loaded', $this->render_page() );
+		$this->assertStringContainsString( 'couldn&#039;t be loaded', $this->render_page() );
 	}
 
 	public function test_values_from_the_gateway_are_checked_and_escaped() {

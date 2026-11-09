@@ -131,13 +131,7 @@ function tvarkom_obd_render_pipeline( array $stages ) {
 	);
 	?>
 	<section class="tobd__panel tobd__pipeline" aria-labelledby="tobd-pipeline-title">
-		<h2 class="tobd__h2" id="tobd-pipeline-title"><?php esc_html_e( 'Store pipeline', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
-		<p class="tobd__intro"><?php esc_html_e( 'Every check of this scan, stage by stage. Click a job to see what was measured and against which reference.', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></p>
-		<ul class="tobd__legend tobd__pipeline-legend">
-			<?php foreach ( array_reverse( TVARKOM_OBD_JOB_STATUSES ) as $status ) : ?>
-				<li><?php echo wp_kses( tvarkom_obd_job_icon( $status ), $icon_kses ); ?> <?php echo esc_html( tvarkom_obd_job_status_label( $status ) ); ?></li>
-			<?php endforeach; ?>
-		</ul>
+		<h2 class="tobd__h2" id="tobd-pipeline-title"><?php esc_html_e( 'Scanner pipeline', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
 		<div class="tobd__stages">
 			<?php foreach ( $stages as $s => $stage ) : ?>
 				<div class="tobd__stage">
@@ -146,7 +140,7 @@ function tvarkom_obd_render_pipeline( array $stages ) {
 						<?php foreach ( $stage['jobs'] as $j => $job ) : ?>
 							<?php $panel = 'tobd-job-' . $s . '-' . $j; ?>
 							<li>
-								<button type="button" class="tobd__job tobd__job--<?php echo esc_attr( $job['status'] ); ?>" aria-expanded="false" aria-controls="<?php echo esc_attr( $panel ); ?>">
+								<button type="button" class="tobd__job tobd__job--<?php echo esc_attr( $job['status'] ); ?>" title="<?php echo esc_attr( $job['name'] ); ?>" aria-expanded="false" aria-controls="<?php echo esc_attr( $panel ); ?>">
 									<?php echo wp_kses( tvarkom_obd_job_icon( $job['status'] ), $icon_kses ); ?>
 									<span class="tobd__job-name"><?php echo esc_html( $job['name'] ); ?></span>
 									<span class="screen-reader-text"><?php echo esc_html( tvarkom_obd_job_status_label( $job['status'] ) ); ?></span>

@@ -142,7 +142,7 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 			),
 			'sections' => array(
 				array(
-					'id'      => 'technical',
+					'id'      => 'marketing',
 					'heading' => 'Technical findings',
 					'blocks'  => array(
 						array(
@@ -177,8 +177,8 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$html = $this->render_page();
 
 		$this->assertStringContainsString( 'Your store has serious speed problems.', $html );
-		$this->assertStringContainsString( 'Modelled sales at risk', $html );
-		$this->assertStringContainsString( 'Full analysis', $html );
+		$this->assertStringContainsString( '<h2 class="tobd__h2" id="tobd-score-title">Store performance risk: High</h2>', $html, 'the risk replaces the score title' );
+		$this->assertStringNotContainsString( 'Full analysis', $html );
 		$this->assertStringContainsString( '<span class="tobd__status">Needs attention</span>', $html );
 		$this->assertStringContainsString( 'Homepage: &lt;b&gt;0.95 s&lt;/b&gt;', $html );
 		$this->assertStringNotContainsString( '<b>0.95', $html );
@@ -284,7 +284,8 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$this->assertStringNotContainsString( 'PAID-ONLY', $html, 'paid-version sections never show, even without a tier' );
 		$this->assertStringNotContainsString( 'Full analysis', $html );
 		$this->assertStringContainsString( 'class="tobd__stack"', $html, 'the order outcomes bar' );
-		$this->assertStringContainsString( 'class="tobd__donut"', $html );
+		$this->assertStringContainsString( 'Your store at a glance', $html, 'the store widget' );
+		$this->assertStringContainsString( 'id="tobd-impact-title">Potential sales impact', $html, 'the impact panel' );
 		$this->assertStringContainsString( '<li>Stripe</li>', $html );
 		$this->assertStringContainsString( '&lt;b&gt;50 €&lt;/b&gt;', $html );
 		$this->assertStringContainsString( 'Potential sales impact', $html, 'the modelled impact under the charts' );
@@ -328,7 +329,8 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$this->respond( 'GET', '/v1/results', 200, $body );
 		$html = $this->render_page();
 
-		$this->assertStringContainsString( 'Store pipeline', $html );
+		$this->assertStringContainsString( 'Scanner pipeline', $html );
+		$this->assertStringNotContainsString( 'tobd__pipeline-legend', $html, 'no captions' );
 		$this->assertStringContainsString( 'tobd__job--red', $html );
 		$this->assertStringContainsString( 'aria-controls="tobd-job-0-0"', $html );
 		$this->assertStringContainsString( 'id="tobd-job-0-0"', $html );

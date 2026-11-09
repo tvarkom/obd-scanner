@@ -234,50 +234,20 @@ function tvarkom_obd_parse_block( array $b ) {
 }
 
 /**
- * The analysis's summary, under the score: what the score means and the modelled sales at risk.
+ * Sections shown as their texts, each in its own panel (traffic and marketing).
  *
- * @param array<string, string> $summary From tvarkom_obd_parse_analysis().
+ * @param array<int, array{id: string, heading: string, blocks: array<int, array<string, mixed>>}> $sections The sections.
  * @return void
  */
-function tvarkom_obd_render_analysis_summary( array $summary ) {
-	if ( '' === $summary['text'] && '' === $summary['impact'] ) {
-		return;
-	}
-	?>
-	<section class="tobd__panel tobd__summary" aria-labelledby="tobd-summary-title">
-		<h2 class="tobd__h2" id="tobd-summary-title"><?php echo esc_html( '' !== $summary['headline'] ? $summary['headline'] : __( 'What your score means', 'on-board-diagnostics-scanner-for-woocommerce' ) ); ?></h2>
-		<?php if ( '' !== $summary['text'] ) : ?>
-			<p class="tobd__lead"><?php echo esc_html( $summary['text'] ); ?></p>
-		<?php endif; ?>
-		<?php if ( '' !== $summary['impact'] ) : ?>
-			<p class="tobd__impact"><?php echo esc_html( $summary['impact'] ); ?></p>
-		<?php endif; ?>
-		<?php if ( '' !== $summary['note'] ) : ?>
-			<p class="tobd__note"><?php echo esc_html( $summary['note'] ); ?></p>
-		<?php endif; ?>
-	</section>
-	<?php
-}
-
-/**
- * The analysis's sections, each in its own panel: the store profile, sales and checkout, catalog
- * and operations as charts (charts.php), any other as its texts.
- *
- * @param array<int, array{id: string, heading: string, blocks: array<int, array<string, mixed>>}> $sections From tvarkom_obd_parse_analysis().
- * @param array<string, array<string, mixed>>|null                                                 $figures  From tvarkom_obd_parse_figures().
- * @return void
- */
-function tvarkom_obd_render_analysis_sections( array $sections, $figures ) {
+function tvarkom_obd_render_analysis_sections( array $sections ) {
 	foreach ( $sections as $i => $section ) {
 		$id = 'tobd-analysis-' . $i;
 		?>
 		<section class="tobd__panel tobd__analysis tobd__analysis--<?php echo esc_attr( $section['id'] ); ?>" aria-labelledby="<?php echo esc_attr( $id ); ?>">
 			<h2 class="tobd__h2" id="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $section['heading'] ); ?></h2>
 			<?php
-			if ( ! tvarkom_obd_render_chart_section( $section, $figures ) ) {
-				foreach ( $section['blocks'] as $block ) {
-					tvarkom_obd_render_block( $block );
-				}
+			foreach ( $section['blocks'] as $block ) {
+				tvarkom_obd_render_block( $block );
 			}
 			?>
 		</section>

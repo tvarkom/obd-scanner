@@ -151,14 +151,22 @@ function tvarkom_obd_render_dashboard( array $results ) {
 	if ( null === $latest ) {
 		return;
 	}
-	$metrics  = $latest['metrics'];
 	$analysis = isset( $latest['analysis'] ) ? $latest['analysis'] : null;
+	$sections = null !== $analysis ? $analysis['sections'] : array();
+	$pipeline = null !== $analysis ? $analysis['pipeline'] : array();
+	$summary  = null !== $analysis ? $analysis['summary'] : array(
+		'headline' => '',
+		'text'     => '',
+	);
 	?>
-	<div class="tobd__grid">
+	<div class="tobd__top<?php echo null === $analysis ? ' tobd__top--two' : ''; ?>">
 		<section class="tobd__panel tobd__score" aria-labelledby="tobd-score-title">
-			<h2 class="tobd__h2" id="tobd-score-title"><?php esc_html_e( 'Store performance score', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
+			<h2 class="tobd__h2" id="tobd-score-title"><?php echo esc_html( '' !== $summary['headline'] ? $summary['headline'] : tvarkom_obd_risk_headline( $latest['level'] ) ); ?></h2>
 			<?php tvarkom_obd_render_gauge( $latest['score'], $latest['level'] ); ?>
 			<p class="tobd__bands"><?php esc_html_e( '80–100 low risk · 50–79 moderate · 0–49 high', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></p>
+			<?php if ( '' !== $summary['text'] ) : ?>
+				<p class="tobd__score-text"><?php echo esc_html( $summary['text'] ); ?></p>
+			<?php endif; ?>
 			<p class="tobd__meta">
 				<?php
 				/* translators: %s: date and time of the scan. */
@@ -171,30 +179,59 @@ function tvarkom_obd_render_dashboard( array $results ) {
 			<h2 class="tobd__h2" id="tobd-lost-title"><?php esc_html_e( 'Where your store lost points', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
 			<?php tvarkom_obd_render_lost_points( $latest['lost_points'] ); ?>
 		</section>
+		<?php
+		if ( null !== $analysis ) {
+			tvarkom_obd_render_store_widget( $sections, $analysis['figures'] ); // The store widget (includes/charts.php).
+		}
+		?>
 	</div>
 	<?php
-	if ( null !== $analysis ) {
-		tvarkom_obd_render_analysis_summary( $analysis['summary'] );
-	}
-	?>
-
-	<?php
-	$pipeline = null !== $analysis ? $analysis['pipeline'] : array();
+	tvarkom_obd_render_impact( $sections );
 	if ( empty( $pipeline ) ) {
 		// Scans before the pipeline: the measured values as their own panels.
-		tvarkom_obd_render_metric_panels( $metrics );
+		tvarkom_obd_render_metric_panels( $latest['metrics'] );
 	}
-	?>
-	<section class="tobd__panel" aria-labelledby="tobd-history-title">
-		<h2 class="tobd__h2" id="tobd-history-title"><?php esc_html_e( 'Score over time', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
-		<?php tvarkom_obd_render_history( $results['history'] ); ?>
-	</section>
-	<?php
-	if ( null !== $analysis && ! empty( $analysis['sections'] ) ) {
-		tvarkom_obd_render_analysis_sections( $analysis['sections'], $analysis['figures'] );
-	}
-	// Under the score and the business charts: every check, stage by stage (includes/pipeline.php).
+	// Every check, stage by stage (includes/pipeline.php).
 	tvarkom_obd_render_pipeline( $pipeline );
+	?>
+	<div class="tobd__grid">
+		<section class="tobd__panel" aria-labelledby="tobd-history-title">
+			<h2 class="tobd__h2" id="tobd-history-title"><?php esc_html_e( 'Score over time', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
+			<?php tvarkom_obd_render_history( $results['history'] ); ?>
+		</section>
+		<?php
+		// The other free sections (traffic and marketing), as their texts.
+		tvarkom_obd_render_analysis_sections(
+			array_values(
+				array_filter(
+					$sections,
+					function ( $section ) {
+						return ! in_array( $section['id'], array( 'store_profile', 'commercial', 'catalog', 'operations' ), true );
+					}
+				)
+			)
+		);
+		?>
+	</div>
+	<?php
+}
+
+/**
+ * "Store performance risk: High" from the level, for scans without the analysis's headline.
+ *
+ * @param string $level PASS, WARNING, CRITICAL_RISK or "".
+ * @return string
+ */
+function tvarkom_obd_risk_headline( $level ) {
+	$levels = array(
+		'PASS'          => __( 'Low', 'on-board-diagnostics-scanner-for-woocommerce' ),
+		'WARNING'       => __( 'Moderate', 'on-board-diagnostics-scanner-for-woocommerce' ),
+		'CRITICAL_RISK' => __( 'High', 'on-board-diagnostics-scanner-for-woocommerce' ),
+	);
+	return isset( $levels[ $level ] )
+		/* translators: %s: Low, Moderate or High. */
+		? sprintf( __( 'Store performance risk: %s', 'on-board-diagnostics-scanner-for-woocommerce' ), $levels[ $level ] )
+		: __( 'Store performance score', 'on-board-diagnostics-scanner-for-woocommerce' );
 }
 
 /**

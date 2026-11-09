@@ -17,7 +17,7 @@
 	--warn-soft: #fdf3e2;
 	--bad-soft: #fbe9e9;
 	--mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-	max-width: 1040px;
+	max-width: none;
 	margin: 20px 20px 40px 0;
 	color: var(--ink);
 }
@@ -27,7 +27,7 @@
 .tobd a:focus, .tobd button:focus { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: none; }
 
 /* Header */
-.tobd__header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 16px; margin-bottom: 20px; }
+.tobd__header { margin-bottom: 20px; }
 .tobd h1.tobd__title { margin: 0; padding: 0; font-size: 28px; font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; color: var(--ink); }
 .tobd__store { margin-top: 4px; font: 400 13px/1.4 var(--mono); color: var(--muted); word-break: break-all; }
 .tobd__brand { font-size: 13px; font-weight: 700; color: var(--muted); }
@@ -172,13 +172,23 @@
 .tobd__icon--grey circle { fill: var(--st-grey); }
 .tobd__pipeline-legend { margin: 0 0 16px; }
 .tobd__pipeline-legend li { display: inline-flex; align-items: center; gap: 6px; }
-.tobd__stages { display: flex; gap: 28px; overflow-x: auto; padding: 4px 2px 12px; }
-.tobd__stage { position: relative; flex: 0 0 200px; }
-.tobd__stage + .tobd__stage::before { content: ""; position: absolute; left: -28px; top: 10px; width: 28px; border-top: 2px solid var(--line-strong); }
-.tobd p.tobd__stage-name { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 13px; font-weight: 700; text-transform: none; color: var(--ink); }
-.tobd__jobs { margin: 0; padding: 0; list-style: none; }
-.tobd__jobs li { margin: 0 0 8px; }
-.tobd .tobd__job { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 36px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); font-size: 13px; text-align: left; cursor: pointer; }
+.tobd__stages { display: flex; gap: 40px; overflow-x: auto; padding: 4px 2px 12px; }
+.tobd__stage { position: relative; flex: 1 1 0; min-width: 150px; }
+.tobd p.tobd__stage-name { display: flex; align-items: center; gap: 8px; height: 22px; margin: 0 0 12px; overflow: hidden; font-size: 13px; font-weight: 700; white-space: nowrap; color: var(--ink); }
+/* GitLab-style links: a stub from each job to a bus between the columns, the buses joined at the first job */
+.tobd__jobs { position: relative; margin: 0; padding: 0; list-style: none; }
+.tobd__jobs li { position: relative; margin: 0 0 10px; }
+.tobd__jobs li:last-child { margin-bottom: 0; }
+.tobd__stage:not(:first-child) .tobd__jobs li::before,
+.tobd__stage:not(:last-child) .tobd__jobs li::after { content: ""; position: absolute; top: 17px; width: 20px; border-top: 2px solid var(--line-strong); }
+.tobd__stage:not(:first-child) .tobd__jobs li::before { left: -20px; }
+.tobd__stage:not(:first-child) .tobd__jobs li:first-child::before { left: -40px; width: 40px; }
+.tobd__stage:not(:last-child) .tobd__jobs li::after { right: -20px; }
+.tobd__stage:not(:first-child) .tobd__jobs::before,
+.tobd__stage:not(:last-child) .tobd__jobs::after { content: ""; position: absolute; top: 17px; bottom: 17px; border-left: 2px solid var(--line-strong); }
+.tobd__stage:not(:first-child) .tobd__jobs::before { left: -21px; }
+.tobd__stage:not(:last-child) .tobd__jobs::after { right: -21px; }
+.tobd .tobd__job { position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; width: 100%; height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); font-size: 13px; text-align: left; cursor: pointer; }
 .tobd .tobd__job:hover { border-color: var(--line-strong); background: var(--paper); }
 .tobd .tobd__job[aria-expanded="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
 .tobd__job-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -196,6 +206,23 @@
 .tobd__job-log div { display: flex; gap: 12px; }
 .tobd__job-log dt { flex: 0 0 110px; color: #8f918b; }
 .tobd__job-log dd { margin: 0; color: #e8e8e3; }
+
+/* The top row: the score, the points lost and the store widget, one height */
+.tobd__top { display: grid; gap: 16px; margin-bottom: 16px; align-items: stretch; }
+.tobd__top > .tobd__panel { margin: 0; }
+.tobd__score-text { margin-top: 12px; font-size: 14px; line-height: 1.55; color: var(--ink); text-align: left; }
+.tobd__store-widget .tobd__h3 { margin: 16px 0 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.02em; color: var(--muted); }
+.tobd__minis { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin: 0 0 8px; }
+.tobd__minis div { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); }
+.tobd__minis dt { font-size: 11px; line-height: 1.3; color: var(--muted); }
+.tobd__minis dd { margin: 2px 0 0; font-size: 15px; font-weight: 700; line-height: 1.25; color: var(--ink); overflow-wrap: break-word; }
+.tobd__store-widget .tobd__stack { height: 10px; margin-top: 10px; }
+.tobd__store-widget .tobd__legend { margin-top: 6px; font-size: 12px; }
+.tobd--line { --tone: var(--line-strong); --tone-soft: var(--paper); }
+.tobd p.tobd__chips-title { margin: 10px 0 6px; font-size: 11px; color: var(--muted); }
+.tobd__store-widget .tobd__chips { margin-bottom: 0; }
+.tobd__store-widget .tobd__chips li { padding: 3px 10px; font-size: 12px; }
+.tobd__impact-panel .tobd__list li { font-size: 14px; }
 
 /* Scan button */
 .tobd__scanbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; margin: 0 0 16px; }
@@ -221,6 +248,15 @@
 @media (min-width: 782px) {
 	.tobd__panel { padding: 24px 28px; }
 	.tobd__grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+	.tobd__top { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+	.tobd__top > .tobd__store-widget { grid-column: 1 / -1; }
 	.tobd__checks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 	.tobd__facts--wide { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* Wide screens: the three top widgets side by side */
+@media (min-width: 1280px) {
+	.tobd__top { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr) minmax(0, 1.2fr); }
+	.tobd__top > .tobd__store-widget { grid-column: auto; }
+	.tobd__top--two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 }

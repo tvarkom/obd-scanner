@@ -106,11 +106,8 @@ function tvarkom_obd_render_page() {
 	<div class="wrap tobd">
 		<hr class="wp-header-end">
 		<header class="tobd__header">
-			<div>
-				<h1 class="tobd__title"><?php esc_html_e( 'On-board Diagnostics', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h1>
-				<p class="tobd__store"><?php echo esc_html( (string) wp_parse_url( home_url(), PHP_URL_HOST ) ); ?></p>
-			</div>
-			<p class="tobd__brand"><?php esc_html_e( 'by tvarkom', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></p>
+			<h1 class="tobd__title"><?php esc_html_e( 'On-board Diagnostics Scanner', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h1>
+			<p class="tobd__store"><?php echo esc_html( (string) wp_parse_url( home_url(), PHP_URL_HOST ) ); ?></p>
 		</header>
 		<?php
 		if ( isset( $messages[ $notice ] ) ) {

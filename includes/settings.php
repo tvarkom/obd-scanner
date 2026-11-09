@@ -38,7 +38,7 @@ function tvarkom_obd_settings() {
 
 /**
  * Merges $changes into the stored settings. Not autoloaded: only the plugin's page and its
- * scheduled scan read it.
+ * scan read it.
  *
  * @param array<string, mixed> $changes Settings to change.
  * @return void

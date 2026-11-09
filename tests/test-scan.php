@@ -1,32 +1,31 @@
 <?php
 /**
- * The weekly scan: the gateway's week decides the schedule, a replaced key registers again, errors
- * retry later, and one scan request runs at a time.
+ * Scan requests: a replaced key registers again, results are stored for the page, one request runs
+ * at a time, and nothing is ever scheduled.
  *
  * @package OBDScanner
  */
 
 /**
- * Scheduled scans.
+ * Scans.
  */
 class Tvarkom_OBD_Scan_Test extends Tvarkom_OBD_Test_Case {
 
-	public function test_too_soon_schedules_at_the_gateways_date() {
+	public function test_too_soon_is_stored_for_the_page() {
 		$this->connect_store();
-		$allowed = time() + 3 * DAY_IN_SECONDS;
 		$this->respond(
 			'POST',
 			'/v1/audits',
 			429,
 			array(
 				'error'            => 'too_soon',
-				'next_eligible_at' => $allowed,
+				'next_eligible_at' => time() + 3 * DAY_IN_SECONDS,
 			)
 		);
 
 		$this->assertSame( 'too_soon', tvarkom_obd_scan() );
-		$this->assertSame( $allowed + 5 * MINUTE_IN_SECONDS, wp_next_scheduled( TVARKOM_OBD_CRON ) );
 		$this->assertSame( 'too_soon', tvarkom_obd_settings()['last']['code'] );
+		$this->assertFalse( wp_next_scheduled( 'tvarkom_obd_scan' ) );
 	}
 
 	public function test_a_replaced_key_registers_again_and_scans() {
@@ -41,19 +40,14 @@ class Tvarkom_OBD_Scan_Test extends Tvarkom_OBD_Test_Case {
 		$this->assertSame( 'tvk_new', tvarkom_obd_settings()['api_key'] );
 	}
 
-	public function test_errors_retry_later() {
+	public function test_errors_are_reported() {
 		$this->connect_store();
 		$this->respond( 'POST', '/v1/audits', new WP_Error( 'http_request_failed', 'offline' ) );
 		$this->assertSame( 'network', tvarkom_obd_scan() );
-		$this->assertEqualsWithDelta( time() + 6 * HOUR_IN_SECONDS, wp_next_scheduled( TVARKOM_OBD_CRON ), 5 );
-
-		$this->respond( 'POST', '/v1/audits', 429, array( 'error' => 'rate_limited' ) );
-		$this->assertSame( 'rate_limited', tvarkom_obd_scan() );
-		$this->assertEqualsWithDelta( time() + DAY_IN_SECONDS, wp_next_scheduled( TVARKOM_OBD_CRON ), 5 );
 
 		$this->respond( 'POST', '/v1/audits', 422, array( 'error' => 'not_woocommerce' ) );
 		$this->assertSame( 'not_woocommerce', tvarkom_obd_scan() );
-		$this->assertEqualsWithDelta( time() + WEEK_IN_SECONDS, wp_next_scheduled( TVARKOM_OBD_CRON ), 5 );
+		$this->assertFalse( wp_next_scheduled( 'tvarkom_obd_scan' ) );
 	}
 
 	public function test_one_scan_request_at_a_time() {
@@ -61,25 +55,5 @@ class Tvarkom_OBD_Scan_Test extends Tvarkom_OBD_Test_Case {
 		$this->assertTrue( tvarkom_obd_lock() );
 		$this->assertSame( 'scan_running', tvarkom_obd_scan() );
 		$this->assertSame( array(), $this->requests );
-	}
-
-	public function test_a_lost_schedule_comes_back_and_deactivation_clears_it() {
-		$this->connect_store();
-		tvarkom_obd_ensure_schedule();
-		$this->assertEqualsWithDelta( time() + MINUTE_IN_SECONDS, wp_next_scheduled( TVARKOM_OBD_CRON ), 5 );
-
-		tvarkom_obd_deactivate();
-		$this->assertFalse( wp_next_scheduled( TVARKOM_OBD_CRON ) );
-		$this->assertSame( 'tvk_test', tvarkom_obd_settings()['api_key'], 'the settings stay' );
-	}
-
-	public function test_a_failed_scan_is_retried_within_the_hour() {
-		tvarkom_obd_schedule( time() + WEEK_IN_SECONDS );
-		tvarkom_obd_retry_failed_scan();
-		$this->assertEqualsWithDelta( time() + HOUR_IN_SECONDS, wp_next_scheduled( TVARKOM_OBD_CRON ), 5 );
-
-		tvarkom_obd_schedule( time() + 10 * MINUTE_IN_SECONDS );
-		tvarkom_obd_retry_failed_scan();
-		$this->assertEqualsWithDelta( time() + 10 * MINUTE_IN_SECONDS, wp_next_scheduled( TVARKOM_OBD_CRON ), 5, 'a sooner scan stays' );
 	}
 }

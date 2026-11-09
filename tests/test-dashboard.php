@@ -50,7 +50,6 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$this->assertStringContainsString( 'class="tobd__history"', $html );
 		$this->assertStringNotContainsString( 'data-tobd-refresh', $html );
 		$this->assertDoesNotMatchRegularExpression( '/\\b(fix plan|Pro|steps?|hours|price|upgrade)\\b/i', wp_strip_all_tags( $html ), 'no fix plan and no paid offer' );
-		$this->assertStringContainsString( 'Next scan:', $html );
 	}
 
 	public function test_a_new_scan_keeps_the_latest_results_and_refreshes() {
@@ -62,13 +61,23 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$this->assertStringContainsString( '<span class="tobd__score-value">40</span>', $html );
 	}
 
-	public function test_a_failed_scan_is_retried_within_the_hour() {
-		tvarkom_obd_schedule( time() + WEEK_IN_SECONDS );
-		$this->respond( 'GET', '/v1/results', 200, $this->ready_results( 'failed' ) );
+	public function test_a_failed_scan_can_be_scanned_again() {
+		$body                 = $this->ready_results( 'failed' );
+		$body['next_scan_at'] = null;
+		$this->respond( 'GET', '/v1/results', 200, $body );
 		$html = $this->render_page();
 
 		$this->assertStringContainsString( 'couldn\'t be completed', $html );
-		$this->assertEqualsWithDelta( time() + HOUR_IN_SECONDS, wp_next_scheduled( TVARKOM_OBD_CRON ), 5 );
+		$this->assertMatchesRegularExpression( '/<button type="submit" class="tobd__btn"\s*>Scan now/', $html, 'enabled' );
+	}
+
+	public function test_the_scan_button_waits_for_the_week() {
+		$this->respond( 'GET', '/v1/results', 200, $this->ready_results() );
+		$html = $this->render_page();
+
+		$this->assertMatchesRegularExpression( '/<button type="submit" class="tobd__btn"\s*disabled=\'disabled\'\s*>Scan now/', $html );
+		$this->assertStringContainsString( 'Your next scan is available on', $html );
+		$this->assertStringContainsString( 'name="action" value="tvarkom_obd_scan"', $html );
 	}
 
 	public function test_a_replaced_key_offers_to_connect_again() {

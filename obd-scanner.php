@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:       On-board Diagnostics Scanner for WooCommerce
- * Description:       A free health dashboard for your WooCommerce store, by tvarkom: server, cart and checkout speed, page weight, database, PHP and email security records, scored from 0 to 100 and checked again every week.
+ * Description:       A free health dashboard for your WooCommerce store, by tvarkom: server, cart and checkout speed, page weight, database, PHP and email security records, scored from 0 to 100, with your score over time.
  * Version:           0.1.0
  * Requires at least: 6.5
  * Requires PHP:      7.4
@@ -24,7 +24,6 @@ define( 'TVARKOM_OBD_FILE', __FILE__ );
 define( 'TVARKOM_OBD_OPTION', 'tvarkom_obd' );
 define( 'TVARKOM_OBD_TOKEN', 'tvarkom_obd_verify_token' );
 define( 'TVARKOM_OBD_LOCK', 'tvarkom_obd_scan_lock' );
-define( 'TVARKOM_OBD_CRON', 'tvarkom_obd_scan' );
 
 // Overridable in wp-config.php, e.g. for testing against a local gateway.
 if ( ! defined( 'TVARKOM_OBD_API_URL' ) ) {
@@ -40,16 +39,12 @@ require_once __DIR__ . '/includes/dashboard.php';
 require_once __DIR__ . '/includes/admin.php';
 
 // Every hook the plugin registers. Nothing contacts tvarkom until an administrator clicks
-// "Connect and scan" on the plugin's page (includes/admin.php).
+// "Connect and scan" on the plugin's page (includes/admin.php); scans run only on a click.
 add_action( 'admin_menu', 'tvarkom_obd_admin_menu', 99 );
-add_action( 'admin_post_tvarkom_obd_connect', 'tvarkom_obd_handle_connect' );
+add_action( 'admin_post_tvarkom_obd_scan', 'tvarkom_obd_handle_scan' );
 add_action( 'admin_enqueue_scripts', 'tvarkom_obd_admin_assets' );
 add_action( 'admin_init', 'tvarkom_obd_privacy_policy_content' );
 add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'tvarkom_obd_plugin_action_links' );
 
 // Domain check for registration (includes/rest.php).
 add_action( 'rest_api_init', 'tvarkom_obd_register_routes' );
-
-// The weekly scan, once connected (includes/scan.php).
-add_action( TVARKOM_OBD_CRON, 'tvarkom_obd_scheduled_scan' );
-register_deactivation_hook( __FILE__, 'tvarkom_obd_deactivate' );

@@ -13,17 +13,18 @@ another slug).
 Connect and scan (admin.php) ──▶ register (api.php) ──▶ POST /v1/audits {product: "obd"} (scan.php)
         │                         gateway fetches /wp-json/tvarkom-obd/v1/verify (rest.php)
         ▼
-WP-Cron tvarkom_obd_scan, weekly (scan.php) ──▶ POST /v1/audits again
+Scan now (admin.php, once a week) ──▶ POST /v1/audits again
         ▼
 The page (admin.php) ──▶ GET /v1/results ──▶ dashboard (dashboard.php): gauge, lost points, bars, history
 ```
 
 - Nothing is sent before an administrator clicks **Connect and scan** (`connected_at` in the
-  option `tvarkom_obd`). Deactivation clears the schedule; the settings stay.
+  option `tvarkom_obd`), and every scan is a click: there is no scheduled scan (founder decision of
+  9 Nov 2026: automatic weekly scans are for a future paid version).
 - The gateway (`api-gateway`) allows one scan a week per store, shared with the Checkout Speed
-  Audit plugin; the schedule follows its `next_eligible_at`. A failed scan is retried within the
-  hour (the gateway caps it at 3 a day). Its audits run as plan `obd` in the audit tool, which
-  emails nothing.
+  Audit plugin. The page disables **Scan now** until `GET /v1/results`' `next_scan_at`; a failed
+  scan doesn't count (the gateway caps attempts at 3 a day). Its audits run as plan `obd` in the
+  audit tool, which emails nothing.
 - The dashboard reads only what the gateway's audit history keeps (`GET /v1/results`): score,
   level, the metric catalog's values and the points each scoring rule cost. The fix plan is never
   sent to the plugin. The references in `dashboard.php` are the scanner's
@@ -40,10 +41,10 @@ The page (admin.php) ──▶ GET /v1/results ──▶ dashboard (dashboard.ph
 | `includes/api.php` | Gateway requests, registration, `GET /v1/results` and its checks |
 | `includes/rest.php` | `GET /wp-json/tvarkom-obd/v1/verify`, the registration's domain check |
 | `includes/metrics.php` | The store figures sent with each scan |
-| `includes/scan.php` | One scan request, the weekly schedule, the lock |
+| `includes/scan.php` | One scan request and the lock |
 | `includes/dashboard.php` | The dashboard's charts and texts |
-| `includes/admin.php` | The page, the connect handler, assets, privacy policy text |
-| `uninstall.php` | Removes the option, lock, token and schedule |
+| `includes/admin.php` | The page, the scan button and its handler, assets, privacy policy text |
+| `uninstall.php` | Removes the option, lock and token |
 
 ## Checks
 

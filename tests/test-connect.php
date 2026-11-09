@@ -1,7 +1,7 @@
 <?php
 /**
  * Connecting: nothing is sent before "Connect and scan"; the click registers the store, sends the
- * first scan with only the listed data, and schedules the weekly scan.
+ * first scan with only the listed data. Nothing is scheduled: every scan is a click.
  *
  * @package OBDScanner
  */
@@ -15,22 +15,21 @@ class Tvarkom_OBD_Connect_Test extends Tvarkom_OBD_Test_Case {
 		$this->sign_in_shop_manager();
 		do_action( 'admin_init' );
 		$html = $this->render_page();
-		tvarkom_obd_scheduled_scan();
+		$this->assertSame( 'not_connected', tvarkom_obd_scan() );
 
 		$this->assertSame( array(), $this->requests );
 		$this->assertStringContainsString( 'Connect and scan', $html );
 		$this->assertStringContainsString( 'obd-scanner/legal/privacy-policy.txt', $html );
 		$this->assertStringContainsString( 'obd-scanner/legal/terms-of-use.txt', $html );
-		$this->assertFalse( wp_next_scheduled( TVARKOM_OBD_CRON ) );
 	}
 
-	public function test_connect_registers_scans_and_schedules_the_week() {
+	public function test_connect_registers_and_scans_without_scheduling_anything() {
 		$this->sign_in_shop_manager();
 		$this->respond_registration();
 		$this->respond( 'POST', '/v1/audits', 202, array( 'status' => 'queued' ) );
-		$_REQUEST['_wpnonce'] = wp_create_nonce( 'tvarkom_obd_connect' );
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'tvarkom_obd_scan' );
 
-		$this->assertSame( 'queued', $this->result_of_redirect( 'tvarkom_obd_handle_connect' ) );
+		$this->assertSame( 'queued', $this->result_of_redirect( 'tvarkom_obd_handle_scan' ) );
 
 		$this->assertSame( array( 'POST /v1/register', 'POST /v1/register/verify', 'POST /v1/audits' ), $this->request_lines() );
 		$register = $this->requests[0]['body'];
@@ -63,8 +62,7 @@ class Tvarkom_OBD_Connect_Test extends Tvarkom_OBD_Test_Case {
 		$settings = tvarkom_obd_settings();
 		$this->assertSame( 'tvk_test', $settings['api_key'] );
 		$this->assertGreaterThan( 0, $settings['connected_at'] );
-		$next = wp_next_scheduled( TVARKOM_OBD_CRON );
-		$this->assertEqualsWithDelta( time() + WEEK_IN_SECONDS + 5 * MINUTE_IN_SECONDS, $next, 5 );
+		$this->assertFalse( wp_next_scheduled( 'tvarkom_obd_scan' ), 'no scheduled scan' );
 		$this->assertFalse( get_transient( TVARKOM_OBD_TOKEN ), 'the registration token is gone' );
 		$this->assertFalse( get_option( TVARKOM_OBD_LOCK ), 'the lock is released' );
 	}
@@ -81,19 +79,18 @@ class Tvarkom_OBD_Connect_Test extends Tvarkom_OBD_Test_Case {
 			)
 		);
 		$this->respond( 'POST', '/v1/register/verify', 422, array( 'error' => 'verification_failed' ) );
-		$_REQUEST['_wpnonce'] = wp_create_nonce( 'tvarkom_obd_connect' );
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'tvarkom_obd_scan' );
 
-		$this->assertSame( 'verification_failed', $this->result_of_redirect( 'tvarkom_obd_handle_connect' ) );
+		$this->assertSame( 'verification_failed', $this->result_of_redirect( 'tvarkom_obd_handle_scan' ) );
 		$this->assertFalse( tvarkom_obd_is_connected() );
-		$this->assertFalse( wp_next_scheduled( TVARKOM_OBD_CRON ) );
 		$this->assertStringContainsString( 'tvarkom-obd/v1/verify', $this->render_page_with_result( 'verification_failed' ) );
 	}
 
 	public function test_connecting_needs_the_capability_and_the_nonce() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
-		$_REQUEST['_wpnonce'] = wp_create_nonce( 'tvarkom_obd_connect' );
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'tvarkom_obd_scan' );
 		try {
-			tvarkom_obd_handle_connect();
+			tvarkom_obd_handle_scan();
 			$this->fail( 'A subscriber connected the store.' );
 		} catch ( WPDieException $e ) {
 			$this->assertSame( array(), $this->requests );
@@ -102,12 +99,31 @@ class Tvarkom_OBD_Connect_Test extends Tvarkom_OBD_Test_Case {
 		$this->sign_in_shop_manager();
 		$_REQUEST['_wpnonce'] = 'wrong';
 		try {
-			tvarkom_obd_handle_connect();
+			tvarkom_obd_handle_scan();
 			$this->fail( 'Connected without a valid nonce.' );
 		} catch ( WPDieException $e ) {
 			$this->assertSame( array(), $this->requests );
 			$this->assertFalse( tvarkom_obd_is_connected() );
 		}
+	}
+
+	public function test_scan_now_keeps_a_connected_store_connected() {
+		$this->sign_in_shop_manager();
+		$this->connect_store();
+		$this->respond(
+			'POST',
+			'/v1/audits',
+			429,
+			array(
+				'error'            => 'too_soon',
+				'next_eligible_at' => time() + DAY_IN_SECONDS,
+			)
+		);
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'tvarkom_obd_scan' );
+
+		$this->assertSame( 'too_soon', $this->result_of_redirect( 'tvarkom_obd_handle_scan' ) );
+		$this->assertSame( array( 'POST /v1/audits' ), $this->request_lines() );
+		$this->assertTrue( tvarkom_obd_is_connected() );
 	}
 
 	public function test_the_verify_route_serves_only_a_pending_token() {

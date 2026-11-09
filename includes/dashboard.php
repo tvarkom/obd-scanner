@@ -424,7 +424,7 @@ function tvarkom_obd_render_security( array $metrics ) {
  */
 function tvarkom_obd_render_history( array $history ) {
 	if ( count( $history ) < 2 ) {
-		echo '<p class="tobd__empty">' . esc_html__( 'Your score history starts with your second weekly scan.', 'obd-scanner' ) . '</p>';
+		echo '<p class="tobd__empty">' . esc_html__( 'Your score history starts with your second scan.', 'obd-scanner' ) . '</p>';
 		return;
 	}
 	$width  = 640;

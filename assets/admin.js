@@ -3,7 +3,8 @@
  *
  * - While a scan runs ([data-tobd-refresh] on the page), reloads the page every 20 seconds, at
  *   most 30 times in a row (10 minutes), without the one-time result notice in the address.
- * - After "Connect and scan" is clicked, says the request is running and ignores a second click.
+ * - After "Connect and scan" or "Scan now" is clicked, says the request is running and ignores a
+ *   second click.
  */
 ( function () {
 	'use strict';
@@ -38,8 +39,7 @@
 		reloads( 0 );
 	}
 
-	var form = document.getElementById( 'tobd-connect-form' );
-	if ( form ) {
+	Array.prototype.forEach.call( document.querySelectorAll( '.tobd-scan-form' ), function ( form ) {
 		var sent = false;
 		form.addEventListener( 'submit', function ( event ) {
 			if ( sent ) {
@@ -53,5 +53,5 @@
 				button.setAttribute( 'aria-busy', 'true' );
 			}
 		} );
-	}
+	} );
 }() );

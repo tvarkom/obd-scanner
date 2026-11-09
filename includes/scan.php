@@ -1,10 +1,11 @@
 <?php
 /**
- * Scans: one request to tvarkom (register first when the store has no key), the result stored for
- * the page, and the weekly schedule (WP-Cron). Only after an administrator connected the store.
+ * Scans: one request to tvarkom when an administrator clicks the button (register first when the
+ * store has no key), and the result stored for the page.
  *
  * One scan a week per store: tvarkom's gateway refuses earlier ones (a scan that fails doesn't
- * count) with the date the next one may run, and the schedule follows that date.
+ * count) and says when the next one may run; the page shows that date and disables the button
+ * until then. Scans run only on a click: there is no scheduled scan.
  *
  * @package OBDScanner
  */
@@ -14,13 +15,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Codes after which retrying soon can't help: the next try is a week later.
- */
-const TVARKOM_OBD_LASTING_ERRORS = array( 'not_woocommerce', 'invalid_website', 'invalid_verify_url', 'client_disabled', 'verification_failed', 'invalid_email' );
-
-/**
  * Requests one scan: registers the store when it has no key (or its key stopped working), sends
- * the scan request, stores the result and schedules the next scan.
+ * the scan request and stores the result.
  *
  * @return string The result code: queued, or the reason it wasn't (see tvarkom_obd_messages()).
  */
@@ -43,7 +39,7 @@ function tvarkom_obd_scan() {
 }
 
 /**
- * One attempt: register if needed, then POST /v1/audits. Stores the result and the next scan.
+ * One attempt: register if needed, then POST /v1/audits. Stores the result.
  *
  * @return string The result code.
  */
@@ -76,19 +72,16 @@ function tvarkom_obd_send_scan() {
 	if ( 202 === $response['status'] ) {
 		return tvarkom_obd_finish_scan( 'queued' );
 	}
-	$code = tvarkom_obd_error_code( $response );
-	$next = 'too_soon' === $code && isset( $response['body']['next_eligible_at'] ) ? (int) $response['body']['next_eligible_at'] : 0;
-	return tvarkom_obd_finish_scan( $code, $next );
+	return tvarkom_obd_finish_scan( tvarkom_obd_error_code( $response ) );
 }
 
 /**
- * Stores a scan request's result and schedules the next scan from it.
+ * Stores a scan request's result for the page.
  *
- * @param string $code          The result code.
- * @param int    $next_eligible For too_soon: when the gateway allows the next scan (Unix seconds).
+ * @param string $code The result code.
  * @return string $code.
  */
-function tvarkom_obd_finish_scan( $code, $next_eligible = 0 ) {
+function tvarkom_obd_finish_scan( $code ) {
 	tvarkom_obd_update_settings(
 		array(
 			'last' => array(
@@ -97,94 +90,11 @@ function tvarkom_obd_finish_scan( $code, $next_eligible = 0 ) {
 			),
 		)
 	);
-	tvarkom_obd_schedule( tvarkom_obd_next_attempt( $code, $next_eligible ) );
 	return $code;
 }
 
 /**
- * When to scan next after a result (Unix seconds).
- *
- * @param string $code          The result code.
- * @param int    $next_eligible For too_soon: the gateway's date.
- * @return int
- */
-function tvarkom_obd_next_attempt( $code, $next_eligible = 0 ) {
-	$margin = 5 * MINUTE_IN_SECONDS; // So the gateway's week has surely passed.
-	if ( 'queued' === $code ) {
-		return time() + WEEK_IN_SECONDS + $margin;
-	}
-	if ( 'too_soon' === $code && $next_eligible > time() ) {
-		return $next_eligible + $margin;
-	}
-	if ( 'rate_limited' === $code ) {
-		return time() + DAY_IN_SECONDS;
-	}
-	if ( in_array( $code, TVARKOM_OBD_LASTING_ERRORS, true ) ) {
-		return time() + WEEK_IN_SECONDS;
-	}
-	// Network, busy, server…: try again later the same day.
-	return time() + 6 * HOUR_IN_SECONDS;
-}
-
-/**
- * Schedules the next scan at $timestamp, replacing any scheduled one.
- *
- * @param int $timestamp Unix seconds.
- * @return void
- */
-function tvarkom_obd_schedule( $timestamp ) {
-	wp_clear_scheduled_hook( TVARKOM_OBD_CRON );
-	wp_schedule_single_event( $timestamp, TVARKOM_OBD_CRON );
-}
-
-/**
- * Keeps a scan scheduled while the store is connected, for example after the plugin was
- * deactivated and activated again: the scan then runs soon and the gateway's week decides.
- *
- * @return void
- */
-function tvarkom_obd_ensure_schedule() {
-	if ( tvarkom_obd_is_connected() && false === wp_next_scheduled( TVARKOM_OBD_CRON ) ) {
-		tvarkom_obd_schedule( time() + MINUTE_IN_SECONDS );
-	}
-}
-
-/**
- * After a scan failed on tvarkom's side, try again within the hour instead of next week (a failed
- * scan doesn't count toward the week; the gateway allows 3 a day).
- *
- * @return void
- */
-function tvarkom_obd_retry_failed_scan() {
-	$next = wp_next_scheduled( TVARKOM_OBD_CRON );
-	if ( false === $next || $next > time() + HOUR_IN_SECONDS ) {
-		tvarkom_obd_schedule( time() + HOUR_IN_SECONDS );
-	}
-}
-
-/**
- * The scheduled scan (WP-Cron).
- *
- * @return void
- */
-function tvarkom_obd_scheduled_scan() {
-	if ( function_exists( 'wc_set_time_limit' ) ) {
-		wc_set_time_limit( 120 );
-	}
-	tvarkom_obd_scan();
-}
-
-/**
- * On deactivation: no scan stays scheduled. The settings stay, so activating again resumes.
- *
- * @return void
- */
-function tvarkom_obd_deactivate() {
-	wp_clear_scheduled_hook( TVARKOM_OBD_CRON );
-}
-
-/**
- * Takes the lock that lets one scan request run at a time (a click and the scheduled scan alike),
+ * Takes the lock that lets one scan request run at a time (a second click while the first runs),
  * registration included. The lock is an option row inserted atomically, as in WordPress core's
  * WP_Upgrader::create_lock(); one older than five minutes was left by a request that died and is
  * taken over.

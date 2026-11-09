@@ -35,7 +35,6 @@ abstract class Tvarkom_OBD_Test_Case extends WP_UnitTestCase {
 		add_filter( 'pre_http_request', array( $this, 'fake_http' ), 1, 3 );
 		delete_option( TVARKOM_OBD_OPTION );
 		delete_option( TVARKOM_OBD_LOCK );
-		wp_clear_scheduled_hook( TVARKOM_OBD_CRON );
 	}
 
 	/**

@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<ruleset name="On-board Diagnostics Scanner by tvarkom">
+<ruleset name="Pirkoo by tvarkom">
 	<description>WordPress Coding Standards and PHP 7.4 compatibility for the plugin.</description>
 
 	<file>.</file>
@@ -17,7 +17,7 @@
 	<rule ref="WordPress.WP.I18n">
 		<properties>
 			<property name="text_domain" type="array">
-				<element value="on-board-diagnostics-scanner-for-woocommerce"/>
+				<element value="pirkoo"/>
 			</property>
 		</properties>
 	</rule>

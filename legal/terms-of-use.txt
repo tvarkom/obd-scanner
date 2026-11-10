@@ -1,7 +1,7 @@
 TERMS OF USE
-On-board Diagnostics Scanner
+Pirkoo
 
-The terms for using the audit service of the On-board Diagnostics Scanner plugin for WooCommerce, by tvarkom.
+The terms for using the audit service of the Pirkoo plugin (On-board Diagnostics Scanner for WooCommerce), by tvarkom.
 
 Last updated: 9 November 2026 (version 0.2.0)
 
@@ -10,7 +10,7 @@ Who we are
 
 The service is provided by MB TVARKOM SOFTWARE ("tvarkom", "we", "us"), a small partnership (mažoji bendrija) registered in Lithuania under company code 308171668, registered office Gedimino g. 22A-14, 44319 Kaunas, Lithuania. Contact: contact@tvarkom.com; for help with the plugin or its results, support@tvarkom.com.
 
-By connecting your store with the On-board Diagnostics Scanner plugin ("the plugin"), you agree to these terms. If you use the service for a company, you confirm you may accept them on its behalf.
+By connecting your store with the Pirkoo plugin ("the plugin"), you agree to these terms. If you use the service for a company, you confirm you may accept them on its behalf.
 
 What the service does
 ---------------------

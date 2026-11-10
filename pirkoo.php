@@ -1,7 +1,7 @@
 <?php
 /**
- * Plugin Name:       On-board Diagnostics Scanner for WooCommerce
- * Description:       A free health dashboard for your WooCommerce store, by tvarkom: server, cart and checkout speed, page weight, database, PHP and email security records, scored from 0 to 100, with your score over time.
+ * Plugin Name:       Pirkoo
+ * Description:       On-board Diagnostics Scanner for WooCommerce
  * Version:           0.2.0
  * Requires at least: 6.5
  * Requires PHP:      7.4
@@ -10,7 +10,7 @@
  * Author URI:        https://tvarkom.com
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       on-board-diagnostics-scanner-for-woocommerce
+ * Text Domain:       pirkoo
  *
  * @package OBDScanner
  */
@@ -24,7 +24,7 @@ define( 'TVARKOM_OBD_FILE', __FILE__ );
 define( 'TVARKOM_OBD_OPTION', 'tvarkom_obd' );
 define( 'TVARKOM_OBD_TOKEN', 'tvarkom_obd_verify_token' );
 define( 'TVARKOM_OBD_LOCK', 'tvarkom_obd_scan_lock' );
-define( 'TVARKOM_OBD_PAGE', 'obd-scanner' ); // admin.php?page=obd-scanner (0.1.0: tvarkom-obd, redirected).
+define( 'TVARKOM_OBD_PAGE', 'pirkoo' ); // admin.php?page=pirkoo (before: obd-scanner, and tvarkom-obd in 0.1.0; both redirected).
 
 // Overridable in wp-config.php, e.g. for testing against a local gateway.
 if ( ! defined( 'TVARKOM_OBD_API_URL' ) ) {

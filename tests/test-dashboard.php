@@ -142,8 +142,8 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$this->assertStringNotContainsString( 'tobd__scanbar', $html, 'no scan button while scanning' );
 	}
 
-	public function test_the_page_lives_at_obd_scanner() {
-		$this->assertSame( admin_url( 'admin.php?page=obd-scanner' ), tvarkom_obd_page_url() );
+	public function test_the_page_lives_at_pirkoo() {
+		$this->assertSame( admin_url( 'admin.php?page=pirkoo' ), tvarkom_obd_page_url() );
 	}
 
 	public function test_assets_change_url_when_their_files_change() {

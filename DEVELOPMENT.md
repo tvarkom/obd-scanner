@@ -4,8 +4,8 @@
 
 The plugin is procedural WordPress code: a main file and `includes/`, every function, constant
 and option prefixed `tvarkom_obd` / `TVARKOM_OBD`. It supports PHP 7.4+ and WordPress 6.5+, and
-needs WooCommerce. Text domain: `on-board-diagnostics-scanner-for-woocommerce`, the WordPress.org slug
-(it must always equal the slug; the repo and folder are `obd-scanner`).
+needs WooCommerce. Text domain: `pirkoo`, the WordPress.org slug
+(it must always equal the slug; the plugin is called Pirkoo, "On-board Diagnostics Scanner for WooCommerce", since 10 Nov 2026; the repo folder is still `obd-scanner`).
 
 ## How it works
 
@@ -36,7 +36,7 @@ The page (admin.php) ──▶ GET /v1/results ──▶ dashboard (dashboard.ph
 
 | File | What it holds |
 |---|---|
-| `obd-scanner.php` | Plugin header, constants, includes and every hook |
+| `pirkoo.php` | Plugin header, constants, includes and every hook |
 | `includes/settings.php` | The option `tvarkom_obd`: key, `connected_at`, last result |
 | `includes/api.php` | Gateway requests, registration, `GET /v1/results` and its checks |
 | `includes/rest.php` | `GET /wp-json/tvarkom-obd/v1/verify`, the registration's domain check |
@@ -69,7 +69,7 @@ Checkout Speed Audit plugin. Locally, without PHP installed: `PHP=7.4 npx @php-w
 ## Release
 
 Build the zip from a tagged commit, its folder named after the slug
-(`on-board-diagnostics-scanner-for-woocommerce/`), with only the shipped files: `obd-scanner.php`, `uninstall.php`,
+(`pirkoo/`), with only the shipped files: `pirkoo.php`, `uninstall.php`,
 `readme.txt`, `includes/`, `assets/`, `legal/`.
 
 `legal/privacy-policy.txt` is tvarkom's one privacy policy, shared with the Checkout Speed Audit

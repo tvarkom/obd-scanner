@@ -1,4 +1,4 @@
-=== On-board Diagnostics Scanner for WooCommerce ===
+=== Pirkoo ===
 Contributors: tvarkom
 Tags: woocommerce, performance, speed, health, dashboard
 Requires at least: 6.5
@@ -8,11 +8,11 @@ Stable tag: 0.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-A free health dashboard for your WooCommerce store: server, cart and checkout speed, page weight, database and email records, scored 0–100.
+On-board Diagnostics Scanner for WooCommerce.
 
 == Description ==
 
-On-board Diagnostics adds a **WooCommerce → Store Scanner** page that shows how healthy your store is, right in wp-admin. Click once, and tvarkom's free scanner checks your store; scan it again once a week to follow your score.
+Pirkoo, tvarkom's On-board Diagnostics Scanner for WooCommerce, adds a **WooCommerce → Pirkoo** page that shows how healthy your store is, right in wp-admin. Click once, and tvarkom's free scanner checks your store; scan it again once a week to follow your score.
 
 The dashboard shows:
 
@@ -29,7 +29,7 @@ tvarkom's scanner measures your store from outside, the way a shopper's browser 
 = How it works =
 
 1. Install and activate the plugin. Nothing is sent yet.
-2. Open **WooCommerce → Store Scanner** and click **Connect and scan**, right under the list of what is sent.
+2. Open **WooCommerce → Pirkoo** and click **Connect and scan**, right under the list of what is sent.
 3. The first scan takes a few minutes; the page updates itself when the results arrive.
 4. After that, click **Scan now** whenever you want fresh results, once a week at most. Until then the button shows the date of your next scan, and the dashboard shows the latest results and the score history.
 
@@ -96,6 +96,7 @@ tvarkom (MB TVARKOM SOFTWARE, Lithuania) builds diagnostic tools for WooCommerce
 == Changelog ==
 
 = 0.2.0 =
+* The plugin is now called Pirkoo (On-board Diagnostics Scanner for WooCommerce); its page is WooCommerce → Pirkoo.
 * A new dashboard: the store summary, the store health score with how many checks it's based on, what needs attention first, your store's health trends, and your store's profile (sales and checkout as counted, catalog, operations, traffic and marketing).
 * Every check now counts towards the score, by how much it matters; earlier scores keep the scoring model they were made with and aren't compared with new ones.
 * The scan also sends the site's WordPress environment type, so a staging copy isn't marked down for blocking search engines or showing debug output.

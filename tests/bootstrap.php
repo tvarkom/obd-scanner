@@ -20,7 +20,7 @@ tests_add_filter(
 	'muplugins_loaded',
 	function () use ( $tvarkom_obd_root ) {
 		require WP_PLUGIN_DIR . '/woocommerce/woocommerce.php';
-		require $tvarkom_obd_root . '/obd-scanner.php';
+		require $tvarkom_obd_root . '/pirkoo.php';
 	}
 );
 

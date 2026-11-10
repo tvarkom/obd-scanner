@@ -83,14 +83,14 @@ function tvarkom_obd_parse_pipeline( $raw ) {
  */
 function tvarkom_obd_job_status_label( $status, $na = false ) {
 	$labels = array(
-		'red'    => __( 'Critical', 'on-board-diagnostics-scanner-for-woocommerce' ),
-		'orange' => __( 'Warning', 'on-board-diagnostics-scanner-for-woocommerce' ),
-		'yellow' => __( 'Minor issue', 'on-board-diagnostics-scanner-for-woocommerce' ),
-		'green'  => __( 'Passed', 'on-board-diagnostics-scanner-for-woocommerce' ),
-		'grey'   => __( 'Not measured', 'on-board-diagnostics-scanner-for-woocommerce' ),
+		'red'    => __( 'Critical', 'pirkoo' ),
+		'orange' => __( 'Warning', 'pirkoo' ),
+		'yellow' => __( 'Minor issue', 'pirkoo' ),
+		'green'  => __( 'Passed', 'pirkoo' ),
+		'grey'   => __( 'Not measured', 'pirkoo' ),
 	);
 	if ( 'grey' === $status && $na ) {
-		return __( 'Not applicable', 'on-board-diagnostics-scanner-for-woocommerce' );
+		return __( 'Not applicable', 'pirkoo' );
 	}
 	return isset( $labels[ $status ] ) ? $labels[ $status ] : $labels['grey'];
 }
@@ -152,7 +152,7 @@ function tvarkom_obd_render_pipeline( array $stages ) {
 	);
 	?>
 	<section class="tobd__panel tobd__pipeline" aria-labelledby="tobd-pipeline-title">
-		<h2 class="tobd__h2" id="tobd-pipeline-title"><?php esc_html_e( 'Scanner pipeline', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
+		<h2 class="tobd__h2" id="tobd-pipeline-title"><?php esc_html_e( 'Scanner pipeline', 'pirkoo' ); ?></h2>
 		<div class="tobd__stages">
 			<?php foreach ( $stages as $s => $stage ) : ?>
 				<div class="tobd__stage">
@@ -196,12 +196,12 @@ function tvarkom_obd_render_pipeline( array $stages ) {
  */
 function tvarkom_obd_render_job_panel( $id, $stage, array $job ) {
 	$rows = array(
-		array( __( 'Status', 'on-board-diagnostics-scanner-for-woocommerce' ), tvarkom_obd_job_status_label( $job['status'], $job['na'] ) ),
-		array( __( 'Measured', 'on-board-diagnostics-scanner-for-woocommerce' ), $job['measured'] ),
-		array( __( 'Reference', 'on-board-diagnostics-scanner-for-woocommerce' ), $job['reference'] ),
-		array( __( 'Critical', 'on-board-diagnostics-scanner-for-woocommerce' ), $job['critical'] ),
+		array( __( 'Status', 'pirkoo' ), tvarkom_obd_job_status_label( $job['status'], $job['na'] ) ),
+		array( __( 'Measured', 'pirkoo' ), $job['measured'] ),
+		array( __( 'Reference', 'pirkoo' ), $job['reference'] ),
+		array( __( 'Critical', 'pirkoo' ), $job['critical'] ),
 		/* translators: %d: points. */
-		array( __( 'Points lost', 'on-board-diagnostics-scanner-for-woocommerce' ), null === $job['points'] ? '' : sprintf( __( '−%d', 'on-board-diagnostics-scanner-for-woocommerce' ), $job['points'] ) ),
+		array( __( 'Points lost', 'pirkoo' ), null === $job['points'] ? '' : sprintf( __( '−%d', 'pirkoo' ), $job['points'] ) ),
 	);
 	?>
 	<section class="tobd__job-panel tobd__job-panel--<?php echo esc_attr( $job['status'] ); ?>" id="<?php echo esc_attr( $id ); ?>" aria-label="<?php echo esc_attr( $stage . ' › ' . $job['name'] ); ?>">

@@ -4,7 +4,7 @@ Tags: woocommerce, performance, speed, health, dashboard
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.2.0
+Stable tag: 0.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -94,6 +94,9 @@ No. Nothing is sent until you click **Connect and scan**, and after that only wh
 tvarkom (MB TVARKOM SOFTWARE, Lithuania) builds diagnostic tools for WooCommerce stores. Contact: support@tvarkom.com.
 
 == Changelog ==
+
+= 0.2.1 =
+* The privacy policy shipped with the plugin is the current text, the same as tvarkom.com/privacy/.
 
 = 0.2.0 =
 * The plugin is now called Pirkoo (On-board Diagnostics Scanner for WooCommerce); its page is WooCommerce → Pirkoo.

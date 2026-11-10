@@ -367,6 +367,11 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$body['latest']['analysis'] = array(
 			'schema'   => 1,
 			'figures'  => array(
+				'money'  => array(
+					'sales' => '20 000 €',
+					'aov'   => '50 €',
+				),
+				'orders' => array( 'failed' => 20 ),
 				'impact' => array(
 					'status'        => 'estimated',
 					'sales'         => array(
@@ -423,7 +428,9 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$this->assertSame( 2, substr_count( $html, 'class="tobd__range-track"' ), 'one bar per cause' );
 		$this->assertStringContainsString( 'style="left: 28.6%; width: 71.4%"', $html, 'slow checkout: 400 to 1 400, the largest high estimate' );
 		$this->assertStringContainsString( 'style="left: 71.4%; width: 0.0%"', $html, 'failed orders: 1 000 exactly' );
-		$this->assertStringContainsString( '<dt>Gross sales, last 30 days</dt>', $html, 'the store figures the estimate starts from' );
+		$this->assertStringContainsString( '<dt>Gross sales, last 30 days</dt><dd>20 000 €</dd>', $html, 'the store figures the estimate starts from' );
+		$this->assertStringContainsString( '<dt>Orders failed at payment</dt><dd>20</dd>', $html );
+		$this->assertStringNotContainsString( 'Paid orders, last 30 days', $html, 'only the figures the model uses' );
 		$this->assertStringContainsString( 'Assumptions and sources', $html );
 		$this->assertStringContainsString( '&lt;i&gt;400 €&lt;/i&gt;', $html, 'labels are escaped' );
 		$this->assertStringContainsString( '20 orders failed at payment', $html );

@@ -175,8 +175,8 @@
 .tobd__icon--yellow circle { fill: var(--st-yellow); }
 .tobd__icon--green circle { fill: var(--st-green); }
 .tobd__icon--grey circle { fill: var(--st-grey); }
-/* GitLab's pipeline graph: stage cards on a grey band, joined by one line at the title's height */
-.tobd__stages { display: flex; align-items: flex-start; gap: 24px; overflow-x: auto; padding: 16px; border-radius: 8px; background: #f6f6f3; }
+/* GitLab's pipeline graph: stage cards joined by one line at the title's height */
+.tobd__stages { display: flex; align-items: flex-start; gap: 24px; overflow-x: auto; padding-bottom: 2px; }
 .tobd__stage { position: relative; flex: 1 1 0; min-width: 170px; padding: 10px 6px 6px; border: 1px solid #dcdcd5; border-radius: 8px; background: var(--surface); }
 .tobd__stage:not(:last-child)::after { content: ""; position: absolute; top: 22px; right: -25px; width: 24px; border-top: 2px solid #dcdcd5; }
 .tobd h3.tobd__stage-name { margin: 0 0 6px; padding: 0 8px; overflow: hidden; font-size: 14px; font-weight: 700; line-height: 24px; white-space: nowrap; text-overflow: ellipsis; color: var(--ink); }

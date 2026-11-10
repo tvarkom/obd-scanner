@@ -1,19 +1,19 @@
 PRIVACY POLICY
 Pirkoo
 
-What personal data Pirkoo, tvarkom's WooCommerce plugin, and tvarkom's website handle, why, who processes it for us and how long we keep it.
+What personal data Pirkoo handles (the WooCommerce plugin, the service it connects to and the website pirkoo.com), why, who processes it for us and how long we keep it. Pirkoo is made by tvarkom.
 
 Last updated: 10 November 2026
 
 Who we are
 ----------
 
-The data controller is MB TVARKOM SOFTWARE ("tvarkom", "we", "us"), a small partnership (mažoji bendrija) registered in Lithuania under company code 308171668, registered office Gedimino g. 22A-14, 44319 Kaunas, Lithuania. For privacy questions and data requests, email privacy@tvarkom.com.
+The data controller is MB TVARKOM SOFTWARE ("tvarkom", "we", "us"), a small partnership (mažoji bendrija) registered in Lithuania under company code 308171668, registered office Gedimino g. 22A-14, 44319 Kaunas, Lithuania. For privacy questions and data requests, email privacy@pirkoo.com.
 
 The Pirkoo plugin
 -----------------
 
-Pirkoo shows your store's health on its own page in your store's admin. It contacts tvarkom for the first time when an administrator clicks "Connect and scan"; before that, it sends nothing. From then on it sends:
+Pirkoo shows your store's health on its own page in your store's admin. It contacts Pirkoo's service for the first time when an administrator clicks "Connect and scan"; before that, it sends nothing. From then on it sends:
 
 * Connecting (and again if the store's key stops working): your store's address, your site's admin email (WordPress Settings → General) as the contact address of your store's registration, and the address of the plugin's verification endpoint. We fetch a one-time token from that endpoint to confirm the request comes from your store, then issue a key for your domain. Unfinished registrations are deleted after 7 days. We send no marketing to that email.
 
@@ -41,16 +41,14 @@ Legal basis (Art. 6 GDPR), by purpose:
 * Registering your store, scanning it when you ask and keeping its analysis to show it to you: providing the service you request (Art. 6(1)(b)).
 * The audit history: our legitimate interests in supporting your store, showing its results over time, and improving our scanner (Art. 6(1)(f)).
 * The store profile and its statistics; the IP address, audit requests and limits: our legitimate interests in understanding who uses the plugin, supporting stores that contact us and preventing abuse (Art. 6(1)(f)).
-You can object at any time: email privacy@tvarkom.com and we'll delete your store's audit history and profile, or stop scanning or uninstall the plugin, and nothing more is sent.
+You can object at any time: email privacy@pirkoo.com and we'll delete your store's audit history and profile, or stop scanning or uninstall the plugin, and nothing more is sent.
 
 Uninstalling the plugin deletes everything it keeps on your store: its settings, its key and the table of daily totals. Records already on our side follow the periods in "How long we keep it" below, or are deleted sooner on request.
 
-tvarkom's website
------------------
+Pirkoo's website
+----------------
 
-tvarkom.com has no forms. When you visit it, our hosting provider and Cloudflare process your IP address and the pages you request to deliver the site and protect it from abuse. Cloudflare's bot protection runs a short check in your browser and sets one security cookie, cf_clearance (HttpOnly, up to one year), which tells Cloudflare your browser passed it; it isn't used for tracking or advertising. Legal basis: our legitimate interest in running a secure website (Art. 6(1)(f)); the cookie is strictly necessary for that security.
-
-Google Analytics, only if you accept: a banner on the site asks whether we may use Google Analytics. Nothing from Google loads, and no analytics cookie is set, unless you click "Accept". If you accept, Google Tag Manager loads Google Analytics 4, which sets the cookies _ga and _ga_ followed by an ID (up to 2 years) and collects pseudonymous data about your visits: the pages you view, the page that sent you, your device and browser, your approximate location (country or city, derived from your IP address, which Google Analytics doesn't store). We use it only to see how the site is used; advertising features are off. Your choice is kept in your browser's local storage (the key tvarkom-analytics-consent), not in a cookie, and you can change it at any time with "Cookie settings" on every page; declining removes Google Analytics' cookies. Legal basis: your consent (Art. 6(1)(a); for the cookies, the ePrivacy rules as implemented in Lithuanian law). Google Ireland Limited processes the data for us; it may transfer it to Google LLC in the United States under the EU-US Data Privacy Framework.
+pirkoo.com has no forms, analytics or cookies of its own. When you visit it, our hosting provider and Cloudflare process your IP address and the pages you request to deliver the site and protect it from abuse; if Cloudflare's bot protection checks your browser, it sets one security cookie, cf_clearance (HttpOnly, up to one year), which isn't used for tracking or advertising. Legal basis: our legitimate interest in running a secure website (Art. 6(1)(f)); the cookie is strictly necessary for that security. tvarkom's company website, tvarkom.com, has its own privacy notice there.
 
 When you email us
 -----------------
@@ -60,11 +58,11 @@ We keep your messages and contact details to answer you and, if you become a cli
 Who processes data for us
 -------------------------
 
-* Fly.io: hosts our website, our API and our scanner, with their databases and logs, on servers in Amsterdam, Netherlands.
+* Fly.io: hosts pirkoo.com, Pirkoo's API and our scanner, with their databases and logs, on servers in Amsterdam, Netherlands.
 
-* Cloudflare: DNS and network protection for tvarkom.com.
+* Cloudflare: DNS for pirkoo.com and network protection for the website.
 
-* Google: Google Workspace hosts our mailbox, and Google Analytics measures visits to tvarkom.com, only with your consent.
+* Google: Google Workspace hosts our mailboxes.
 
 Some of these providers are based in the United States. Where data leaves the EU, they process it under an EU adequacy decision, such as the EU-US Data Privacy Framework, or Standard Contractual Clauses. We don't sell your data or use it for advertising. We don't take payments.
 
@@ -91,16 +89,14 @@ Other copies:
 
 * Logs: our service logs record store addresses and technical identifiers, not scan contents or email addresses. Our hosting provider keeps them for about 7 days.
 
-* Google Analytics: visit data collected with your consent is kept for 14 months, then deleted automatically by Google Analytics. Your consent choice stays in your browser until you change it or clear your browser's storage.
-
 Your rights
 -----------
 
-You can ask us for a copy of your data, to correct or delete it, to restrict or object to how we use it, or to receive it in a portable format. Email privacy@tvarkom.com and we'll reply within one month. For help with Pirkoo, email support@tvarkom.com.
+You can ask us for a copy of your data, to correct or delete it, to restrict or object to how we use it, or to receive it in a portable format. Email privacy@pirkoo.com and we'll reply within one month. For help with Pirkoo, email support@pirkoo.com.
 
 You can also complain to the Lithuanian supervisory authority, the State Data Protection Inspectorate (vdai.lrv.lt (https://vdai.lrv.lt/en/)), or to the authority where you live.
 
 Changes
 -------
 
-This policy is published at https://tvarkom.com/privacy/ and shipped with Pirkoo. If we change how we handle your data, we'll update it and the date at the top.
+This policy is published at https://pirkoo.com/privacy/ and shipped with Pirkoo. If we change how we handle your data, we'll update it and the date at the top.

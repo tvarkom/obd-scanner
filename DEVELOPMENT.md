@@ -72,9 +72,12 @@ Build the zip from a tagged commit, its folder named after the slug
 (`pirkoo/`), with only the shipped files: `pirkoo.php`, `uninstall.php`,
 `readme.txt`, `includes/`, `assets/`, `legal/`.
 
-`legal/privacy-policy.txt` is tvarkom's one privacy policy, shared with the Checkout Speed Audit
-plugin and published at tvarkom.com/privacy/ (website repo `content/privacy-policy.txt`): keep the
-copies identical. `legal/terms-of-use.txt` is this plugin's own.
+`legal/privacy-policy.txt` is Pirkoo's privacy policy (the plugin, the service at
+`api.pirkoo.com` and pirkoo.com; since 10 Nov 2026), published at https://pirkoo.com/privacy/: the
+pirkoo-website repo (`../../website`) generates that page from a copy of this file (its
+`content/privacy-policy.txt`, `go run ./cmd/legalpage`), and its test fails when they differ. tvarkom.com
+keeps only a short notice for its own site. `legal/terms-of-use.txt` is this plugin's own. Pirkoo's
+addresses: support@pirkoo.com (help), privacy@pirkoo.com (privacy requests), contact@pirkoo.com.
 
 ## Paid version (not in the free plugin)
 

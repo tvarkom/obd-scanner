@@ -63,7 +63,7 @@ function tvarkom_obd_funnel_install() {
 
 /**
  * Whether this request's events are counted: not by staff, not a checkout profile (this plugin's,
- * or the one tvarkom's Checkout Speed Audit loads when both are active).
+ * or another profiler using the same request marker).
  *
  * @return bool
  */

@@ -2,11 +2,12 @@
 /**
  * Plugin Name:       Pirkoo
  * Description:       On-board Diagnostics Scanner for WooCommerce
- * Version:           0.2.1
+ * Version:           0.2.2
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Requires Plugins:  woocommerce
  * Author:            tvarkom
+ * Plugin URI:        https://pirkoo.com
  * Author URI:        https://tvarkom.com
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -19,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'TVARKOM_OBD_VERSION', '0.2.1' );
+define( 'TVARKOM_OBD_VERSION', '0.2.2' );
 define( 'TVARKOM_OBD_FILE', __FILE__ );
 define( 'TVARKOM_OBD_OPTION', 'tvarkom_obd' );
 define( 'TVARKOM_OBD_TOKEN', 'tvarkom_obd_verify_token' );
@@ -28,7 +29,7 @@ define( 'TVARKOM_OBD_PAGE', 'pirkoo' ); // admin.php?page=pirkoo (before: obd-sc
 
 // Overridable in wp-config.php, e.g. for testing against a local gateway.
 if ( ! defined( 'TVARKOM_OBD_API_URL' ) ) {
-	define( 'TVARKOM_OBD_API_URL', 'https://api.tvarkom.com' );
+	define( 'TVARKOM_OBD_API_URL', 'https://api.pirkoo.com' );
 }
 
 require_once __DIR__ . '/includes/settings.php';

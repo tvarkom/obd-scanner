@@ -51,7 +51,7 @@ function tvarkom_obd_redirect_old_page() {
 
 /**
  * The URL of one of the legal texts that ship with the plugin (legal/), so the version the
- * administrator agrees to is the one installed. The privacy policy is also at tvarkom.com/privacy/.
+ * administrator agrees to is the one installed. The privacy policy is also at pirkoo.com/privacy/.
  *
  * @param string $file File name in legal/: terms-of-use.txt or privacy-policy.txt.
  * @return string
@@ -79,7 +79,7 @@ function tvarkom_obd_plugin_action_links( $links ) {
  * @return array<string, array{0: string, 1: string}> Code => [notice type, message].
  */
 function tvarkom_obd_messages() {
-	$try_later = __( 'Try again later. If it keeps happening, email support@tvarkom.com.', 'pirkoo' );
+	$try_later = __( 'Try again later. If it keeps happening, email support@pirkoo.com.', 'pirkoo' );
 	return array(
 		'queued'                 => array( 'success', __( 'Scan requested. Your store is being scanned now; the results appear here in a few minutes.', 'pirkoo' ) ),
 		'too_soon'               => array( 'info', __( 'Your store was scanned in the last 7 days. You can scan it once a week: the date of your next scan is shown below.', 'pirkoo' ) ),
@@ -91,7 +91,7 @@ function tvarkom_obd_messages() {
 		'registration_not_found' => array( 'error', __( 'The connection timed out. Click Connect and scan again.', 'pirkoo' ) ),
 		'invalid_key'            => array( 'error', __( 'This store\'s connection to tvarkom was replaced or revoked.', 'pirkoo' ) ),
 		'website_not_allowed'    => array( 'error', __( 'This store\'s address changed since it was connected.', 'pirkoo' ) ),
-		'client_disabled'        => array( 'error', __( 'Scans are paused for this store. Email support@tvarkom.com.', 'pirkoo' ) ),
+		'client_disabled'        => array( 'error', __( 'Scans are paused for this store. Email support@pirkoo.com.', 'pirkoo' ) ),
 		'rate_limited'           => array( 'error', __( 'Too many scans or connections for this store today.', 'pirkoo' ) . ' ' . $try_later ),
 		'not_woocommerce'        => array( 'error', __( 'Our scanner couldn\'t find WooCommerce on your public homepage. Check that your store isn\'t in maintenance mode or behind a password.', 'pirkoo' ) ),
 		'busy'                   => array( 'error', __( 'The scanner is busy right now.', 'pirkoo' ) . ' ' . $try_later ),
@@ -135,7 +135,7 @@ function tvarkom_obd_render_page() {
 			tvarkom_obd_render_connect( false );
 		}
 		?>
-		<p class="tobd__footer"><?php esc_html_e( 'Help: support@tvarkom.com · Privacy requests: privacy@tvarkom.com', 'pirkoo' ); ?></p>
+		<p class="tobd__footer"><?php esc_html_e( 'Help: support@pirkoo.com · Privacy requests: privacy@pirkoo.com', 'pirkoo' ); ?></p>
 	</div>
 	<?php
 }
@@ -357,7 +357,7 @@ function tvarkom_obd_render_connect( $reconnect ) {
 				<?php
 				printf(
 					/* translators: 1: link to the Terms of Use, 2: link to the Privacy Policy. */
-					esc_html__( 'By clicking “Connect and scan”, you agree to send this data to tvarkom now and each time you click Scan now, and accept tvarkom\'s %1$s and %2$s.', 'pirkoo' ),
+					esc_html__( 'By clicking “Connect and scan”, you agree to send this data to Pirkoo\'s service, run by tvarkom, now and each time you click Scan now, and accept Pirkoo\'s %1$s and %2$s.', 'pirkoo' ),
 					sprintf( $link, esc_url( tvarkom_obd_legal_url( 'terms-of-use.txt' ) ), esc_html__( 'Terms of Use', 'pirkoo' ) ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
 					sprintf( $link, esc_url( tvarkom_obd_legal_url( 'privacy-policy.txt' ) ), esc_html__( 'Privacy Policy', 'pirkoo' ) ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
 				);
@@ -439,6 +439,6 @@ function tvarkom_obd_privacy_policy_content() {
 		return;
 	}
 	$content  = '<p>' . esc_html__( 'This site uses the Pirkoo plugin (On-board Diagnostics Scanner for WooCommerce), by tvarkom (MB TVARKOM SOFTWARE, Lithuania). When an administrator requests a scan (at most once a week), the store\'s address, its cart and checkout page addresses and the site\'s admin email are sent to tvarkom, with aggregate store data, such as software versions, database sizes, background task counts, order counts, the 30-day gross sales and average order value, new and returning customer counts, daily shop activity totals and order source counts, and a profile of one checkout page load. Customers\' names, emails and addresses are not sent. tvarkom keeps each scan\'s results and analysis, including these business figures, linked to the store for 12 months, and shows them on the plugin\'s page; nothing is emailed.', 'pirkoo' ) . '</p>';
-	$content .= '<p><a href="' . esc_url( 'https://tvarkom.com/privacy/' ) . '">' . esc_html__( 'tvarkom Privacy Policy', 'pirkoo' ) . '</a></p>';
+	$content .= '<p><a href="' . esc_url( 'https://pirkoo.com/privacy/' ) . '">' . esc_html__( 'Pirkoo Privacy Policy', 'pirkoo' ) . '</a></p>';
 	wp_add_privacy_policy_content( 'Pirkoo', wp_kses_post( $content ) );
 }

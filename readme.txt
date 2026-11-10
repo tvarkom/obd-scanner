@@ -4,7 +4,7 @@ Tags: woocommerce, performance, speed, health, dashboard
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.2.1
+Stable tag: 0.2.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -35,11 +35,11 @@ tvarkom's scanner measures your store from outside, the way a shopper's browser 
 
 == External services ==
 
-This plugin uses the tvarkom audit service (https://tvarkom.com), run by MB TVARKOM SOFTWARE (Lithuania), to scan your store and show the results. It contacts tvarkom only after an administrator clicks **Connect and scan** on the plugin's page, right under a list of what it sends and the line "By clicking “Connect and scan”, you agree to send this data to tvarkom now and each time you click Scan now, and accept tvarkom's Terms of Use and Privacy Policy". Before that click, nothing is sent. The plugin never scans on its own: each scan is an administrator's click.
+This plugin uses Pirkoo's audit service (https://pirkoo.com), run by MB TVARKOM SOFTWARE (Lithuania), to scan your store and show the results. It contacts the service only after an administrator clicks **Connect and scan** on the plugin's page, right under a list of what it sends and the line "By clicking “Connect and scan”, you agree to send this data to Pirkoo's service, run by tvarkom, now and each time you click Scan now, and accept Pirkoo's Terms of Use and Privacy Policy". Before that click, nothing is sent. The plugin never scans on its own: each scan is an administrator's click.
 
-**Connecting** (once, and again if the store's key stops working): your store's home URL, the site's admin email (the account's contact address; no reports or marketing are sent to it) and the URL of the plugin's verification endpoint are sent to `https://api.tvarkom.com/v1/register`. tvarkom then calls `https://<your store>/wp-json/tvarkom-obd/v1/verify` to confirm the request came from your store, and issues a key for your domain (`https://api.tvarkom.com/v1/register/verify`).
+**Connecting** (once, and again if the store's key stops working): your store's home URL, the site's admin email (the account's contact address; no reports or marketing are sent to it) and the URL of the plugin's verification endpoint are sent to `https://api.pirkoo.com/v1/register`. The service then calls `https://<your store>/wp-json/tvarkom-obd/v1/verify` to confirm the request came from your store, and issues a key for your domain (`https://api.tvarkom.com/v1/register/verify`).
 
-**Each scan** (the first with **Connect and scan**, then each **Scan now** click, at most once a week): your store's home URL, cart and checkout URLs and the admin email are sent to `https://api.tvarkom.com/v1/audits`, with:
+**Each scan** (the first with **Connect and scan**, then each **Scan now** click, at most once a week): your store's home URL, cart and checkout URLs and the admin email are sent to `https://api.pirkoo.com/v1/audits`, with:
 
 * PHP, WordPress and WooCommerce versions
 * Database and options table sizes, autoloaded options size, and the names and sizes of the 20 largest autoloaded options (never their contents)
@@ -56,15 +56,15 @@ Option, table, task and host names have email addresses, long numbers and identi
 
 **WordPress.org**: for the core files check, the plugin asks `https://api.wordpress.org/core/checksums/1.0/` for the official checksums of your WordPress version and language, the same request WordPress makes for its own updates. It sends the version and language only. WordPress.org's privacy policy: https://wordpress.org/about/privacy/
 
-**The dashboard**: each time an administrator opens the plugin's page, it asks `https://api.tvarkom.com/v1/results` for your store's results, sending only the store's key.
+**The dashboard**: each time an administrator opens the plugin's page, it asks `https://api.pirkoo.com/v1/results` for your store's results, sending only the store's key.
 
 The plugin never reads customers' names, emails or addresses or order contents for this, and never sends option contents or task arguments.
 
 **What tvarkom keeps**: each scan's results and analysis linked to your store, for 12 months after the scan: the score and risk level, which checks cost points and how many, the measurements, and the full analysis this plugin shows you (the store data, business context and sales figures above, and what tvarkom found in them), never the fix plan. They're used to show you this dashboard and your score history, to answer you when you contact tvarkom, and, across stores, to improve the scanner. tvarkom also keeps the latest business context of your store (without sales amounts), replaced by each scan, for totals across stores and support. Each scan request (store, page addresses, time) is kept for 24 months, with the admin email erased from it after 90 days; the store's contact email is deleted after 12 months without a scan.
 
-Uninstalling the plugin deletes its settings, key and table of daily totals from your store; records on tvarkom's side follow the periods above. To have them deleted sooner, email privacy@tvarkom.com.
+Uninstalling the plugin deletes its settings, key and table of daily totals from your store; records on our side follow the periods above. To have them deleted sooner, email privacy@pirkoo.com.
 
-* Privacy Policy: https://tvarkom.com/privacy/ (also shipped with the plugin, `legal/privacy-policy.txt`)
+* Privacy Policy: https://pirkoo.com/privacy/ (also shipped with the plugin, `legal/privacy-policy.txt`)
 * Terms of Use: shipped with the plugin, `legal/terms-of-use.txt`
 
 == Frequently Asked Questions ==
@@ -91,9 +91,12 @@ No. Nothing is sent until you click **Connect and scan**, and after that only wh
 
 = Who is tvarkom? =
 
-tvarkom (MB TVARKOM SOFTWARE, Lithuania) builds diagnostic tools for WooCommerce stores. Contact: support@tvarkom.com.
+tvarkom (MB TVARKOM SOFTWARE, Lithuania) builds diagnostic tools for WooCommerce stores. Contact: support@pirkoo.com.
 
 == Changelog ==
+
+= 0.2.2 =
+* Pirkoo's own address: the plugin now talks to https://api.pirkoo.com; the Privacy Policy is at https://pirkoo.com/privacy/; help at support@pirkoo.com and privacy requests at privacy@pirkoo.com.
 
 = 0.2.1 =
 * The privacy policy shipped with the plugin is the current text, the same as tvarkom.com/privacy/.
@@ -105,7 +108,7 @@ tvarkom (MB TVARKOM SOFTWARE, Lithuania) builds diagnostic tools for WooCommerce
 * The scan also sends the site's WordPress environment type, so a staging copy isn't marked down for blocking search engines or showing debug output.
 * The store pipeline: every check as a coloured job, with what was measured and its reference.
 * New checks: compression, WordPress and theme updates, debug output, search engine visibility, MyISAM tables and character set, expired transients, administrators and the file editor; upload limit, PHP extensions, disk space, server load and memory; paused plugins, fatal errors, automatic updates and permalinks; database latency and clutter; core files against WordPress.org's checksums, readable files, wp-config.php permissions, an "admin" username and open registration.
-* Each scan now sends the same store data as tvarkom's Checkout Speed Audit, plus the site checks above, listed under External services; the plugin keeps a small table of daily shop totals.
+* Each scan now sends more store data (business context and a profile of one checkout page load), plus the site checks above, listed under External services; the plugin keeps a small table of daily shop totals.
 
 = 0.1.0 =
 * First release: scan on demand (once a week), and a dashboard with the score, the points lost, server response, homepage weight, database and server figures, HTTPS and email records, and the score over time.

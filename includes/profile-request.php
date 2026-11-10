@@ -64,7 +64,7 @@ function tvarkom_obd_profile_checkout() {
 		array(
 			'timeout'     => 30,
 			'redirection' => 0,
-			'user-agent'  => 'tvarkom checkout profiler (+https://tvarkom.com)',
+			'user-agent'  => 'Pirkoo checkout profiler (+https://pirkoo.com)',
 			'headers'     => array(
 				TVARKOM_OBD_PROFILE_HEADER => $token,
 				'Cache-Control'            => 'no-cache',

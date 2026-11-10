@@ -4,7 +4,7 @@ parameters:
     level: 6
     phpVersion: 70400
     paths:
-        - obd-scanner.php
+        - tvarkom-helper.php
         - uninstall.php
         - includes
     bootstrapFiles:

@@ -1,7 +1,7 @@
 <?php
 /**
- * Plugin Name:       On-board Diagnostics Scanner for WooCommerce
- * Description:       A free health dashboard for your WooCommerce store, by tvarkom: server, cart and checkout speed, page weight, database, PHP and email security records, scored from 0 to 100, with your score over time.
+ * Plugin Name:       tvarkom Helper
+ * Description:       tvarkom's On-board Diagnostics Scanner for WooCommerce: a free store health dashboard with 44 checks of your server, cart and checkout speed, front end, database, background tasks, platform and security, a health score out of 100 and its trend.
  * Version:           0.2.0
  * Requires at least: 6.5
  * Requires PHP:      7.4
@@ -10,7 +10,7 @@
  * Author URI:        https://tvarkom.com
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       on-board-diagnostics-scanner-for-woocommerce
+ * Text Domain:       tvarkom-helper
  *
  * @package OBDScanner
  */

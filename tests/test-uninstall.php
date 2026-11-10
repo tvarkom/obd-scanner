@@ -16,7 +16,7 @@ class Tvarkom_OBD_Uninstall_Test extends Tvarkom_OBD_Test_Case {
 		set_transient( TVARKOM_OBD_TOKEN, 'tok_1', MINUTE_IN_SECONDS );
 
 		if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
-			define( 'WP_UNINSTALL_PLUGIN', 'obd-scanner/obd-scanner.php' );
+			define( 'WP_UNINSTALL_PLUGIN', 'tvarkom-helper/tvarkom-helper.php' );
 		}
 		require dirname( __DIR__ ) . '/uninstall.php';
 

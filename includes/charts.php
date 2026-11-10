@@ -101,7 +101,7 @@ function tvarkom_obd_chips( $title, array $items ) {
 	}
 	echo '</ul>';
 	if ( $ids ) {
-		echo '<p class="tobd__note">' . esc_html__( 'Shown in code: the identifier WooCommerce gives a method this store no longer has a name for (for example, a plugin that was switched off).', 'on-board-diagnostics-scanner-for-woocommerce' ) . '</p>';
+		echo '<p class="tobd__note">' . esc_html__( 'Shown in code: the identifier WooCommerce gives a method this store no longer has a name for (for example, a plugin that was switched off).', 'tvarkom-helper' ) . '</p>';
 	}
 }
 
@@ -155,7 +155,7 @@ function tvarkom_obd_method_names( array $names, $kind ) {
 function tvarkom_obd_render_store_widget( array $sections, $figures ) {
 	?>
 	<section class="tobd__panel tobd__store-widget" aria-labelledby="tobd-store-title">
-		<h2 class="tobd__h2" id="tobd-store-title"><?php esc_html_e( 'Store profile', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
+		<h2 class="tobd__h2" id="tobd-store-title"><?php esc_html_e( 'Store profile', 'tvarkom-helper' ); ?></h2>
 		<?php
 		if ( null === $figures ) {
 			foreach ( $sections as $section ) {
@@ -180,50 +180,50 @@ function tvarkom_obd_render_store_widget( array $sections, $figures ) {
 		?>
 		<div class="tobd__profile-groups">
 			<div class="tobd__profile-group">
-				<h3 class="tobd__h3"><?php esc_html_e( 'Sales & checkout, last 30 days', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h3>
+				<h3 class="tobd__h3"><?php esc_html_e( 'Sales & checkout, last 30 days', 'tvarkom-helper' ); ?></h3>
 				<?php
 				tvarkom_obd_mini_figures(
 					array(
-						array( __( 'Paid orders', 'on-board-diagnostics-scanner-for-woocommerce' ), tvarkom_obd_count( $o['paid'] ) ),
-						array( __( 'Gross sales', 'on-board-diagnostics-scanner-for-woocommerce' ), (string) $figures['money']['sales'] ),
-						array( __( 'Average order value', 'on-board-diagnostics-scanner-for-woocommerce' ), (string) $figures['money']['aov'] ),
+						array( __( 'Paid orders', 'tvarkom-helper' ), tvarkom_obd_count( $o['paid'] ) ),
+						array( __( 'Gross sales', 'tvarkom-helper' ), (string) $figures['money']['sales'] ),
+						array( __( 'Average order value', 'tvarkom-helper' ), (string) $figures['money']['aov'] ),
 						/* translators: %d: percentage. */
-						array( __( 'Failed at payment', 'on-board-diagnostics-scanner-for-woocommerce' ), null === $failed ? '' : sprintf( __( '%d%%', 'on-board-diagnostics-scanner-for-woocommerce' ), $failed ) ),
+						array( __( 'Failed at payment', 'tvarkom-helper' ), null === $failed ? '' : sprintf( __( '%d%%', 'tvarkom-helper' ), $failed ) ),
 					)
 				);
 				tvarkom_obd_stack(
 					array(
-						array( __( 'Paid', 'on-board-diagnostics-scanner-for-woocommerce' ), $o['paid'], 'good' ),
-						array( __( 'Failed', 'on-board-diagnostics-scanner-for-woocommerce' ), $o['failed'], 'bad' ),
-						array( __( 'Pending', 'on-board-diagnostics-scanner-for-woocommerce' ), $o['pending'], 'warn' ),
-						array( __( 'Cancelled', 'on-board-diagnostics-scanner-for-woocommerce' ), $o['cancelled'], 'none' ),
+						array( __( 'Paid', 'tvarkom-helper' ), $o['paid'], 'good' ),
+						array( __( 'Failed', 'tvarkom-helper' ), $o['failed'], 'bad' ),
+						array( __( 'Pending', 'tvarkom-helper' ), $o['pending'], 'warn' ),
+						array( __( 'Cancelled', 'tvarkom-helper' ), $o['cancelled'], 'none' ),
 					)
 				);
 				tvarkom_obd_stack(
 					array(
-						array( __( 'Returning customers', 'on-board-diagnostics-scanner-for-woocommerce' ), $figures['customers']['returning'], 'good' ),
-						array( __( 'New customers', 'on-board-diagnostics-scanner-for-woocommerce' ), $figures['customers']['new'], 'line' ),
+						array( __( 'Returning customers', 'tvarkom-helper' ), $figures['customers']['returning'], 'good' ),
+						array( __( 'New customers', 'tvarkom-helper' ), $figures['customers']['new'], 'line' ),
 					)
 				);
 				?>
 			</div>
 			<div class="tobd__profile-group">
-				<h3 class="tobd__h3"><?php esc_html_e( 'Products & inventory', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h3>
+				<h3 class="tobd__h3"><?php esc_html_e( 'Products & inventory', 'tvarkom-helper' ); ?></h3>
 				<?php
 				tvarkom_obd_mini_figures(
 					array(
-						array( __( 'Products', 'on-board-diagnostics-scanner-for-woocommerce' ), tvarkom_obd_count( $c['products'] ) ),
-						array( __( 'Variations', 'on-board-diagnostics-scanner-for-woocommerce' ), tvarkom_obd_count( $c['variations'] ) ),
-						array( __( 'Stock management', 'on-board-diagnostics-scanner-for-woocommerce' ), tvarkom_obd_on_off( $c['stock_management'] ) ),
+						array( __( 'Products', 'tvarkom-helper' ), tvarkom_obd_count( $c['products'] ) ),
+						array( __( 'Variations', 'tvarkom-helper' ), tvarkom_obd_count( $c['variations'] ) ),
+						array( __( 'Stock management', 'tvarkom-helper' ), tvarkom_obd_on_off( $c['stock_management'] ) ),
 					)
 				);
 				?>
 			</div>
 			<div class="tobd__profile-group">
-				<h3 class="tobd__h3"><?php esc_html_e( 'Store operations', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h3>
+				<h3 class="tobd__h3"><?php esc_html_e( 'Store operations', 'tvarkom-helper' ); ?></h3>
 				<?php
-				tvarkom_obd_chips( __( 'Payment methods', 'on-board-diagnostics-scanner-for-woocommerce' ), tvarkom_obd_method_names( $ops['payment_gateways'], 'payment' ) );
-				tvarkom_obd_chips( __( 'Shipping methods', 'on-board-diagnostics-scanner-for-woocommerce' ), tvarkom_obd_method_names( $ops['shipping_methods'], 'shipping' ) );
+				tvarkom_obd_chips( __( 'Payment methods', 'tvarkom-helper' ), tvarkom_obd_method_names( $ops['payment_gateways'], 'payment' ) );
+				tvarkom_obd_chips( __( 'Shipping methods', 'tvarkom-helper' ), tvarkom_obd_method_names( $ops['shipping_methods'], 'shipping' ) );
 				?>
 			</div>
 		</div>

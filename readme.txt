@@ -1,4 +1,4 @@
-=== On-board Diagnostics Scanner for WooCommerce ===
+=== tvarkom Helper ===
 Contributors: tvarkom
 Tags: woocommerce, performance, speed, health, dashboard
 Requires at least: 6.5
@@ -12,7 +12,7 @@ A free health dashboard for your WooCommerce store: server, cart and checkout sp
 
 == Description ==
 
-On-board Diagnostics adds a **WooCommerce → Store Scanner** page that shows how healthy your store is, right in wp-admin. Click once, and tvarkom's free scanner checks your store; scan it again once a week to follow your score.
+tvarkom Helper adds tvarkom's On-board Diagnostics Scanner to your store: a **WooCommerce → Store Scanner** page that shows how healthy your store is, right in wp-admin. Click once, and tvarkom's free scanner checks your store; scan it again once a week to follow your score.
 
 The dashboard shows:
 
@@ -96,6 +96,7 @@ tvarkom (MB TVARKOM SOFTWARE, Lithuania) builds diagnostic tools for WooCommerce
 == Changelog ==
 
 = 0.2.0 =
+* The plugin is now called tvarkom Helper (slug tvarkom-helper); its page is still WooCommerce → Store Scanner.
 * A new dashboard: the store summary, the store health score with how many checks it's based on, what needs attention first, your store's health trends, and your store's profile (sales and checkout as counted, catalog, operations, traffic and marketing).
 * Every check now counts towards the score, by how much it matters; earlier scores keep the scoring model they were made with and aren't compared with new ones.
 * The scan also sends the site's WordPress environment type, so a staging copy isn't marked down for blocking search engines or showing debug output.

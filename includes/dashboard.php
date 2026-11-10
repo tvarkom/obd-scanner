@@ -5,8 +5,8 @@
  * inline SVG and CSS drawn here, with every number and text escaped; no script and no outside
  * resource.
  *
- * The references are tvarkom's scanner's (audit-tool scanner/src/analyzers/riskEngine.ts,
- * THRESHOLDS and DEDUCT): keep them in line.
+ * The references are tvarkom's scanner's (audit-tool scanner/src/analyzers/riskEngine.ts
+ * THRESHOLDS; the score in scanner/src/analyzers/score.ts): keep them in line.
  *
  * @package OBDScanner
  */
@@ -142,11 +142,11 @@ function tvarkom_obd_size( $kb ) {
 
 /**
  * Renders the dashboard for results with a latest audit, top to bottom: the store summary; the
- * score, what needs attention and the sales impact; the store profile and the other free sections
- * (traffic and marketing); then the pipeline. Scans before the analysis show the points lost
- * instead of the impact, and scans before the pipeline their measured values as panels.
+ * store health score, what needs attention and the store's health trends; the store profile and
+ * the other free sections (traffic and marketing); then the pipeline. Scans before the pipeline
+ * show the points lost instead of what needs attention, and their measured values as panels.
  *
- * @param array{status: string, next_scan_at: int, latest: array<string, mixed>|null, history: array<int, array{completed_at: int, score: int}>} $results From tvarkom_obd_fetch_results().
+ * @param array{status: string, next_scan_at: int, latest: array<string, mixed>|null, history: array<int, array{completed_at: int, score: int, model: int}>} $results From tvarkom_obd_fetch_results().
  * @return void
  */
 function tvarkom_obd_render_dashboard( array $results ) {
@@ -158,36 +158,19 @@ function tvarkom_obd_render_dashboard( array $results ) {
 	$sections = null !== $analysis ? $analysis['sections'] : array();
 	$pipeline = null !== $analysis ? $analysis['pipeline'] : array();
 	$figures  = null !== $analysis ? $analysis['figures'] : null;
-	$summary  = null !== $analysis ? $analysis['summary'] : array(
-		'headline' => '',
-		'text'     => '',
-	);
-	$daily    = tvarkom_obd_daily_history( $results['history'] );
-	$columns  = empty( $pipeline ) ? 2 : 3;
+	$scoring  = null !== $analysis && isset( $analysis['scoring'] ) ? $analysis['scoring'] : null;
+	$text     = null !== $analysis ? $analysis['summary']['text'] : '';
 
 	// The store summary (includes/overview.php).
 	tvarkom_obd_render_store_summary( $figures, $pipeline, (int) $latest['completed_at'] );
 	?>
-	<div class="tobd__overview tobd__overview--<?php echo (int) $columns; ?>">
-		<section class="tobd__panel tobd__score" aria-labelledby="tobd-score-title">
-			<h2 class="tobd__h2" id="tobd-score-title"><?php esc_html_e( 'Store performance score', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
-			<?php tvarkom_obd_render_gauge( $latest['score'], $latest['level'] ); ?>
-			<?php tvarkom_obd_render_trend( $daily ); ?>
-			<?php tvarkom_obd_render_bands( $latest['score'] ); ?>
-			<?php if ( '' !== $summary['text'] ) : ?>
-				<p class="tobd__score-text"><?php echo esc_html( $summary['text'] ); ?></p>
-			<?php endif; ?>
-			<h3 class="tobd__h3" id="tobd-history-title"><?php esc_html_e( 'Score over time', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h3>
-			<?php tvarkom_obd_render_history( $daily ); ?>
-		</section>
+	<div class="tobd__overview">
 		<?php
+		tvarkom_obd_render_score_card( $latest, $text, $scoring, $pipeline );
 		if ( ! empty( $pipeline ) ) {
-			tvarkom_obd_render_attention( $pipeline ); // What needs attention (includes/overview.php).
-		}
-		if ( null !== $analysis ) {
-			tvarkom_obd_render_impact_widget( $sections, $figures, $pipeline ); // Estimated revenue at risk (includes/charts.php).
+			tvarkom_obd_render_attention( $pipeline ); // Needs attention (includes/overview.php).
 		} else {
-			// Scans before the analysis: where the score lost its points instead.
+			// Scans before the pipeline: where the score lost its points instead.
 			?>
 			<section class="tobd__panel tobd__lost" aria-labelledby="tobd-lost-title">
 				<h2 class="tobd__h2" id="tobd-lost-title"><?php esc_html_e( 'Where your store lost points', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
@@ -195,29 +178,24 @@ function tvarkom_obd_render_dashboard( array $results ) {
 			</section>
 			<?php
 		}
+		tvarkom_obd_render_trends( $results['history'], (int) $latest['model'], (int) $results['next_scan_at'] );
 		?>
 	</div>
 	<?php
 	if ( null !== $analysis ) {
 		tvarkom_obd_render_store_widget( $sections, $figures ); // Store profile (includes/charts.php).
 	}
-	?>
-	<div class="tobd__grid">
-		<?php
-		// The other free sections (traffic and marketing), as their texts, next to the store's context.
-		tvarkom_obd_render_analysis_sections(
-			array_values(
-				array_filter(
-					$sections,
-					function ( $section ) {
-						return ! in_array( $section['id'], array( 'store_profile', 'commercial', 'catalog', 'operations' ), true );
-					}
-				)
+	// The other free sections (traffic and marketing), as their texts, full width.
+	tvarkom_obd_render_analysis_sections(
+		array_values(
+			array_filter(
+				$sections,
+				function ( $section ) {
+					return ! in_array( $section['id'], array( 'store_profile', 'commercial', 'catalog', 'operations' ), true );
+				}
 			)
-		);
-		?>
-	</div>
-	<?php
+		)
+	);
 	if ( empty( $pipeline ) ) {
 		// Scans before the pipeline: the measured values as their own panels.
 		tvarkom_obd_render_metric_panels( $latest['metrics'] );
@@ -360,7 +338,7 @@ function tvarkom_obd_render_lost_points( array $lost ) {
 		return;
 	}
 	$rules = tvarkom_obd_rules();
-	echo '<p class="tobd__intro">' . esc_html__( 'Every store starts at 100. Each problem below took points away (the score never goes below 0).', 'on-board-diagnostics-scanner-for-woocommerce' ) . '</p>';
+	echo '<p class="tobd__intro">' . esc_html__( 'Every store starts at 100. Each problem below took points away.', 'on-board-diagnostics-scanner-for-woocommerce' ) . '</p>';
 	echo '<ul class="tobd__rules">';
 	foreach ( $lost as $item ) {
 		$rule   = isset( $rules[ $item['id'] ] ) ? $rules[ $item['id'] ] : array( __( 'Other check', 'on-board-diagnostics-scanner-for-woocommerce' ), '' );
@@ -476,32 +454,15 @@ function tvarkom_obd_render_security( array $metrics ) {
 }
 
 /**
- * One point per day: the day's last scan (several scans on one day would crowd the chart).
+ * The score over time as a line chart on the risk bands, every scan's score written over its point
+ * (up to 12 points; more would overlap) and the first and last dates under the chart. Scans on the
+ * same day are labelled with their time. Drawn at about the size it shows, so its text stays readable.
  *
- * @param array<int, array{completed_at: int, score: int}> $history Oldest first.
- * @return array<int, array{completed_at: int, score: int}> Oldest first.
- */
-function tvarkom_obd_daily_history( array $history ) {
-	$days = array();
-	foreach ( $history as $point ) {
-		$day = wp_date( 'Y-m-d', $point['completed_at'] );
-		unset( $days[ $day ] ); // Keeps the days in order when a later scan replaces an earlier one.
-		$days[ $day ] = $point;
-	}
-	return array_values( $days );
-}
-
-/**
- * The score over time as a line chart on the risk bands, each day's score written over its point
- * (up to 12 points; more would overlap) and the first and last dates under the chart; a note
- * before the second scan. Drawn at about the size it shows, so its text stays readable.
- *
- * @param array<int, array{completed_at: int, score: int}> $history Oldest first.
+ * @param array<int, array{completed_at: int, score: int}> $history Oldest first, at least 2 points of one scoring model.
  * @return void
  */
 function tvarkom_obd_render_history( array $history ) {
 	if ( count( $history ) < 2 ) {
-		echo '<p class="tobd__empty">' . esc_html__( 'Your score history starts with a scan on a second day.', 'on-board-diagnostics-scanner-for-woocommerce' ) . '</p>';
 		return;
 	}
 	$width  = 360;
@@ -526,7 +487,7 @@ function tvarkom_obd_render_history( array $history ) {
 			/* translators: 1: score, 2: date. */
 			__( '%1$d on %2$s', 'on-board-diagnostics-scanner-for-woocommerce' ),
 			$point['score'],
-			tvarkom_obd_date( $point['completed_at'] )
+			tvarkom_obd_point_label( $history, $i )
 		);
 	}
 	/* translators: %s: list of scores with their dates. */
@@ -547,8 +508,8 @@ function tvarkom_obd_render_history( array $history ) {
 				<text class="tobd__point-value" x="<?php echo esc_attr( sprintf( '%.1f', $x( $i ) ) ); ?>" y="<?php echo esc_attr( sprintf( '%.1f', $y( $point['score'] ) - 9 ) ); ?>" text-anchor="middle" aria-hidden="true"><?php echo (int) $point['score']; ?></text>
 			<?php endif; ?>
 		<?php endforeach; ?>
-		<text class="tobd__axis" x="<?php echo (int) $left; ?>" y="<?php echo (int) ( $height - 6 ); ?>"><?php echo esc_html( tvarkom_obd_date( $history[0]['completed_at'] ) ); ?></text>
-		<text class="tobd__axis" x="<?php echo (int) ( $width - $right ); ?>" y="<?php echo (int) ( $height - 6 ); ?>" text-anchor="end"><?php echo esc_html( tvarkom_obd_date( $history[ $n - 1 ]['completed_at'] ) ); ?></text>
+		<text class="tobd__axis" x="<?php echo (int) $left; ?>" y="<?php echo (int) ( $height - 6 ); ?>"><?php echo esc_html( tvarkom_obd_point_label( $history, 0 ) ); ?></text>
+		<text class="tobd__axis" x="<?php echo (int) ( $width - $right ); ?>" y="<?php echo (int) ( $height - 6 ); ?>" text-anchor="end"><?php echo esc_html( tvarkom_obd_point_label( $history, $n - 1 ) ); ?></text>
 	</svg>
 	<?php
 }

@@ -1,9 +1,10 @@
 <?php
 /**
- * The store profile (sales and checkout, products and inventory, store operations) and the
- * estimated revenue at risk as a chart (founder decisions of 9 and 10 Nov 2026), drawn from the
- * scan's figures (tvarkom_obd_parse_figures()) with CSS. Every value is escaped. Without figures
- * (scans stored before them), the sections' own texts are shown instead.
+ * The store profile (sales and checkout, products and inventory, store operations; founder
+ * decisions of 9 and 10 Nov 2026), drawn from the scan's figures (tvarkom_obd_parse_figures())
+ * with CSS: only what the plugin counted, never a modelled money figure (removed on 10 Nov 2026).
+ * Every value is escaped. Without figures (scans stored before them), the sections' own texts are
+ * shown instead.
  *
  * @package OBDScanner
  */
@@ -40,7 +41,9 @@ function tvarkom_obd_mini_figures( array $figures ) {
 	}
 	echo '<dl class="tobd__minis">';
 	foreach ( $figures as $figure ) {
-		echo '<div><dt>' . esc_html( $figure[0] ) . '</dt><dd>' . esc_html( $figure[1] ) . '</dd></div>';
+		// A value longer than a tile (a sales range) gets two tiles' width instead of wrapping.
+		$wide = mb_strlen( $figure[1] ) > 12 ? ' class="tobd__mini--wide"' : '';
+		echo '<div' . $wide . '><dt>' . esc_html( $figure[0] ) . '</dt><dd title="' . esc_attr( $figure[1] ) . '">' . esc_html( $figure[1] ) . '</dd></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $wide is a fixed attribute.
 	}
 	echo '</dl>';
 }
@@ -75,10 +78,11 @@ function tvarkom_obd_stack( array $parts ) {
 }
 
 /**
- * Labels in a row (payment and shipping methods).
+ * Labels in a row (payment and shipping methods). An item still in its identifier form (a method
+ * neither tvarkom nor this store has a name for) is shown as code, with a note saying so.
  *
- * @param string   $title The row's title.
- * @param string[] $items The labels.
+ * @param string                                $title The row's title.
+ * @param array<int, array{0: string, 1: bool}> $items [label, whether it is an identifier].
  * @return void
  */
 function tvarkom_obd_chips( $title, array $items ) {
@@ -86,10 +90,56 @@ function tvarkom_obd_chips( $title, array $items ) {
 		return;
 	}
 	echo '<p class="tobd__chips-title">' . esc_html( $title ) . '</p><ul class="tobd__chips">';
+	$ids = false;
 	foreach ( $items as $item ) {
-		echo '<li>' . esc_html( $item ) . '</li>';
+		if ( $item[1] ) {
+			$ids = true;
+			echo '<li class="tobd__chip--id"><code>' . esc_html( $item[0] ) . '</code></li>';
+		} else {
+			echo '<li>' . esc_html( $item[0] ) . '</li>';
+		}
 	}
 	echo '</ul>';
+	if ( $ids ) {
+		echo '<p class="tobd__note">' . esc_html__( 'Shown in code: the identifier WooCommerce gives a method this store no longer has a name for (for example, a plugin that was switched off).', 'on-board-diagnostics-scanner-for-woocommerce' ) . '</p>';
+	}
+}
+
+/**
+ * The payment gateways' and shipping methods' names: the scan's names, with any identifier the scan
+ * couldn't name replaced by this store's own title for it (read here, never sent to tvarkom).
+ *
+ * @param string[] $names The scan's names (identifiers for methods it doesn't know).
+ * @param string   $kind  payment or shipping.
+ * @return array<int, array{0: string, 1: bool}> [label, whether it is still an identifier].
+ */
+function tvarkom_obd_method_names( array $names, $kind ) {
+	$titles = array();
+	if ( function_exists( 'WC' ) ) {
+		$registry = 'payment' === $kind ? WC()->payment_gateways() : WC()->shipping();
+		$methods  = null === $registry ? array() : ( 'payment' === $kind ? $registry->payment_gateways() : $registry->get_shipping_methods() );
+		foreach ( is_array( $methods ) ? $methods : array() as $id => $method ) {
+			$title = is_object( $method ) && method_exists( $method, 'get_method_title' ) ? (string) $method->get_method_title() : '';
+			if ( '' === $title && is_object( $method ) && isset( $method->method_title ) ) {
+				$title = (string) $method->method_title;
+			}
+			$title = trim( wp_strip_all_tags( $title ) );
+			if ( '' !== $title ) {
+				$titles[ (string) $id ] = $title;
+			}
+		}
+	}
+	$out = array();
+	foreach ( $names as $name ) {
+		if ( isset( $titles[ $name ] ) ) {
+			$out[] = array( $titles[ $name ], false );
+		} else {
+			// The scanner names the methods it knows ("Flat rate"); anything else arrives as its id.
+			$is_id = 1 === preg_match( '/^[a-z0-9_\-:]+$/', $name );
+			$out[] = array( $name, $is_id );
+		}
+	}
+	return $out;
 }
 
 /**
@@ -113,7 +163,7 @@ function tvarkom_obd_render_store_widget( array $sections, $figures ) {
 					echo '<h3 class="tobd__h3">' . esc_html( $section['heading'] ) . '</h3>';
 					foreach ( $section['blocks'] as $block ) {
 						if ( 'heading' === $block['type'] ) {
-							break; // The modelled impact has its own panel.
+							break; // A modelled impact from a scan before 10 Nov 2026: no longer shown.
 						}
 						tvarkom_obd_render_block( $block );
 					}
@@ -172,214 +222,11 @@ function tvarkom_obd_render_store_widget( array $sections, $figures ) {
 			<div class="tobd__profile-group">
 				<h3 class="tobd__h3"><?php esc_html_e( 'Store operations', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h3>
 				<?php
-				tvarkom_obd_chips( __( 'Payment methods', 'on-board-diagnostics-scanner-for-woocommerce' ), $ops['payment_gateways'] );
-				tvarkom_obd_chips( __( 'Shipping methods', 'on-board-diagnostics-scanner-for-woocommerce' ), $ops['shipping_methods'] );
+				tvarkom_obd_chips( __( 'Payment methods', 'on-board-diagnostics-scanner-for-woocommerce' ), tvarkom_obd_method_names( $ops['payment_gateways'], 'payment' ) );
+				tvarkom_obd_chips( __( 'Shipping methods', 'on-board-diagnostics-scanner-for-woocommerce' ), tvarkom_obd_method_names( $ops['shipping_methods'], 'shipping' ) );
 				?>
 			</div>
 		</div>
-	</section>
-	<?php
-}
-
-/**
- * The commercial section's impact blocks: what follows its heading (the estimate's texts and
- * note). Empty when the scan has none.
- *
- * @param array<int, array{id: string, heading: string, blocks: array<int, array<string, mixed>>}> $sections The analysis's free sections.
- * @return array<int, array<string, mixed>> Without the heading.
- */
-function tvarkom_obd_impact_blocks( array $sections ) {
-	foreach ( $sections as $section ) {
-		if ( 'commercial' !== $section['id'] ) {
-			continue;
-		}
-		$blocks = array();
-		$found  = false;
-		foreach ( $section['blocks'] as $block ) {
-			if ( $found ) {
-				$blocks[] = $block;
-			}
-			$found = $found || 'heading' === $block['type'];
-		}
-		return $blocks;
-	}
-	return array();
-}
-
-/**
- * The total at risk as a percentage of the 30 days' sales, or "" when the sales aren't known
- * exactly (only a range was sent).
- *
- * @param array<string, mixed>      $total The total at risk.
- * @param array<string, mixed>|null $sales The sales it's based on.
- * @return string
- */
-function tvarkom_obd_impact_share( array $total, $sales ) {
-	if ( null === $sales || $sales['low'] <= 0 || $sales['low'] !== $sales['high'] ) {
-		return '';
-	}
-	$low  = (int) round( 100 * $total['low'] / $sales['low'] );
-	$high = (int) round( 100 * $total['high'] / $sales['high'] );
-	if ( $low === $high ) {
-		/* translators: %d: percentage. */
-		return sprintf( __( '%d%%', 'on-board-diagnostics-scanner-for-woocommerce' ), $low );
-	}
-	/* translators: 1: lowest percentage, 2: highest percentage. */
-	return sprintf( __( '%1$d%%–%2$d%%', 'on-board-diagnostics-scanner-for-woocommerce' ), $low, $high );
-}
-
-/**
- * One cause of the estimate as a range on a shared scale (0 to the largest high estimate): the
- * bar runs from the low estimate to the high one. Under it, what was measured or counted, and
- * the pipeline checks it's based on.
- *
- * @param string                                                                                 $label What causes it.
- * @param array<string, mixed>                                                                   $range Its low, high and label.
- * @param string                                                                                 $note  What was measured or counted, or "".
- * @param float                                                                                  $max   The scale (the largest high estimate).
- * @param array<int, array{stage: string, panel: string, order: int, job: array<string, mixed>}> $jobs  The pipeline checks it's based on.
- * @return void
- */
-function tvarkom_obd_impact_range( $label, array $range, $note, $max, array $jobs = array() ) {
-	$pct   = function ( $value ) use ( $max ) {
-		return $max > 0 ? min( 100, 100 * $value / $max ) : 0;
-	};
-	$left  = $pct( $range['low'] );
-	$width = $pct( $range['high'] ) - $left;
-	?>
-	<li>
-		<div class="tobd__range-head"><span><?php echo esc_html( $label ); ?></span><strong><?php echo esc_html( $range['label'] ); ?></strong></div>
-		<div class="tobd__range-track" aria-hidden="true">
-			<span class="tobd__range-span" style="left: <?php echo esc_attr( number_format( $left, 1, '.', '' ) ); ?>%; width: <?php echo esc_attr( number_format( $width, 1, '.', '' ) ); ?>%"></span>
-		</div>
-		<?php if ( '' !== $note ) : ?>
-			<p class="tobd__range-note"><?php echo esc_html( $note ); ?></p>
-		<?php endif; ?>
-		<?php if ( ! empty( $jobs ) ) : ?>
-			<p class="tobd__range-checks">
-				<?php
-				esc_html_e( 'Based on:', 'on-board-diagnostics-scanner-for-woocommerce' );
-				foreach ( $jobs as $item ) {
-					echo ' ' . tvarkom_obd_job_link( $item, 'tobd__check-link', wp_kses( tvarkom_obd_job_icon( $item['job']['status'] ), tvarkom_obd_icon_allowed_html() ) . esc_html( $item['job']['name'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Built from escaped parts.
-				}
-				?>
-			</p>
-		<?php endif; ?>
-	</li>
-	<?php
-}
-
-/**
- * The estimated revenue at risk: the scan's modelled estimate (its total, each cause as a range
- * linked to the checks it's based on), the store's figures it starts from, and the scan's own
- * assumptions and sources one click away. Always labelled as a modelled scenario, never as lost
- * sales. Scans without the figures show the estimate's texts; a store outside the modelled range
- * gets the scan's text on why. Nothing is calculated here but the bars' lengths and the share.
- *
- * @param array<int, array{id: string, heading: string, blocks: array<int, array<string, mixed>>}>            $sections The analysis's free sections.
- * @param array<string, mixed>|null                                                                           $figures  The scan's figures.
- * @param array<int, array{id: string, name: string, status: string, jobs: array<int, array<string, mixed>>}> $pipeline The pipeline, for the checks behind each cause.
- * @return void
- */
-function tvarkom_obd_render_impact_widget( array $sections, $figures, array $pipeline = array() ) {
-	$blocks = tvarkom_obd_impact_blocks( $sections );
-	$impact = null !== $figures && isset( $figures['impact'] ) ? $figures['impact'] : null;
-	$notes  = array_values(
-		array_filter(
-			$blocks,
-			function ( $block ) {
-				return 'note' === $block['type'];
-			}
-		)
-	);
-	?>
-	<section class="tobd__panel tobd__impact-widget" aria-labelledby="tobd-impact-title">
-		<h2 class="tobd__h2" id="tobd-impact-title"><?php esc_html_e( 'Estimated revenue at risk', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h2>
-		<?php
-		if ( null !== $impact && 'estimated' === $impact['status'] ) {
-			$slow    = $impact['slow_checkout'];
-			$fail    = $impact['failed_orders'];
-			$max     = max( null === $slow ? 0 : $slow['high'], null === $fail ? 0 : $fail['high'] );
-			$share   = tvarkom_obd_impact_share( $impact['total'], $impact['sales'] );
-			$caption = '' === $share
-				? __( 'a month, modelled from this scan', 'on-board-diagnostics-scanner-for-woocommerce' )
-				/* translators: %s: percentage, or range of percentages, of the month's sales. */
-				: sprintf( __( 'a month, modelled from this scan: %s of your gross sales', 'on-board-diagnostics-scanner-for-woocommerce' ), $share );
-			$orders = $figures['orders'];
-			$money  = $figures['money'];
-			$inputs = array_filter(
-				array(
-					array( __( 'Gross sales, last 30 days', 'on-board-diagnostics-scanner-for-woocommerce' ), (string) $money['sales'] ),
-					array( __( 'Average order value', 'on-board-diagnostics-scanner-for-woocommerce' ), (string) $money['aov'] ),
-					array( __( 'Orders failed at payment', 'on-board-diagnostics-scanner-for-woocommerce' ), tvarkom_obd_count( $orders['failed'] ) ),
-				),
-				function ( $input ) {
-					return '' !== $input[1];
-				}
-			);
-			?>
-			<p class="tobd__impact-total">
-				<span class="tobd__impact-value"><?php echo esc_html( $impact['total']['label'] ); ?></span>
-				<span class="tobd__impact-caption"><?php echo esc_html( $caption ); ?></span>
-			</p>
-			<p class="tobd__impact-disclaimer"><?php esc_html_e( 'A modelled scenario, not measured lost sales: the times and counts are measured on your store, the money figures are estimated from them.', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></p>
-			<ul class="tobd__ranges">
-				<?php
-				if ( null !== $slow ) {
-					tvarkom_obd_impact_range(
-						__( 'Slow cart or checkout', 'on-board-diagnostics-scanner-for-woocommerce' ),
-						$slow,
-						null === $slow['excess_seconds'] ? '' : sprintf(
-							/* translators: %s: seconds. */
-							__( 'Measured: the slower of the two takes %s s longer than a healthy response.', 'on-board-diagnostics-scanner-for-woocommerce' ),
-							number_format_i18n( $slow['excess_seconds'], 2 )
-						),
-						$max,
-						tvarkom_obd_pipeline_find( $pipeline, array( 'cart_response', 'checkout_response' ) )
-					);
-				}
-				if ( null !== $fail ) {
-					tvarkom_obd_impact_range(
-						__( 'Failed orders', 'on-board-diagnostics-scanner-for-woocommerce' ),
-						$fail,
-						null === $fail['count'] ? '' : sprintf(
-							/* translators: %s: number of orders. */
-							_n( 'Counted: %s order failed at payment in the last 30 days, valued at your average order value. Some shoppers retry, so not all of it is lost.', 'Counted: %s orders failed at payment in the last 30 days, valued at your average order value. Some shoppers retry, so not all of it is lost.', $fail['count'], 'on-board-diagnostics-scanner-for-woocommerce' ),
-							number_format_i18n( $fail['count'] )
-						),
-						$max
-					);
-				}
-				?>
-			</ul>
-			<?php if ( ! empty( $inputs ) ) : ?>
-				<h3 class="tobd__h3"><?php esc_html_e( 'Store figures the estimate starts from', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></h3>
-				<dl class="tobd__inputs">
-					<?php foreach ( $inputs as $input ) : ?>
-						<div><dt><?php echo esc_html( $input[0] ); ?></dt><dd><?php echo esc_html( $input[1] ); ?></dd></div>
-					<?php endforeach; ?>
-				</dl>
-			<?php endif; ?>
-			<?php if ( ! empty( $notes ) ) : ?>
-				<details class="tobd__how">
-					<summary><?php esc_html_e( 'Assumptions and sources', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></summary>
-					<?php
-					foreach ( $notes as $note ) {
-						echo '<p>' . esc_html( $note['text'] ) . '</p>';
-					}
-					?>
-				</details>
-			<?php endif; ?>
-			<?php
-		} elseif ( ! empty( $blocks ) ) {
-			// No figures (scans before them), or no estimate for this store: the scan's own texts.
-			foreach ( $blocks as $block ) {
-				tvarkom_obd_render_block( $block );
-			}
-		} else {
-			echo '<p class="tobd__empty">' . esc_html__( 'There is no sales impact to estimate from this scan.', 'on-board-diagnostics-scanner-for-woocommerce' ) . '</p>';
-		}
-		?>
 	</section>
 	<?php
 }

@@ -26,7 +26,10 @@
 .tobd *, .tobd *::before, .tobd *::after { box-sizing: border-box; }
 .tobd :where(p) { margin: 0; }
 .tobd a { color: var(--ink); text-decoration-color: var(--accent); text-underline-offset: 3px; }
-.tobd a:focus, .tobd button:focus { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: none; }
+.tobd a:focus, .tobd button:focus, .tobd summary:focus { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: none; }
+/* Keyboard focus is always visible; a mouse click doesn't leave a ring where browsers support it */
+.tobd a:focus:not(:focus-visible), .tobd button:focus:not(:focus-visible), .tobd summary:focus:not(:focus-visible) { outline: 0; }
+.tobd a:focus-visible, .tobd button:focus-visible, .tobd summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; box-shadow: none; }
 
 /* Header */
 .tobd__header { margin-bottom: 20px; }
@@ -213,7 +216,7 @@
 .tobd__job-log dt { flex: 0 0 110px; color: #8f918b; }
 .tobd__job-log dd { margin: 0; color: #e8e8e3; }
 
-/* The overview: store summary; score | what needs attention | revenue at risk; store profile */
+/* The overview: store summary; store health score | needs attention | store health trends; store profile */
 .tobd__summary-strip { display: flex; flex-direction: column; gap: 16px; }
 .tobd__summary-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
 .tobd h2.tobd__summary-name { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
@@ -222,11 +225,32 @@
 .tobd__keyfacts div { padding: 10px 14px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); margin: 0 -1px -1px 0; }
 .tobd__keyfacts dt { font-size: 12px; line-height: 1.3; color: var(--muted); }
 .tobd__keyfacts dd { margin: 3px 0 0; font-size: 15px; font-weight: 600; line-height: 1.3; color: var(--ink); }
+.tobd__definitions { margin-top: -4px; font-size: 13px; line-height: 1.55; color: var(--muted); }
+.tobd__definitions summary { display: inline-block; cursor: pointer; font-weight: 600; color: var(--ink); }
+.tobd__definitions dl { display: grid; gap: 4px 20px; margin: 10px 0 0; }
+.tobd__definitions dt { font-weight: 600; color: var(--ink); }
+.tobd__definitions dd { margin: 0 0 8px; }
+.tobd__definitions ul { margin: 4px 0 0; padding: 0; list-style: none; }
+.tobd__definitions li { margin: 0 0 2px; }
 
 .tobd__overview { display: grid; gap: 16px; margin-bottom: 16px; align-items: start; }
 .tobd__overview > .tobd__panel { margin: 0; }
 .tobd__score-text { margin-top: 16px; font-size: 14px; line-height: 1.55; color: var(--ink); text-align: left; }
 .tobd__trend { margin-top: 10px; font-size: 13px; font-weight: 600; color: var(--tone); }
+.tobd p.tobd__coverage { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 12px; line-height: 1.5; color: var(--muted); text-align: left; }
+.tobd p.tobd__coverage.tobd--warn { margin-top: 6px; padding-top: 0; border-top: 0; color: var(--warn); font-weight: 600; }
+
+/* Store health trends */
+.tobd__trends .tobd__trend { margin: 0 0 14px; font-size: 15px; }
+.tobd__trend-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; margin: 0 0 4px; }
+.tobd__trend-facts div { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; }
+.tobd__trend-facts dt { font-size: 12px; line-height: 1.3; color: var(--muted); }
+.tobd__trend-facts dd { margin: 3px 0 0; font-size: 16px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.tobd .tobd__trends h3.tobd__h3 { margin: 18px 0 8px; font-size: 13px; }
+.tobd__trend-empty { padding: 14px 16px; border: 1px dashed var(--line-strong); border-radius: 10px; background: var(--paper); }
+.tobd p.tobd__trend-lead { font-size: 15px; font-weight: 600; line-height: 1.4; }
+.tobd__trend-empty .tobd__note { margin-top: 6px; font-size: 13px; }
+.tobd p.tobd__model-note { margin-top: 12px; }
 .tobd__scale { margin: 18px 0 0; text-align: left; }
 .tobd__scale-bar { position: relative; display: flex; height: 8px; border-radius: 999px; }
 .tobd__scale-bar span:not(.tobd__scale-mark) { height: 100%; background: var(--tone); opacity: 0.35; }
@@ -259,36 +283,18 @@
 .tobd__minis { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin: 0 0 12px; }
 .tobd__minis div { padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
 .tobd__minis dt { font-size: 12px; line-height: 1.3; color: var(--muted); }
-.tobd__minis dd { margin: 3px 0 0; font-size: 15px; font-weight: 600; line-height: 1.3; color: var(--ink); font-variant-numeric: tabular-nums; overflow-wrap: break-word; }
+.tobd__minis dd { margin: 3px 0 0; font-size: 15px; font-weight: 600; line-height: 1.3; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* A long value (a sales range) takes two tiles' width rather than wrapping mid-number */
+.tobd__minis .tobd__mini--wide { grid-column: span 2; }
+@media (max-width: 400px) { .tobd__minis .tobd__mini--wide { grid-column: 1 / -1; } .tobd__minis dd { white-space: normal; } }
 .tobd__store-widget .tobd__stack { height: 10px; margin-top: 12px; }
 .tobd__store-widget .tobd__legend { margin-top: 6px; font-size: 12px; }
 .tobd--line { --tone: var(--line-strong); --tone-soft: var(--paper); }
 .tobd p.tobd__chips-title { margin: 0 0 6px; font-size: 12px; color: var(--muted); }
 .tobd__store-widget .tobd__chips { margin-bottom: 14px; }
 .tobd__store-widget .tobd__chips li { padding: 3px 10px; font-size: 12px; }
-
-.tobd__impact-total { margin: 0 0 10px; }
-.tobd__impact-value { display: block; font-size: 28px; font-weight: 700; line-height: 1.15; letter-spacing: -0.01em; color: var(--ink); font-variant-numeric: tabular-nums; }
-.tobd__impact-caption { display: block; margin-top: 4px; font-size: 13px; color: var(--muted); }
-.tobd p.tobd__impact-disclaimer { margin: 0 0 18px; padding: 8px 12px; border-left: 3px solid var(--line-strong); background: var(--paper); font-size: 12px; line-height: 1.5; color: var(--muted); }
-.tobd__ranges { margin: 0; padding: 0; list-style: none; }
-.tobd__ranges li { margin: 0 0 16px; }
-.tobd__range-head { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 6px; font-size: 14px; }
-.tobd__range-head strong { white-space: nowrap; font-variant-numeric: tabular-nums; }
-.tobd__range-track { position: relative; height: 10px; border-radius: 999px; background: var(--paper); border: 1px solid var(--line); }
-.tobd__range-span { position: absolute; top: -1px; bottom: -1px; min-width: 6px; border-radius: 999px; background: var(--bad); opacity: 0.75; }
-.tobd p.tobd__range-note { margin: 6px 0 0; font-size: 12px; line-height: 1.45; color: var(--muted); }
-.tobd p.tobd__range-checks { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 6px 0 0; font-size: 12px; color: var(--muted); }
-.tobd a.tobd__check-link { display: inline-flex; align-items: center; gap: 4px; color: var(--ink); font-weight: 600; }
-.tobd__check-link .tobd__icon { width: 14px; height: 14px; flex-basis: 14px; }
-.tobd .tobd__impact-widget h3.tobd__h3 { margin: 20px 0 8px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 13px; }
-.tobd__inputs { margin: 0; }
-.tobd__inputs div { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; font-size: 13px; }
-.tobd__inputs dt { color: var(--muted); }
-.tobd__inputs dd { margin: 0; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
-.tobd__how { margin-top: 14px; font-size: 12px; line-height: 1.55; color: var(--muted); }
-.tobd__how summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink); }
-.tobd__how p { margin: 8px 0 0; }
+.tobd__chips .tobd__chip--id code { padding: 0; background: none; font: 12px var(--mono); }
+.tobd__store-widget .tobd__note { margin-top: -6px; margin-bottom: 14px; }
 
 /* Scan button */
 .tobd__scanbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; margin: 0 0 16px; }
@@ -318,15 +324,19 @@
 	.tobd__facts--wide { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
-/* Tablets: the score and what needs attention side by side, the revenue at risk under them */
+/* Tablets: the score and needs attention side by side, the trends under them */
 @media (min-width: 782px) {
 	.tobd__overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-	.tobd__overview--3 > .tobd__panel:last-child { grid-column: 1 / -1; }
+	.tobd__overview > .tobd__panel:last-child { grid-column: 1 / -1; }
+	.tobd__definitions dl { grid-template-columns: max-content minmax(0, 1fr); }
+	/* Traffic & marketing: full width, its lines in two columns rather than half a page of space */
+	.tobd__analysis .tobd__list { columns: 2; column-gap: 40px; }
+	.tobd__analysis .tobd__list li { break-inside: avoid; }
 }
 
 /* Wide screens: the overview's panels and the store profile's groups each a third of the width */
 @media (min-width: 1280px) {
-	.tobd__overview--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-	.tobd__overview--3 > .tobd__panel:last-child { grid-column: auto; }
+	.tobd__overview { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+	.tobd__overview > .tobd__panel:last-child { grid-column: auto; }
 	.tobd__profile-groups { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
 }

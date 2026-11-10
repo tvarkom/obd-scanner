@@ -55,6 +55,9 @@ function tvarkom_obd_parse_pipeline( $raw ) {
 				'reference' => tvarkom_obd_analysis_text( isset( $job['reference'] ) ? $job['reference'] : null ),
 				'critical'  => tvarkom_obd_analysis_text( isset( $job['critical'] ) ? $job['critical'] : null ),
 				'points'    => isset( $job['points'] ) && is_int( $job['points'] ) && $job['points'] > 0 && $job['points'] <= 100 ? $job['points'] : null,
+				// Score model 2 (10 Nov 2026): how much a problem weighs (1 most), and why a grey job has no result.
+				'tier'      => isset( $job['tier'] ) && in_array( $job['tier'], array( 1, 2, 3 ), true ) ? $job['tier'] : null,
+				'na'        => isset( $job['availability'] ) && 'not_applicable' === $job['availability'],
 			);
 		}
 		$name = tvarkom_obd_analysis_text( isset( $stage['name'] ) ? $stage['name'] : null );
@@ -71,19 +74,24 @@ function tvarkom_obd_parse_pipeline( $raw ) {
 }
 
 /**
- * A colour's label, so status never depends on colour alone.
+ * A colour's label, so status never depends on colour alone. Since score model 2 (10 Nov 2026)
+ * every problem costs points: red is critical, orange a warning, yellow a minor (upkeep) issue.
  *
  * @param string $status red, orange, yellow, green or grey.
+ * @param bool   $na     Whether a grey job doesn't apply (rather than wasn't measured).
  * @return string
  */
-function tvarkom_obd_job_status_label( $status ) {
+function tvarkom_obd_job_status_label( $status, $na = false ) {
 	$labels = array(
 		'red'    => __( 'Critical', 'on-board-diagnostics-scanner-for-woocommerce' ),
-		'orange' => __( 'Over the reference', 'on-board-diagnostics-scanner-for-woocommerce' ),
-		'yellow' => __( 'Needs attention', 'on-board-diagnostics-scanner-for-woocommerce' ),
+		'orange' => __( 'Warning', 'on-board-diagnostics-scanner-for-woocommerce' ),
+		'yellow' => __( 'Minor issue', 'on-board-diagnostics-scanner-for-woocommerce' ),
 		'green'  => __( 'Passed', 'on-board-diagnostics-scanner-for-woocommerce' ),
 		'grey'   => __( 'Not measured', 'on-board-diagnostics-scanner-for-woocommerce' ),
 	);
+	if ( 'grey' === $status && $na ) {
+		return __( 'Not applicable', 'on-board-diagnostics-scanner-for-woocommerce' );
+	}
 	return isset( $labels[ $status ] ) ? $labels[ $status ] : $labels['grey'];
 }
 
@@ -156,7 +164,7 @@ function tvarkom_obd_render_pipeline( array $stages ) {
 								<button type="button" class="tobd__job tobd__job--<?php echo esc_attr( $job['status'] ); ?>" aria-expanded="false" aria-controls="<?php echo esc_attr( $panel ); ?>">
 									<?php echo wp_kses( tvarkom_obd_job_icon( $job['status'] ), $icon_kses ); ?>
 									<span class="tobd__job-name"><?php echo esc_html( $job['name'] ); ?></span>
-									<span class="screen-reader-text"><?php echo esc_html( tvarkom_obd_job_status_label( $job['status'] ) ); ?></span>
+									<span class="screen-reader-text"><?php echo esc_html( tvarkom_obd_job_status_label( $job['status'], $job['na'] ) ); ?></span>
 									<svg class="tobd__job-action" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6.5 4.5l3.5 3.5-3.5 3.5" /></svg>
 								</button>
 							</li>
@@ -188,7 +196,7 @@ function tvarkom_obd_render_pipeline( array $stages ) {
  */
 function tvarkom_obd_render_job_panel( $id, $stage, array $job ) {
 	$rows = array(
-		array( __( 'Status', 'on-board-diagnostics-scanner-for-woocommerce' ), tvarkom_obd_job_status_label( $job['status'] ) ),
+		array( __( 'Status', 'on-board-diagnostics-scanner-for-woocommerce' ), tvarkom_obd_job_status_label( $job['status'], $job['na'] ) ),
 		array( __( 'Measured', 'on-board-diagnostics-scanner-for-woocommerce' ), $job['measured'] ),
 		array( __( 'Reference', 'on-board-diagnostics-scanner-for-woocommerce' ), $job['reference'] ),
 		array( __( 'Critical', 'on-board-diagnostics-scanner-for-woocommerce' ), $job['critical'] ),

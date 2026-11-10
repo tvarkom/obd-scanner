@@ -105,7 +105,7 @@ function tvarkom_obd_register() {
  * - history:      list of {completed_at, score}, oldest first
  *
  * @param int $timeout Seconds to wait for the gateway.
- * @return array{status: string, next_scan_at: int, latest: array<string, mixed>|null, history: array<int, array{completed_at: int, score: int}>}|string The data, or an error code.
+ * @return array{status: string, next_scan_at: int, latest: array<string, mixed>|null, history: array<int, array{completed_at: int, score: int, model: int}>}|string The data, or an error code.
  */
 function tvarkom_obd_fetch_results( $timeout = 10 ) {
 	$key = tvarkom_obd_settings()['api_key'];
@@ -127,7 +127,7 @@ function tvarkom_obd_fetch_results( $timeout = 10 ) {
  * know are dropped; everything is escaped again when shown.
  *
  * @param array<string, mixed> $body Decoded JSON.
- * @return array{status: string, next_scan_at: int, latest: array<string, mixed>|null, history: array<int, array{completed_at: int, score: int}>}
+ * @return array{status: string, next_scan_at: int, latest: array<string, mixed>|null, history: array<int, array{completed_at: int, score: int, model: int}>}
  */
 function tvarkom_obd_parse_results( array $body ) {
 	$status = isset( $body['status'] ) && in_array( $body['status'], array( 'none', 'scanning', 'failed', 'ready' ), true ) ? $body['status'] : 'none';
@@ -137,6 +137,10 @@ function tvarkom_obd_parse_results( array $body ) {
 	};
 	$score  = function ( $value ) {
 		return is_numeric( $value ) && $value >= 0 && $value <= 100 ? (int) $value : null;
+	};
+	// The scoring model a score came from (score model 2 since 10 Nov 2026); 1 when not said.
+	$model = function ( $value ) {
+		return is_int( $value ) && $value >= 1 && $value <= 99 ? $value : 1;
 	};
 
 	$latest = null;
@@ -160,6 +164,7 @@ function tvarkom_obd_parse_results( array $body ) {
 		$latest = array(
 			'completed_at' => $time( isset( $l['completed_at'] ) ? $l['completed_at'] : null ),
 			'score'        => $score( isset( $l['score'] ) ? $l['score'] : null ),
+			'model'        => $model( isset( $l['score_model'] ) ? $l['score_model'] : null ),
 			'level'        => isset( $l['level'] ) && in_array( $l['level'], array( 'PASS', 'WARNING', 'CRITICAL_RISK' ), true ) ? $l['level'] : '',
 			'metrics'      => $metrics,
 			'lost_points'  => $lost,
@@ -178,6 +183,7 @@ function tvarkom_obd_parse_results( array $body ) {
 			$history[] = array(
 				'completed_at' => $at,
 				'score'        => $s,
+				'model'        => $model( isset( $point['score_model'] ) ? $point['score_model'] : null ),
 			);
 		}
 	}

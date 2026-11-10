@@ -76,4 +76,15 @@ class Tvarkom_OBD_Site_Health_Test extends Tvarkom_OBD_Test_Case {
 			tvarkom_obd_core_file_changes()
 		);
 	}
+
+	/**
+	 * The environment type travels with the site checks (score model 2, 10 Nov 2026): blocked
+	 * search engines and debug output don't count on a staging, development or local site.
+	 */
+	public function test_the_site_checks_send_the_environment_type() {
+		$checks = tvarkom_obd_site_health();
+		$this->assertArrayHasKey( 'environment_type', $checks );
+		$this->assertContains( $checks['environment_type'], array( 'production', 'staging', 'development', 'local' ) );
+		$this->assertSame( wp_get_environment_type(), $checks['environment_type'] );
+	}
 }

@@ -299,8 +299,8 @@ function tvarkom_obd_render_connect( $reconnect ) {
 		__( 'WooCommerce background tasks', 'on-board-diagnostics-scanner-for-woocommerce' ),
 		__( 'HTTPS certificate, SPF and DMARC records', 'on-board-diagnostics-scanner-for-woocommerce' ),
 		__( 'Your checkout profiled: the plugins, hooks and queries that take the time', 'on-board-diagnostics-scanner-for-woocommerce' ),
-		__( 'Your sales and checkout in business terms, with the modelled impact of slow pages', 'on-board-diagnostics-scanner-for-woocommerce' ),
-		__( 'A score from 0 to 100, and how it changes from scan to scan', 'on-board-diagnostics-scanner-for-woocommerce' ),
+		__( 'Your store\'s profile: sales and checkout as counted, catalog and operations', 'on-board-diagnostics-scanner-for-woocommerce' ),
+		__( 'A health score out of 100, and how it changes from scan to scan', 'on-board-diagnostics-scanner-for-woocommerce' ),
 	);
 	$link   = '<a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>';
 	?>
@@ -337,7 +337,7 @@ function tvarkom_obd_render_connect( $reconnect ) {
 			</div>
 			<div>
 				<dt><?php esc_html_e( 'Site checks', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dt>
-				<dd><?php esc_html_e( 'Whether a WordPress or theme update is waiting, whether debug output is shown on your pages, whether search engines are asked not to index the store, how many database tables use the MyISAM engine or a character set other than utf8mb4, how many expired transients are stored, how many administrator accounts exist (a count, no user details), and whether the dashboard file editor is on; the upload limit, missing PHP extensions, free disk space, the server\'s load and available memory; how many plugins or themes WordPress paused, how many fatal errors your error log shows for the last 7 days (a count, never the log), automatic update settings and whether permalinks are plain; the database\'s response time and how many spam comments, auto-drafts and old revisions it holds; how many core files differ from WordPress.org\'s official checksums (the plugin fetches them from api.wordpress.org), wp-config.php\'s file permissions, whether an "admin" username exists, and whether registration is open and with which role. tvarkom\'s scanner also checks whether well-known files such as configuration backups or the debug log can be downloaded from your store.', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dd>
+				<dd><?php esc_html_e( 'Whether a WordPress or theme update is waiting, whether debug output is shown on your pages, whether search engines are asked not to index the store, the site\'s WordPress environment type (production, staging, development or local), how many database tables use the MyISAM engine or a character set other than utf8mb4, how many expired transients are stored, how many administrator accounts exist (a count, no user details), and whether the dashboard file editor is on; the upload limit, missing PHP extensions, free disk space, the server\'s load and available memory; how many plugins or themes WordPress paused, how many fatal errors your error log shows for the last 7 days (a count, never the log), automatic update settings and whether permalinks are plain; the database\'s response time and how many spam comments, auto-drafts and old revisions it holds; how many core files differ from WordPress.org\'s official checksums (the plugin fetches them from api.wordpress.org), wp-config.php\'s file permissions, whether an "admin" username exists, and whether registration is open and with which role. tvarkom\'s scanner also checks whether well-known files such as configuration backups or the debug log can be downloaded from your store.', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dd>
 			</div>
 			<div>
 				<dt><?php esc_html_e( 'A checkout profile', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dt>

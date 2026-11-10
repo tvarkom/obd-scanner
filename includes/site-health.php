@@ -25,6 +25,9 @@ function tvarkom_obd_site_health() {
 		// WordPress shows errors when WP_DEBUG is on unless WP_DEBUG_DISPLAY is false.
 		'debug_display'          => ! defined( 'WP_DEBUG_DISPLAY' ) || false !== WP_DEBUG_DISPLAY,
 		'search_engines_blocked' => '0' === (string) get_option( 'blog_public', '1' ),
+		// production, staging, development or local (WP_ENVIRONMENT_TYPE): blocked search engines and
+		// debug output are expected on a non-production site, so tvarkom doesn't count them there.
+		'environment_type'       => wp_get_environment_type(),
 		'myisam_tables'          => $tables['myisam'],
 		'non_utf8mb4_tables'     => $tables['non_utf8mb4'],
 		'expired_transients'     => tvarkom_obd_expired_transients(),

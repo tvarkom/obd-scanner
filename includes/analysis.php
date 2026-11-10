@@ -1,9 +1,10 @@
 <?php
 /**
  * The analysis (plugin 0.2.0), as tvarkom's scanner wrote it for this dashboard (latest.analysis in
- * GET /v1/results): the summary with the modelled sales impact, and the store profile, sales and
+ * GET /v1/results): the summary, how the score was made, and the store profile, sales and
  * checkout, catalog, operations and marketing sections, the first four drawn as charts from the
- * scan's figures. The technical findings, diagnostic details, how the scan works and the developer
+ * scan's figures. The modelled sales impact was removed on 10 Nov 2026 (founder decision): scans
+ * stored before then may still carry it, and this plugin ignores it. The technical findings, diagnostic details, how the scan works and the developer
  * reference are for a future paid version (founder decision of 9 Nov 2026): tvarkom doesn't send
  * them, and this plugin skips them if it ever gets them.
  *
@@ -68,7 +69,6 @@ function tvarkom_obd_parse_analysis( $raw ) {
 	$summary = array(
 		'headline' => tvarkom_obd_analysis_text( isset( $s['headline'] ) ? $s['headline'] : null ),
 		'text'     => tvarkom_obd_analysis_text( isset( $s['text'] ) ? $s['text'] : null ),
-		'impact'   => tvarkom_obd_analysis_text( isset( $s['impact'] ) ? $s['impact'] : null ),
 		'note'     => tvarkom_obd_analysis_text( isset( $s['score_note'] ) ? $s['score_note'] : null ),
 	);
 
@@ -104,6 +104,7 @@ function tvarkom_obd_parse_analysis( $raw ) {
 		'summary'  => $summary,
 		'sections' => $sections,
 		'figures'  => tvarkom_obd_parse_figures( isset( $raw['figures'] ) ? $raw['figures'] : null ),
+		'scoring'  => tvarkom_obd_parse_scoring( isset( $raw['scoring'] ) ? $raw['scoring'] : null ),
 		'pipeline' => tvarkom_obd_parse_pipeline( isset( $raw['pipeline'] ) ? $raw['pipeline'] : null ),
 	);
 }
@@ -169,53 +170,32 @@ function tvarkom_obd_parse_figures( $raw ) {
 			'checkout_type'    => isset( $operations['checkout_type'] ) && in_array( $operations['checkout_type'], array( 'classic', 'block' ), true ) ? $operations['checkout_type'] : null,
 			'hpos'             => $flag( $operations, 'hpos' ),
 		),
-		'impact'     => tvarkom_obd_parse_impact( isset( $raw['impact'] ) ? $raw['impact'] : null ),
 	);
 }
 
 /**
- * The modelled sales impact's figures, checked: a known status and, when estimated, amounts that
- * are numbers with their labels. Null when absent (scans before them) or malformed.
+ * How the score was made (score model 2, 10 Nov 2026): its model and how many of the scanner's
+ * checks ran and have a result. Null for scans before it or when malformed.
  *
- * @param mixed $raw figures.impact.
- * @return array{status: string, sales: array<string, mixed>|null, slow_checkout: array<string, mixed>|null, failed_orders: array<string, mixed>|null, total: array<string, mixed>|null}|null
+ * @param mixed $raw The analysis's scoring.
+ * @return array{model: int, total: int, performed: int, measured: int, unavailable: int, not_applicable: int, missing: string[]}|null
  */
-function tvarkom_obd_parse_impact( $raw ) {
-	if ( ! is_array( $raw ) || ! isset( $raw['status'] ) || ! in_array( $raw['status'], array( 'estimated', 'no_orders', 'below', 'above', 'unknown' ), true ) ) {
+function tvarkom_obd_parse_scoring( $raw ) {
+	if ( ! is_array( $raw ) ) {
 		return null;
 	}
-	$money  = function ( $key, $extra = '' ) use ( $raw ) {
-		$m = isset( $raw[ $key ] ) && is_array( $raw[ $key ] ) ? $raw[ $key ] : null;
-		if ( null === $m || ! isset( $m['low'], $m['high'] ) || ! is_numeric( $m['low'] ) || ! is_numeric( $m['high'] ) || $m['low'] < 0 || $m['high'] < $m['low'] ) {
+	$out = array();
+	foreach ( array( 'model', 'total', 'performed', 'measured', 'unavailable', 'not_applicable' ) as $key ) {
+		if ( ! isset( $raw[ $key ] ) || ! is_int( $raw[ $key ] ) || $raw[ $key ] < 0 || $raw[ $key ] > 1000 ) {
 			return null;
 		}
-		$label = tvarkom_obd_analysis_text( isset( $m['label'] ) ? $m['label'] : null );
-		if ( '' === $label ) {
-			return null;
-		}
-		$out = array(
-			'low'   => (float) $m['low'],
-			'high'  => (float) $m['high'],
-			'label' => $label,
-		);
-		if ( 'excess_seconds' === $extra ) {
-			$out['excess_seconds'] = isset( $m['excess_seconds'] ) && is_numeric( $m['excess_seconds'] ) && $m['excess_seconds'] > 0 ? (float) $m['excess_seconds'] : null;
-		} elseif ( 'count' === $extra ) {
-			$out['count'] = isset( $m['count'] ) && is_int( $m['count'] ) && $m['count'] >= 0 ? $m['count'] : null;
-		}
-		return $out;
-	};
-	$impact = array(
-		'status'        => $raw['status'],
-		'sales'         => $money( 'sales' ),
-		'slow_checkout' => $money( 'slow_checkout', 'excess_seconds' ),
-		'failed_orders' => $money( 'failed_orders', 'count' ),
-		'total'         => $money( 'total' ),
-	);
-	if ( 'estimated' === $impact['status'] && null === $impact['total'] ) {
-		return null; // An estimate without its total can't be drawn; the texts show instead.
+		$out[ $key ] = $raw[ $key ];
 	}
-	return $impact;
+	if ( $out['model'] < 1 || $out['measured'] > $out['performed'] || $out['performed'] > $out['total'] ) {
+		return null;
+	}
+	$out['missing'] = array_map( 'sanitize_key', array_filter( isset( $raw['missing_tier1'] ) && is_array( $raw['missing_tier1'] ) ? array_slice( $raw['missing_tier1'], 0, 10 ) : array(), 'is_string' ) );
+	return $out;
 }
 
 /**

@@ -90,7 +90,8 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$this->assertStringContainsString( 'Up 18 points since the previous scan, on ' . tvarkom_obd_datetime( $day ), $html, 'two scans on one day: the time tells them apart' );
 		$this->assertStringContainsString( '2 earlier scores, until ' . tvarkom_obd_date( $day - 7 * DAY_IN_SECONDS ) . ', came from the previous scoring model', $html );
 		$this->assertStringContainsString( 'class="tobd__history"', $html );
-		$this->assertStringNotContainsString( '>0<', $html, 'a model-1 score is never charted' );
+		$this->assertStringNotContainsString( 'aria-hidden="true">0</text>', $html, 'a model-1 score is never charted' );
+		$this->assertStringContainsString( 'aria-hidden="true">23</text>', $html, 'model-2 scores are' );
 	}
 
 	public function test_trends_before_a_second_comparable_scan_say_when_the_trend_starts() {

@@ -56,6 +56,7 @@ class Tvarkom_OBD_Connect_Test extends Tvarkom_OBD_Test_Case {
 				'wp_debug',
 				'debug_display',
 				'search_engines_blocked',
+				'environment_type',
 				'myisam_tables',
 				'non_utf8mb4_tables',
 				'expired_transients',

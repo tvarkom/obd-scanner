@@ -106,6 +106,18 @@ function tvarkom_obd_job_icon( $status ) {
 }
 
 /**
+ * A job's panel id (its button's aria-controls), from its stage's and its own position; the
+ * overview's findings link to it too.
+ *
+ * @param int $stage The stage's index.
+ * @param int $job   The job's index in its stage.
+ * @return string
+ */
+function tvarkom_obd_job_panel_id( $stage, $job ) {
+	return 'tobd-job-' . $stage . '-' . $job;
+}
+
+/**
  * The pipeline, laid out like GitLab's: each stage a card listing its jobs, the cards joined by a
  * line, and one panel per job (shown on click).
  *
@@ -139,7 +151,7 @@ function tvarkom_obd_render_pipeline( array $stages ) {
 					<h3 class="tobd__stage-name"><?php echo esc_html( $stage['name'] ); ?></h3>
 					<ul class="tobd__jobs">
 						<?php foreach ( $stage['jobs'] as $j => $job ) : ?>
-							<?php $panel = 'tobd-job-' . $s . '-' . $j; ?>
+							<?php $panel = tvarkom_obd_job_panel_id( $s, $j ); ?>
 							<li>
 								<button type="button" class="tobd__job tobd__job--<?php echo esc_attr( $job['status'] ); ?>" aria-expanded="false" aria-controls="<?php echo esc_attr( $panel ); ?>">
 									<?php echo wp_kses( tvarkom_obd_job_icon( $job['status'] ), $icon_kses ); ?>
@@ -157,7 +169,7 @@ function tvarkom_obd_render_pipeline( array $stages ) {
 			<?php
 			foreach ( $stages as $s => $stage ) {
 				foreach ( $stage['jobs'] as $j => $job ) {
-					tvarkom_obd_render_job_panel( 'tobd-job-' . $s . '-' . $j, $stage['name'], $job );
+					tvarkom_obd_render_job_panel( tvarkom_obd_job_panel_id( $s, $j ), $stage['name'], $job );
 				}
 			}
 			?>

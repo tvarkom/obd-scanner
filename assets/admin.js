@@ -7,6 +7,8 @@
  *   second click.
  * - In the pipeline, a job's button opens its panel (one at a time); without this script every
  *   panel shows.
+ * - A finding above the pipeline ([data-tobd-job]) brings its job into view and opens its panel
+ *   with that same button; without this script its link jumps to the panel.
  */
 ( function () {
 	'use strict';
@@ -60,6 +62,26 @@
 				panel.classList.add( 'is-open' );
 				panel.scrollIntoView( { block: 'nearest' } );
 			}
+		} );
+	} );
+
+	Array.prototype.forEach.call( document.querySelectorAll( '[data-tobd-job]' ), function ( link ) {
+		link.addEventListener( 'click', function ( event ) {
+			var id = link.getAttribute( 'data-tobd-job' );
+			var button = document.querySelector( '.tobd__job[aria-controls="' + id + '"]' );
+			if ( ! button ) {
+				return; // The link's own anchor.
+			}
+			event.preventDefault();
+			var pipeline = button.closest( '.tobd__pipeline' );
+			if ( pipeline ) {
+				pipeline.scrollIntoView( { block: 'start' } );
+			}
+			button.scrollIntoView( { block: 'nearest', inline: 'nearest' } );
+			if ( 'true' !== button.getAttribute( 'aria-expanded' ) ) {
+				button.click();
+			}
+			button.focus( { preventScroll: true } );
 		} );
 	} );
 

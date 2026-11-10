@@ -44,7 +44,8 @@ The page (admin.php) ──▶ GET /v1/results ──▶ dashboard (dashboard.ph
 | `includes/scan.php` | One scan request and the lock |
 | `includes/dashboard.php` | The dashboard's charts and texts |
 | `includes/analysis.php` | The analysis (0.2.0): the free sections from `latest.analysis`, checked and escaped; paid ones skipped |
-| `includes/charts.php` | The store profile, sales and checkout, catalog and operations as charts, from the analysis's figures |
+| `includes/charts.php` | The store profile (sales and checkout, catalog, operations) and the estimated revenue at risk as charts, from the analysis's figures |
+| `includes/overview.php` | The overview above the pipeline: store summary, what needs attention (worst red and orange checks, linked to their panels), risk bands and the score's trend; reads the scan's data, never scores or estimates |
 | `includes/pipeline.php` | The store pipeline: every check as a coloured job in a stage, a log-style panel per job (no cause, no fix) |
 | `includes/site-health.php` | The site checks sent as `detailed.site_health` for the pipeline (updates, debug output, search visibility, table engines, transients, administrators, file editor), merged with the two files below |
 | `includes/server-checks.php` | Upload limit, PHP extensions, disk space, load and memory (null when the host doesn't let PHP read them) |
@@ -87,9 +88,12 @@ tvarkom's `BACKLOG.md`, item 11):
 - The fix plan, next steps and priorities (never in the dashboard file).
 - Automatic weekly scans: the free plugin scans only on a click.
 
-The free sections (store at a glance, sales and checkout, products and inventory, store operations)
-are drawn as charts from the analysis's `figures` (`includes/charts.php`); traffic and marketing stay
-as text. Under them, the store pipeline (`includes/pipeline.php`, built by the scanner's
+The page, top to bottom (founder decisions of 10 Nov 2026): the store summary; the score, what
+needs attention and the estimated revenue at risk; the store profile in detail; traffic and
+marketing; then the pipeline. The free sections are drawn as charts from the analysis's `figures`
+(`includes/charts.php`, `includes/overview.php`); traffic and marketing stay as text. The revenue
+at risk is the scanner's modelled estimate, shown as is and always labelled as a modelled scenario.
+Last, the store pipeline (left exactly as designed; the overview only links to its panels) (`includes/pipeline.php`, built by the scanner's
 `reporters/pipeline.ts`): red is a scored check over its critical threshold, orange over its
 reference, yellow a problem outside the score, green passes, grey not measured. A job's panel shows
 what was measured against which reference and the points lost, never the cause (plugin, hook,

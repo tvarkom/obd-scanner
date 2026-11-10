@@ -226,7 +226,7 @@
 .tobd__keyfacts dt { font-size: 12px; line-height: 1.3; color: var(--muted); }
 .tobd__keyfacts dd { margin: 3px 0 0; font-size: 15px; font-weight: 600; line-height: 1.3; color: var(--ink); }
 .tobd__definitions { margin-top: -4px; font-size: 13px; line-height: 1.55; color: var(--muted); }
-.tobd__definitions summary { display: inline-block; cursor: pointer; font-weight: 600; color: var(--ink); }
+.tobd__definitions summary { width: fit-content; cursor: pointer; font-weight: 600; color: var(--ink); }
 .tobd__definitions dl { display: grid; gap: 4px 20px; margin: 10px 0 0; }
 .tobd__definitions dt { font-weight: 600; color: var(--ink); }
 .tobd__definitions dd { margin: 0 0 8px; }
@@ -242,7 +242,8 @@
 
 /* Store health trends */
 .tobd__trends .tobd__trend { margin: 0 0 14px; font-size: 15px; }
-.tobd__trend-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; margin: 0 0 4px; }
+.tobd__trend-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin: 0 0 4px; }
+.tobd__trend-date { display: block; margin-top: 2px; font-size: 11px; font-weight: 400; color: var(--muted); }
 .tobd__trend-facts div { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; }
 .tobd__trend-facts dt { font-size: 12px; line-height: 1.3; color: var(--muted); }
 .tobd__trend-facts dd { margin: 3px 0 0; font-size: 16px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
@@ -330,7 +331,7 @@
 	.tobd__overview > .tobd__panel:last-child { grid-column: 1 / -1; }
 	.tobd__definitions dl { grid-template-columns: max-content minmax(0, 1fr); }
 	/* Traffic & marketing: full width, its lines in two columns rather than half a page of space */
-	.tobd__analysis .tobd__list { columns: 2; column-gap: 40px; }
+	.tobd__analysis .tobd__list:has(> li:nth-child(4)) { columns: 2; column-gap: 40px; }
 	.tobd__analysis .tobd__list li { break-inside: avoid; }
 }
 

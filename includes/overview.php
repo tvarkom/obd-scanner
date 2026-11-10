@@ -517,13 +517,11 @@ function tvarkom_obd_render_trends( array $history, $model, $next_scan_at ) {
 			?>
 			<dl class="tobd__trend-facts">
 				<div>
-					<dt>
-						<?php
-						/* translators: %s: date of the first scan. */
-						echo esc_html( sprintf( __( 'Since %s', 'on-board-diagnostics-scanner-for-woocommerce' ), tvarkom_obd_point_label( $points, 0 ) ) );
-						?>
-					</dt>
-					<dd><?php echo esc_html( tvarkom_obd_signed( $since ) ); ?></dd>
+					<dt><?php esc_html_e( 'Since first scan', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dt>
+					<dd>
+						<?php echo esc_html( tvarkom_obd_signed( $since ) ); ?>
+						<span class="tobd__trend-date"><?php echo esc_html( tvarkom_obd_point_label( $points, 0 ) ); ?></span>
+					</dd>
 				</div>
 				<div><dt><?php esc_html_e( 'Scans', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dt><dd><?php echo esc_html( number_format_i18n( $n ) ); ?></dd></div>
 				<div><dt><?php esc_html_e( 'Highest', 'on-board-diagnostics-scanner-for-woocommerce' ); ?></dt><dd><?php echo esc_html( number_format_i18n( $best ) ); ?></dd></div>

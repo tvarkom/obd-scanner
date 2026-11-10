@@ -5,7 +5,7 @@
 The plugin is procedural WordPress code: a main file and `includes/`, every function, constant
 and option prefixed `tvarkom_obd` / `TVARKOM_OBD`. It supports PHP 7.4+ and WordPress 6.5+, and
 needs WooCommerce. Text domain: `pirkoo`, the WordPress.org slug
-(it must always equal the slug; the plugin is called Pirkoo, "On-board Diagnostics Scanner for WooCommerce", since 10 Nov 2026; the repo folder is still `obd-scanner`).
+(it must always equal the slug; the plugin is called Pirkoo, "On-board Diagnostics Scanner for WooCommerce", since 10 Nov 2026; the repo and folder are `pirkoo`).
 
 ## How it works
 

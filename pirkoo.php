@@ -25,7 +25,7 @@ define( 'PIRKOO_FILE', __FILE__ );
 define( 'PIRKOO_OPTION', 'pirkoo' );
 define( 'PIRKOO_TOKEN', 'pirkoo_verify_token' );
 define( 'PIRKOO_LOCK', 'pirkoo_scan_lock' );
-define( 'PIRKOO_PAGE', 'pirkoo' ); // admin.php?page=pirkoo
+define( 'PIRKOO_PAGE', 'pirkoo' ); // The page is admin.php?page=pirkoo.
 
 // Overridable in wp-config.php, e.g. for testing against a local gateway.
 if ( ! defined( 'PIRKOO_API_URL' ) ) {

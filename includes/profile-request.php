@@ -67,7 +67,7 @@ function pirkoo_profile_checkout() {
 			'user-agent'  => 'Pirkoo checkout profiler (+https://pirkoo.com)',
 			'headers'     => array(
 				PIRKOO_PROFILE_HEADER => $token,
-				'Cache-Control'            => 'no-cache',
+				'Cache-Control'       => 'no-cache',
 			),
 			// Same as WordPress's own loopback checks: the request goes to this server.
 			'sslverify'   => apply_filters( 'https_local_ssl_verify', false ), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress core's filter.

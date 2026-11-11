@@ -146,7 +146,7 @@ function pirkoo_profile_calibrate() {
 function pirkoo_profile_wrapper( $callback, $component, $hook ) {
 	return static function ( ...$args ) use ( $callback, $component, $hook ) {
 		Pirkoo_Profiler::$stack[] = 0;
-		$start                         = hrtime( true );
+		$start                    = hrtime( true );
 		try {
 			return call_user_func_array( $callback, $args );
 		} finally {
@@ -314,7 +314,7 @@ function pirkoo_profile_caller() {
  * @return array<string, mixed>
  */
 function pirkoo_profile_tag_query( $data ) {
-	$data                = is_array( $data ) ? $data : array();
+	$data           = is_array( $data ) ? $data : array();
 	$data['pirkoo'] = pirkoo_profile_caller();
 	return $data;
 }

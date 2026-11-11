@@ -2,13 +2,13 @@
 /**
  * Thrown by the tests' wp_redirect filter, so code that redirects and exits can be tested.
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 /**
  * A redirect the code under test made.
  */
-class Tvarkom_OBD_Redirect extends Exception {
+class Pirkoo_Redirect extends Exception {
 
 	/**
 	 * Redirect target.

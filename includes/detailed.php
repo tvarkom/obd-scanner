@@ -4,7 +4,7 @@
  * never option values, task arguments or customer data. Error messages are
  * scrubbed of emails, links, IP addresses and long numbers before they leave.
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -17,18 +17,18 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @param bool $with_profile Also profile one checkout page load (includes/profile.php). The preview skips it.
  * @return array<string, mixed>
  */
-function tvarkom_obd_collect_detailed( $with_profile = true ) {
+function pirkoo_collect_detailed( $with_profile = true ) {
 	$detailed = array(
 		'schema'                     => 2,
-		'top_autoloaded_keys'        => tvarkom_obd_top_autoloaded_keys(),
-		'orphaned_tables'            => tvarkom_obd_orphaned_tables(),
-		'php_configuration'          => tvarkom_obd_php_configuration(),
-		'failed_task_breakdown'      => tvarkom_obd_failed_tasks(),
-		'cron_queue_stalled_actions' => tvarkom_obd_stalled_actions(),
-		'site_health'                => tvarkom_obd_site_health(), // The pipeline's site checks (includes/site-health.php).
+		'top_autoloaded_keys'        => pirkoo_top_autoloaded_keys(),
+		'orphaned_tables'            => pirkoo_orphaned_tables(),
+		'php_configuration'          => pirkoo_php_configuration(),
+		'failed_task_breakdown'      => pirkoo_failed_tasks(),
+		'cron_queue_stalled_actions' => pirkoo_stalled_actions(),
+		'site_health'                => pirkoo_site_health(), // The pipeline's site checks (includes/site-health.php).
 	);
 	if ( $with_profile ) {
-		$detailed['checkout_profile'] = tvarkom_obd_profile_checkout();
+		$detailed['checkout_profile'] = pirkoo_profile_checkout();
 	}
 	return $detailed;
 }
@@ -38,7 +38,7 @@ function tvarkom_obd_collect_detailed( $with_profile = true ) {
  *
  * @return array<string, string>
  */
-function tvarkom_obd_active_plugin_names() {
+function pirkoo_active_plugin_names() {
 	if ( ! function_exists( 'get_plugins' ) ) {
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 	}
@@ -61,7 +61,7 @@ function tvarkom_obd_active_plugin_names() {
  *
  * @return array<string, string> Prefix => owner.
  */
-function tvarkom_obd_known_prefixes() {
+function pirkoo_known_prefixes() {
 	return array(
 		'woocommerce'      => 'WooCommerce',
 		'wc_'              => 'WooCommerce',
@@ -99,16 +99,16 @@ function tvarkom_obd_known_prefixes() {
  * Likely owner of an option or table name (without the table prefix), or null.
  *
  * @param string                $name    Option or table name.
- * @param array<string, string> $plugins Active plugins from tvarkom_obd_active_plugin_names().
+ * @param array<string, string> $plugins Active plugins from pirkoo_active_plugin_names().
  * @return string|null
  */
-function tvarkom_obd_owner( $name, array $plugins ) {
+function pirkoo_owner( $name, array $plugins ) {
 	$name = strtolower( preg_replace( '/^_(site_)?transient_(timeout_)?/', '', $name ) );
 	$core = array( 'rewrite_rules', 'cron', 'doing_cron', 'active_plugins', 'sidebars_widgets', 'permalink_structure', 'recently_activated', 'uninstall_plugins', 'can_compress_scripts', 'wp_core_block_css_files', 'update_core', 'update_plugins', 'update_themes', 'dirsize_cache' );
 	if ( in_array( $name, $core, true ) ) {
 		return 'WordPress core';
 	}
-	foreach ( tvarkom_obd_known_prefixes() as $prefix => $owner ) {
+	foreach ( pirkoo_known_prefixes() as $prefix => $owner ) {
 		if ( 0 === strpos( $name, $prefix ) ) {
 			return $owner;
 		}
@@ -126,7 +126,7 @@ function tvarkom_obd_owner( $name, array $plugins ) {
  *
  * @return array<int, array{option_name: string, size_bytes: int, associated_plugin: string|null}>
  */
-function tvarkom_obd_top_autoloaded_keys() {
+function pirkoo_top_autoloaded_keys() {
 	global $wpdb;
 	$values       = function_exists( 'wp_autoload_values_to_autoload' ) ? wp_autoload_values_to_autoload() : array( 'yes' );
 	$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
@@ -135,14 +135,14 @@ function tvarkom_obd_top_autoloaded_keys() {
 		$wpdb->prepare( "SELECT option_name, LENGTH(option_value) AS size FROM {$wpdb->options} WHERE autoload IN ($placeholders) ORDER BY size DESC LIMIT 20", $values )
 	);
 	// phpcs:enable
-	$plugins = tvarkom_obd_active_plugin_names();
+	$plugins = pirkoo_active_plugin_names();
 	$out     = array();
 	foreach ( (array) $rows as $row ) {
 		$name  = (string) $row->option_name;
 		$out[] = array(
-			'option_name'       => tvarkom_obd_identifier( $name ),
+			'option_name'       => pirkoo_identifier( $name ),
 			'size_bytes'        => (int) $row->size,
-			'associated_plugin' => $wpdb->prefix . 'user_roles' === $name ? 'WordPress core' : tvarkom_obd_owner( $name, $plugins ),
+			'associated_plugin' => $wpdb->prefix . 'user_roles' === $name ? 'WordPress core' : pirkoo_owner( $name, $plugins ),
 		);
 	}
 	return $out;
@@ -155,7 +155,7 @@ function tvarkom_obd_top_autoloaded_keys() {
  * @param string $folder Plugin or theme folder (slug).
  * @return array<int, string>
  */
-function tvarkom_obd_slug_variants( $folder ) {
+function pirkoo_slug_variants( $folder ) {
 	$slug     = str_replace( '-', '_', strtolower( $folder ) );
 	$variants = strlen( $slug ) >= 3 ? array( $slug ) : array();
 	$bare     = (string) preg_replace( '/_(pro|premium|lite|free)$/', '', (string) preg_replace( '/^(wp|woo|wc)_/', '', $slug ) );
@@ -170,7 +170,7 @@ function tvarkom_obd_slug_variants( $folder ) {
  *
  * @return array{plugins: array<string, array{0: string, 1: bool}>, themes: array<string, array{0: string, 1: bool}>, names: array<string, bool>}
  */
-function tvarkom_obd_installed_components() {
+function pirkoo_installed_components() {
 	if ( ! function_exists( 'get_plugins' ) ) {
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 	}
@@ -187,7 +187,7 @@ function tvarkom_obd_installed_components() {
 		$folder = dirname( $file ) === '.' ? basename( $file, '.php' ) : dirname( $file );
 		$name   = isset( $data['Name'] ) ? (string) $data['Name'] : $folder;
 		$on     = in_array( $file, $active, true );
-		foreach ( tvarkom_obd_slug_variants( $folder ) as $prefix ) {
+		foreach ( pirkoo_slug_variants( $folder ) as $prefix ) {
 			// An active plugin wins over an inactive one with the same prefix.
 			if ( ! isset( $out['plugins'][ $prefix ] ) || $on ) {
 				$out['plugins'][ $prefix ] = array( $name, $on );
@@ -198,7 +198,7 @@ function tvarkom_obd_installed_components() {
 	$current = array( get_stylesheet(), get_template() );
 	foreach ( wp_get_themes() as $stylesheet => $theme ) {
 		$on = in_array( $stylesheet, $current, true );
-		foreach ( tvarkom_obd_slug_variants( (string) $stylesheet ) as $prefix ) {
+		foreach ( pirkoo_slug_variants( (string) $stylesheet ) as $prefix ) {
 			if ( ! isset( $out['themes'][ $prefix ] ) || $on ) {
 				$out['themes'][ $prefix ] = array( (string) $theme->get( 'Name' ), $on );
 			}
@@ -214,14 +214,14 @@ function tvarkom_obd_installed_components() {
  * name never proves a table is unused, so the report never calls one confirmed.
  *
  * @param string $short      Table name without the site prefix.
- * @param array  $components From tvarkom_obd_installed_components().
+ * @param array  $components From pirkoo_installed_components().
  * @phpstan-param array{plugins: array<string, array{0: string, 1: bool}>, themes: array<string, array{0: string, 1: bool}>, names: array<string, bool>} $components
  * @return array{0: string, 1: string|null} Classification and owner.
  */
-function tvarkom_obd_table_owner( $short, array $components ) {
+function pirkoo_table_owner( $short, array $components ) {
 	$short = strtolower( $short );
 	$known = null;
-	foreach ( tvarkom_obd_known_table_prefixes() as $prefix => $owner ) {
+	foreach ( pirkoo_known_table_prefixes() as $prefix => $owner ) {
 		if ( 0 !== strpos( $short, $prefix ) ) {
 			continue;
 		}
@@ -262,13 +262,13 @@ function tvarkom_obd_table_owner( $short, array $components ) {
 
 /**
  * Table prefixes of WooCommerce and popular plugins whose tables don't start with their folder
- * name (tvarkom_obd_known_prefixes() without the option-only entries), with the plugin's name
+ * name (pirkoo_known_prefixes() without the option-only entries), with the plugin's name
  * as WordPress shows it.
  *
  * @return array<string, string> Prefix => owner.
  */
-function tvarkom_obd_known_table_prefixes() {
-	$prefixes = tvarkom_obd_known_prefixes();
+function pirkoo_known_table_prefixes() {
+	$prefixes = pirkoo_known_prefixes();
 	unset( $prefixes['theme_mods_'], $prefixes['widget_'] );
 	$prefixes['e_events']      = 'Elementor';
 	$prefixes['e_submissions'] = 'Elementor Pro';
@@ -279,11 +279,11 @@ function tvarkom_obd_known_table_prefixes() {
 /**
  * Tables with this site's prefix that belong neither to WordPress, WooCommerce nor an active
  * plugin or theme, largest first, each with its classification and likely owner (see
- * tvarkom_obd_table_owner()).
+ * pirkoo_table_owner()).
  *
  * @return array<int, array{table_name: string, size_mb: float, estimated_row_count: int, classification: string, owner: string|null}>
  */
-function tvarkom_obd_orphaned_tables() {
+function pirkoo_orphaned_tables() {
 	global $wpdb;
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- table metadata, once per detailed audit.
 	$rows       = $wpdb->get_results(
@@ -294,7 +294,7 @@ function tvarkom_obd_orphaned_tables() {
 		)
 	);
 	$core       = array_flip( $wpdb->tables( 'all', true ) );
-	$components = tvarkom_obd_installed_components();
+	$components = pirkoo_installed_components();
 	$out        = array();
 	foreach ( (array) $rows as $row ) {
 		$table = (string) $row->name;
@@ -303,12 +303,12 @@ function tvarkom_obd_orphaned_tables() {
 			continue;
 		}
 
-		list( $classification, $owner ) = tvarkom_obd_table_owner( $short, $components );
+		list( $classification, $owner ) = pirkoo_table_owner( $short, $components );
 		if ( 'active' === $classification ) {
 			continue;
 		}
 		$out[] = array(
-			'table_name'          => tvarkom_obd_identifier( $table ),
+			'table_name'          => pirkoo_identifier( $table ),
 			'size_mb'             => round( (int) $row->bytes / 1048576, 1 ),
 			'estimated_row_count' => (int) $row->row_count,
 			'classification'      => $classification,
@@ -326,7 +326,7 @@ function tvarkom_obd_orphaned_tables() {
  *
  * @return array{memory_limit: string, wp_memory_limit: string|null, max_execution_time: int, opcache_enabled: bool|null}
  */
-function tvarkom_obd_php_configuration() {
+function pirkoo_php_configuration() {
 	$opcache = null;
 	if ( function_exists( 'opcache_get_status' ) ) {
 		$status  = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- opcache.restrict_api makes this warn.
@@ -350,7 +350,7 @@ function tvarkom_obd_php_configuration() {
  * @param string $message Raw message.
  * @return string
  */
-function tvarkom_obd_scrub( $message ) {
+function pirkoo_scrub( $message ) {
 	$message = preg_replace( '/[\w.+-]+@[\w-]+(\.[\w-]+)+/', '[email]', $message );
 	$message = preg_replace( '#\bhttps?://\S+#i', '[url]', $message );
 	$message = preg_replace( '/\b\d{1,3}(\.\d{1,3}){3}\b/', '[ip]', $message );
@@ -368,7 +368,7 @@ function tvarkom_obd_scrub( $message ) {
  * @param string $name A name read on the store.
  * @return string
  */
-function tvarkom_obd_identifier( $name ) {
+function pirkoo_identifier( $name ) {
 	$name = preg_replace( '/[A-Za-z0-9.+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+/', 'email', (string) $name ); // Not across "_", so a plugin's prefix stays.
 	$name = preg_replace( '/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i', 'id', $name );
 	$name = preg_replace_callback(
@@ -387,7 +387,7 @@ function tvarkom_obd_identifier( $name ) {
  *
  * @return array{actions: string, logs: string}|null
  */
-function tvarkom_obd_scheduler_tables() {
+function pirkoo_scheduler_tables() {
 	global $wpdb;
 	$actions = $wpdb->prefix . 'actionscheduler_actions';
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -406,9 +406,9 @@ function tvarkom_obd_scheduler_tables() {
  *
  * @return array<int, array{hook_signature: string, failure_count: int, last_error_message: string|null}>
  */
-function tvarkom_obd_failed_tasks() {
+function pirkoo_failed_tasks() {
 	global $wpdb;
-	$tables = tvarkom_obd_scheduler_tables();
+	$tables = pirkoo_scheduler_tables();
 	if ( null === $tables ) {
 		return array();
 	}
@@ -427,9 +427,9 @@ function tvarkom_obd_failed_tasks() {
 			$wpdb->prepare( 'SELECT message FROM %i WHERE action_id = %d ORDER BY log_id DESC LIMIT 1', $tables['logs'], (int) $group->last_id )
 		);
 		$out[]   = array(
-			'hook_signature'     => tvarkom_obd_identifier( (string) $group->hook ),
+			'hook_signature'     => pirkoo_identifier( (string) $group->hook ),
 			'failure_count'      => (int) $group->failures,
-			'last_error_message' => is_string( $message ) && '' !== $message ? tvarkom_obd_scrub( $message ) : null,
+			'last_error_message' => is_string( $message ) && '' !== $message ? pirkoo_scrub( $message ) : null,
 		);
 	}
 	// phpcs:enable
@@ -442,12 +442,12 @@ function tvarkom_obd_failed_tasks() {
  *
  * @return array<int, array{hook: string, source: string, scheduled_at: string, delay_minutes: int}>
  */
-function tvarkom_obd_stalled_actions() {
+function pirkoo_stalled_actions() {
 	global $wpdb;
 	$cutoff = time() - 15 * MINUTE_IN_SECONDS;
 	$out    = array();
 
-	$tables = tvarkom_obd_scheduler_tables();
+	$tables = pirkoo_scheduler_tables();
 	if ( null !== $tables ) {
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery -- read once per detailed audit.
 		$rows = $wpdb->get_results(
@@ -461,7 +461,7 @@ function tvarkom_obd_stalled_actions() {
 		foreach ( (array) $rows as $row ) {
 			$at    = strtotime( $row->scheduled_date_gmt . ' UTC' );
 			$out[] = array(
-				'hook'          => tvarkom_obd_identifier( (string) $row->hook ),
+				'hook'          => pirkoo_identifier( (string) $row->hook ),
 				'source'        => 'action_scheduler',
 				'scheduled_at'  => gmdate( 'c', $at ),
 				'delay_minutes' => (int) floor( ( time() - $at ) / MINUTE_IN_SECONDS ),
@@ -476,7 +476,7 @@ function tvarkom_obd_stalled_actions() {
 		}
 		foreach ( array_keys( (array) $hooks ) as $hook ) {
 			$out[] = array(
-				'hook'          => tvarkom_obd_identifier( (string) $hook ),
+				'hook'          => pirkoo_identifier( (string) $hook ),
 				'source'        => 'wp_cron',
 				'scheduled_at'  => gmdate( 'c', (int) $timestamp ),
 				'delay_minutes' => (int) floor( ( time() - $timestamp ) / MINUTE_IN_SECONDS ),

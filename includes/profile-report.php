@@ -3,7 +3,7 @@
  * Full Scan checkout profile, end of the profiled request: query shapes, component names, and the
  * result built from the profiler state and left in a transient for the audit (see profile.php).
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @param string $sql Query.
  * @return string
  */
-function tvarkom_obd_profile_query_shape( $sql ) {
+function pirkoo_profile_query_shape( $sql ) {
 	$sql = (string) preg_replace( '#/\*.*?\*/#s', '', $sql );
 	$sql = (string) preg_replace( "/'(?:[^'\\\\]|\\\\.)*'/s", '?', $sql );
 	$sql = (string) preg_replace( '/"(?:[^"\\\\]|\\\\.)*"/s', '?', $sql );
@@ -33,7 +33,7 @@ function tvarkom_obd_profile_query_shape( $sql ) {
  * @param string $key Component key.
  * @return string
  */
-function tvarkom_obd_profile_component_name( $key ) {
+function pirkoo_profile_component_name( $key ) {
 	static $plugins    = null;
 	list( $type, $id ) = array_pad( explode( ':', $key, 2 ), 2, '' );
 	switch ( $type ) {
@@ -67,10 +67,10 @@ function tvarkom_obd_profile_component_name( $key ) {
  *
  * @return void
  */
-function tvarkom_obd_profile_finish() {
+function pirkoo_profile_finish() {
 	global $wpdb, $wp_object_cache;
-	$total_ms  = round( tvarkom_obd_profile_elapsed() * 1000, 1 );
-	$marks     = Tvarkom_OBD_Profiler::$marks;
+	$total_ms  = round( pirkoo_profile_elapsed() * 1000, 1 );
+	$marks     = Pirkoo_Profiler::$marks;
 	$at        = function ( $phase ) use ( $marks ) {
 		return isset( $marks[ $phase ] ) ? round( $marks[ $phase ] * 1000, 1 ) : null;
 	};
@@ -101,11 +101,11 @@ function tvarkom_obd_profile_finish() {
 	$logged     = is_array( $wpdb->queries ) ? $wpdb->queries : array();
 	foreach ( $logged as $q ) {
 		$ms        = (float) $q[1] * 1000;
-		$component = isset( $q[4]['tvarkom_obd'] ) ? (string) $q[4]['tvarkom_obd'] : 'core';
+		$component = isset( $q[4]['pirkoo'] ) ? (string) $q[4]['pirkoo'] : 'core';
 		$query_ms += $ms;
 		$add( $component, 'query_count', 1 );
 		$add( $component, 'query_ms', $ms );
-		$shape = tvarkom_obd_profile_query_shape( (string) $q[0] );
+		$shape = pirkoo_profile_query_shape( (string) $q[0] );
 		$id    = md5( $shape );
 		if ( ! isset( $shapes[ $id ] ) ) {
 			$shapes[ $id ] = array(
@@ -126,11 +126,11 @@ function tvarkom_obd_profile_finish() {
 		}
 		$exact[ $exact_id ] = true;
 	}
-	foreach ( Tvarkom_OBD_Profiler::$components as $key => $stats ) {
+	foreach ( Pirkoo_Profiler::$components as $key => $stats ) {
 		$add( $key, 'hook_ms', $stats[0] / 1e6 );
 		$add( $key, 'hook_calls', $stats[1] );
 	}
-	foreach ( Tvarkom_OBD_Profiler::$http as $call ) {
+	foreach ( Pirkoo_Profiler::$http as $call ) {
 		$add( $call['component'], 'http_ms', $call['ms'] );
 	}
 	unset( $components['self'] );
@@ -150,7 +150,7 @@ function tvarkom_obd_profile_finish() {
 	$component_rows = array();
 	foreach ( array_slice( $components, 0, 15, true ) as $key => $c ) {
 		$component_rows[] = array(
-			'name'        => tvarkom_obd_profile_component_name( (string) $key ),
+			'name'        => pirkoo_profile_component_name( (string) $key ),
 			'type'        => explode( ':', (string) $key, 2 )[0],
 			'hook_ms'     => round( $c['hook_ms'], 1 ),
 			'hook_calls'  => (int) $c['hook_calls'],
@@ -160,7 +160,7 @@ function tvarkom_obd_profile_finish() {
 		);
 	}
 
-	$hooks = Tvarkom_OBD_Profiler::$hooks;
+	$hooks = Pirkoo_Profiler::$hooks;
 	uasort(
 		$hooks,
 		function ( $a, $b ) {
@@ -171,8 +171,8 @@ function tvarkom_obd_profile_finish() {
 	foreach ( array_slice( $hooks, 0, 10, true ) as $key => $stats ) {
 		list( $component, $hook ) = explode( "\0", (string) $key, 2 );
 		$hook_rows[]              = array(
-			'hook'      => tvarkom_obd_identifier( $hook ),
-			'component' => tvarkom_obd_profile_component_name( $component ),
+			'hook'      => pirkoo_identifier( $hook ),
+			'component' => pirkoo_profile_component_name( $component ),
 			'ms'        => round( $stats[0] / 1e6, 1 ),
 			'calls'     => (int) $stats[1],
 		);
@@ -192,7 +192,7 @@ function tvarkom_obd_profile_finish() {
 	foreach ( array_slice( $shapes, 0, 10 ) as $s ) {
 		$query_rows[] = array(
 			'sql'       => $s['sql'],
-			'component' => tvarkom_obd_profile_component_name( $s['component'] ),
+			'component' => pirkoo_profile_component_name( $s['component'] ),
 			'count'     => $s['count'],
 			'identical' => $s['identical'],
 			'total_ms'  => round( $s['total_ms'], 1 ),
@@ -201,8 +201,8 @@ function tvarkom_obd_profile_finish() {
 	}
 
 	$http_rows = array();
-	foreach ( Tvarkom_OBD_Profiler::$http as $call ) {
-		$call['component'] = tvarkom_obd_profile_component_name( $call['component'] );
+	foreach ( Pirkoo_Profiler::$http as $call ) {
+		$call['component'] = pirkoo_profile_component_name( $call['component'] );
 		$http_rows[]       = $call;
 	}
 
@@ -213,16 +213,16 @@ function tvarkom_obd_profile_finish() {
 	);
 
 	$calls = 0;
-	foreach ( Tvarkom_OBD_Profiler::$components as $stats ) {
+	foreach ( Pirkoo_Profiler::$components as $stats ) {
 		$calls += $stats[1];
 	}
 
 	set_transient(
-		TVARKOM_OBD_PROFILE_RESULT,
+		PIRKOO_PROFILE_RESULT,
 		array(
 			'status'               => 'ok',
 			'is_checkout'          => function_exists( 'is_checkout' ) && is_checkout(),
-			'cart'                 => Tvarkom_OBD_Profiler::$product_id ? 'sample_product' : 'empty',
+			'cart'                 => Pirkoo_Profiler::$product_id ? 'sample_product' : 'empty',
 			'total_ms'             => $total_ms,
 			'peak_memory_mb'       => round( memory_get_peak_usage( true ) / 1048576, 1 ),
 			'phases'               => array(
@@ -242,7 +242,7 @@ function tvarkom_obd_profile_finish() {
 			'slow_queries'         => $query_rows,
 			'http_calls'           => $http_rows,
 			'object_cache'         => $cache,
-			'profiler_overhead_ms' => round( ( Tvarkom_OBD_Profiler::$wrap_ns + $calls * Tvarkom_OBD_Profiler::$call_cost_ns ) / 1e6, 1 ),
+			'profiler_overhead_ms' => round( ( Pirkoo_Profiler::$wrap_ns + $calls * Pirkoo_Profiler::$call_cost_ns ) / 1e6, 1 ),
 		),
 		5 * MINUTE_IN_SECONDS
 	);

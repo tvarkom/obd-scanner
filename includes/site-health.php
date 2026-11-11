@@ -1,10 +1,10 @@
 <?php
 /**
  * Site checks for the pipeline (founder decisions of 9 Nov 2026), sent with each scan as
- * detailed.site_health: counts and settings only, never names. tvarkom's scanner turns them into
+ * detailed.site_health: counts and settings only, never names. Pirkoo's scanner turns them into
  * pipeline jobs that cost no points (yellow when they find a problem).
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,26 +16,26 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @return array<string, mixed>
  */
-function tvarkom_obd_site_health() {
-	$tables = tvarkom_obd_table_engines();
+function pirkoo_site_health() {
+	$tables = pirkoo_table_engines();
 	$checks = array(
-		'core_update_available'  => tvarkom_obd_core_update_available(),
-		'theme_updates'          => tvarkom_obd_theme_updates(),
+		'core_update_available'  => pirkoo_core_update_available(),
+		'theme_updates'          => pirkoo_theme_updates(),
 		'wp_debug'               => defined( 'WP_DEBUG' ) && WP_DEBUG,
 		// WordPress shows errors when WP_DEBUG is on unless WP_DEBUG_DISPLAY is false.
 		'debug_display'          => ! defined( 'WP_DEBUG_DISPLAY' ) || false !== WP_DEBUG_DISPLAY,
 		'search_engines_blocked' => '0' === (string) get_option( 'blog_public', '1' ),
 		// production, staging, development or local (WP_ENVIRONMENT_TYPE): blocked search engines and
-		// debug output are expected on a non-production site, so tvarkom doesn't count them there.
+		// debug output are expected on a non-production site, so Pirkoo doesn't count them there.
 		'environment_type'       => wp_get_environment_type(),
 		'myisam_tables'          => $tables['myisam'],
 		'non_utf8mb4_tables'     => $tables['non_utf8mb4'],
-		'expired_transients'     => tvarkom_obd_expired_transients(),
-		'administrators'         => tvarkom_obd_administrators(),
+		'expired_transients'     => pirkoo_expired_transients(),
+		'administrators'         => pirkoo_administrators(),
 		'file_editor_enabled'    => ! ( defined( 'DISALLOW_FILE_EDIT' ) && DISALLOW_FILE_EDIT ) && wp_is_file_mod_allowed( 'capability_edit_themes' ),
 	);
 	// The server, WordPress, database and security checks (includes/server-checks.php, wordpress-checks.php).
-	return array_merge( $checks, tvarkom_obd_server_checks(), tvarkom_obd_wordpress_checks() );
+	return array_merge( $checks, pirkoo_server_checks(), pirkoo_wordpress_checks() );
 }
 
 /**
@@ -44,7 +44,7 @@ function tvarkom_obd_site_health() {
  *
  * @return bool|null
  */
-function tvarkom_obd_core_update_available() {
+function pirkoo_core_update_available() {
 	$check = get_site_transient( 'update_core' );
 	if ( ! is_object( $check ) || empty( $check->updates ) || ! is_array( $check->updates ) ) {
 		return null;
@@ -62,7 +62,7 @@ function tvarkom_obd_core_update_available() {
  *
  * @return int|null
  */
-function tvarkom_obd_theme_updates() {
+function pirkoo_theme_updates() {
 	$check = get_site_transient( 'update_themes' );
 	if ( ! is_object( $check ) || ! isset( $check->response ) || ! is_array( $check->response ) ) {
 		return null;
@@ -76,7 +76,7 @@ function tvarkom_obd_theme_updates() {
  *
  * @return array{myisam: int|null, non_utf8mb4: int|null}
  */
-function tvarkom_obd_table_engines() {
+function pirkoo_table_engines() {
 	global $wpdb;
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- one read of table metadata per scan.
 	$row = $wpdb->get_row(
@@ -105,7 +105,7 @@ function tvarkom_obd_table_engines() {
  *
  * @return int
  */
-function tvarkom_obd_expired_transients() {
+function pirkoo_expired_transients() {
 	global $wpdb;
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- one COUNT per scan; no API lists expired transients.
 	return (int) $wpdb->get_var(
@@ -123,7 +123,7 @@ function tvarkom_obd_expired_transients() {
  *
  * @return int
  */
-function tvarkom_obd_administrators() {
+function pirkoo_administrators() {
 	$query = new WP_User_Query(
 		array(
 			'role'        => 'administrator',

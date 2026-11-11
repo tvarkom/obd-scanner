@@ -1,8 +1,8 @@
 <?php
 /**
- * Stored settings (option tvarkom_obd).
+ * Stored settings (option pirkoo).
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -12,15 +12,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * The stored settings:
  *
- * - api_key:      the store's key from tvarkom, "" before registration or after it was revoked.
+ * - api_key:      the store's key from Pirkoo, "" before registration or after it was revoked.
  * - connected_at: when an administrator clicked "Connect and scan" (Unix seconds), 0 before. The
- *                 plugin contacts tvarkom only once this is set.
+ *                 plugin contacts Pirkoo only once this is set.
  * - last:         the latest scan request's result, {code, time}.
  *
  * @return array{api_key: string, connected_at: int, last: array<string, mixed>}
  */
-function tvarkom_obd_settings() {
-	$saved    = get_option( TVARKOM_OBD_OPTION, array() );
+function pirkoo_settings() {
+	$saved    = get_option( PIRKOO_OPTION, array() );
 	$settings = wp_parse_args(
 		is_array( $saved ) ? $saved : array(),
 		array(
@@ -43,8 +43,8 @@ function tvarkom_obd_settings() {
  * @param array<string, mixed> $changes Settings to change.
  * @return void
  */
-function tvarkom_obd_update_settings( array $changes ) {
-	update_option( TVARKOM_OBD_OPTION, array_merge( tvarkom_obd_settings(), $changes ), false );
+function pirkoo_update_settings( array $changes ) {
+	update_option( PIRKOO_OPTION, array_merge( pirkoo_settings(), $changes ), false );
 }
 
 /**
@@ -52,6 +52,6 @@ function tvarkom_obd_update_settings( array $changes ) {
  *
  * @return bool
  */
-function tvarkom_obd_is_connected() {
-	return tvarkom_obd_settings()['connected_at'] > 0;
+function pirkoo_is_connected() {
+	return pirkoo_settings()['connected_at'] > 0;
 }

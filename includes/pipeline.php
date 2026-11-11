@@ -4,10 +4,10 @@
  * CI/CD pipeline, for the agencies and developers who look after stores. Red: a scored check over
  * its critical threshold; orange: over its reference; yellow: a problem outside the score; green:
  * passes; grey: not measured. A job's panel says what was measured against which reference and what
- * it cost; never how to fix it or what causes it (the paid version). Built by tvarkom's scanner
+ * it cost; never how to fix it or what causes it (the paid version). Built by Pirkoo's scanner
  * (audit-tool scanner/src/reporters/pipeline.ts); checked and escaped here.
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * The job and stage colours, worst last.
  */
-const TVARKOM_OBD_JOB_STATUSES = array( 'grey', 'green', 'yellow', 'orange', 'red' );
+const PIRKOO_JOB_STATUSES = array( 'grey', 'green', 'yellow', 'orange', 'red' );
 
 /**
  * Checks the analysis's pipeline: known colours, texts only, bounded sizes.
@@ -25,12 +25,12 @@ const TVARKOM_OBD_JOB_STATUSES = array( 'grey', 'green', 'yellow', 'orange', 're
  * @param mixed $raw The analysis's pipeline.
  * @return array<int, array{id: string, name: string, status: string, jobs: array<int, array<string, mixed>>}>
  */
-function tvarkom_obd_parse_pipeline( $raw ) {
+function pirkoo_parse_pipeline( $raw ) {
 	if ( ! is_array( $raw ) || ! isset( $raw['stages'] ) || ! is_array( $raw['stages'] ) ) {
 		return array();
 	}
 	$status = function ( $value ) {
-		return is_string( $value ) && in_array( $value, TVARKOM_OBD_JOB_STATUSES, true ) ? $value : 'grey';
+		return is_string( $value ) && in_array( $value, PIRKOO_JOB_STATUSES, true ) ? $value : 'grey';
 	};
 	$stages = array();
 	foreach ( array_slice( $raw['stages'], 0, 12 ) as $stage ) {
@@ -42,7 +42,7 @@ function tvarkom_obd_parse_pipeline( $raw ) {
 			if ( ! is_array( $job ) ) {
 				continue;
 			}
-			$name = tvarkom_obd_analysis_text( isset( $job['name'] ) ? $job['name'] : null );
+			$name = pirkoo_analysis_text( isset( $job['name'] ) ? $job['name'] : null );
 			if ( '' === $name ) {
 				continue;
 			}
@@ -50,17 +50,17 @@ function tvarkom_obd_parse_pipeline( $raw ) {
 				'id'        => sanitize_key( isset( $job['id'] ) && is_string( $job['id'] ) ? $job['id'] : '' ),
 				'name'      => $name,
 				'status'    => $status( isset( $job['status'] ) ? $job['status'] : null ),
-				'about'     => tvarkom_obd_analysis_text( isset( $job['about'] ) ? $job['about'] : null ),
-				'measured'  => tvarkom_obd_analysis_text( isset( $job['measured'] ) ? $job['measured'] : null ),
-				'reference' => tvarkom_obd_analysis_text( isset( $job['reference'] ) ? $job['reference'] : null ),
-				'critical'  => tvarkom_obd_analysis_text( isset( $job['critical'] ) ? $job['critical'] : null ),
+				'about'     => pirkoo_analysis_text( isset( $job['about'] ) ? $job['about'] : null ),
+				'measured'  => pirkoo_analysis_text( isset( $job['measured'] ) ? $job['measured'] : null ),
+				'reference' => pirkoo_analysis_text( isset( $job['reference'] ) ? $job['reference'] : null ),
+				'critical'  => pirkoo_analysis_text( isset( $job['critical'] ) ? $job['critical'] : null ),
 				'points'    => isset( $job['points'] ) && is_int( $job['points'] ) && $job['points'] > 0 && $job['points'] <= 100 ? $job['points'] : null,
 				// Score model 2 (10 Nov 2026): how much a problem weighs (1 most), and why a grey job has no result.
 				'tier'      => isset( $job['tier'] ) && in_array( $job['tier'], array( 1, 2, 3 ), true ) ? $job['tier'] : null,
 				'na'        => isset( $job['availability'] ) && 'not_applicable' === $job['availability'],
 			);
 		}
-		$name = tvarkom_obd_analysis_text( isset( $stage['name'] ) ? $stage['name'] : null );
+		$name = pirkoo_analysis_text( isset( $stage['name'] ) ? $stage['name'] : null );
 		if ( '' !== $name && ! empty( $jobs ) ) {
 			$stages[] = array(
 				'id'     => sanitize_key( isset( $stage['id'] ) && is_string( $stage['id'] ) ? $stage['id'] : '' ),
@@ -81,7 +81,7 @@ function tvarkom_obd_parse_pipeline( $raw ) {
  * @param bool   $na     Whether a grey job doesn't apply (rather than wasn't measured).
  * @return string
  */
-function tvarkom_obd_job_status_label( $status, $na = false ) {
+function pirkoo_job_status_label( $status, $na = false ) {
 	$labels = array(
 		'red'    => __( 'Critical', 'pirkoo' ),
 		'orange' => __( 'Warning', 'pirkoo' ),
@@ -101,7 +101,7 @@ function tvarkom_obd_job_status_label( $status, $na = false ) {
  * @param string $status red, orange, yellow, green or grey.
  * @return string SVG markup.
  */
-function tvarkom_obd_job_icon( $status ) {
+function pirkoo_job_icon( $status ) {
 	$marks = array(
 		'green'  => '<path d="M5 8.2l2 2 4-4.4" />',
 		'yellow' => '<path d="M8 4.5v4M8 11v.5" />',
@@ -110,7 +110,7 @@ function tvarkom_obd_job_icon( $status ) {
 		'grey'   => '<path d="M5 8h6" />',
 	);
 	$mark  = isset( $marks[ $status ] ) ? $marks[ $status ] : $marks['grey'];
-	return '<svg class="tobd__icon tobd__icon--' . esc_attr( $status ) . '" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="7" />' . $mark . '</svg>';
+	return '<svg class="pirkoo__icon pirkoo__icon--' . esc_attr( $status ) . '" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="7" />' . $mark . '</svg>';
 }
 
 /**
@@ -121,18 +121,18 @@ function tvarkom_obd_job_icon( $status ) {
  * @param int $job   The job's index in its stage.
  * @return string
  */
-function tvarkom_obd_job_panel_id( $stage, $job ) {
-	return 'tobd-job-' . $stage . '-' . $job;
+function pirkoo_job_panel_id( $stage, $job ) {
+	return 'pirkoo-job-' . $stage . '-' . $job;
 }
 
 /**
  * The pipeline, laid out like GitLab's: each stage a card listing its jobs, the cards joined by a
  * line, and one panel per job (shown on click).
  *
- * @param array<int, array{id: string, name: string, status: string, jobs: array<int, array<string, mixed>>}> $stages From tvarkom_obd_parse_pipeline().
+ * @param array<int, array{id: string, name: string, status: string, jobs: array<int, array<string, mixed>>}> $stages From pirkoo_parse_pipeline().
  * @return void
  */
-function tvarkom_obd_render_pipeline( array $stages ) {
+function pirkoo_render_pipeline( array $stages ) {
 	if ( empty( $stages ) ) {
 		return;
 	}
@@ -151,21 +151,21 @@ function tvarkom_obd_render_pipeline( array $stages ) {
 		'path'   => array( 'd' => true ),
 	);
 	?>
-	<section class="tobd__panel tobd__pipeline" aria-labelledby="tobd-pipeline-title">
-		<h2 class="tobd__h2" id="tobd-pipeline-title"><?php esc_html_e( 'Scanner pipeline', 'pirkoo' ); ?></h2>
-		<div class="tobd__stages">
+	<section class="pirkoo__panel pirkoo__pipeline" aria-labelledby="pirkoo-pipeline-title">
+		<h2 class="pirkoo__h2" id="pirkoo-pipeline-title"><?php esc_html_e( 'Scanner pipeline', 'pirkoo' ); ?></h2>
+		<div class="pirkoo__stages">
 			<?php foreach ( $stages as $s => $stage ) : ?>
-				<div class="tobd__stage">
-					<h3 class="tobd__stage-name"><?php echo esc_html( $stage['name'] ); ?></h3>
-					<ul class="tobd__jobs">
+				<div class="pirkoo__stage">
+					<h3 class="pirkoo__stage-name"><?php echo esc_html( $stage['name'] ); ?></h3>
+					<ul class="pirkoo__jobs">
 						<?php foreach ( $stage['jobs'] as $j => $job ) : ?>
-							<?php $panel = tvarkom_obd_job_panel_id( $s, $j ); ?>
+							<?php $panel = pirkoo_job_panel_id( $s, $j ); ?>
 							<li>
-								<button type="button" class="tobd__job tobd__job--<?php echo esc_attr( $job['status'] ); ?>" aria-expanded="false" aria-controls="<?php echo esc_attr( $panel ); ?>">
-									<?php echo wp_kses( tvarkom_obd_job_icon( $job['status'] ), $icon_kses ); ?>
-									<span class="tobd__job-name"><?php echo esc_html( $job['name'] ); ?></span>
-									<span class="screen-reader-text"><?php echo esc_html( tvarkom_obd_job_status_label( $job['status'], $job['na'] ) ); ?></span>
-									<svg class="tobd__job-action" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6.5 4.5l3.5 3.5-3.5 3.5" /></svg>
+								<button type="button" class="pirkoo__job pirkoo__job--<?php echo esc_attr( $job['status'] ); ?>" aria-expanded="false" aria-controls="<?php echo esc_attr( $panel ); ?>">
+									<?php echo wp_kses( pirkoo_job_icon( $job['status'] ), $icon_kses ); ?>
+									<span class="pirkoo__job-name"><?php echo esc_html( $job['name'] ); ?></span>
+									<span class="screen-reader-text"><?php echo esc_html( pirkoo_job_status_label( $job['status'], $job['na'] ) ); ?></span>
+									<svg class="pirkoo__job-action" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6.5 4.5l3.5 3.5-3.5 3.5" /></svg>
 								</button>
 							</li>
 						<?php endforeach; ?>
@@ -173,11 +173,11 @@ function tvarkom_obd_render_pipeline( array $stages ) {
 				</div>
 			<?php endforeach; ?>
 		</div>
-		<div class="tobd__job-panels">
+		<div class="pirkoo__job-panels">
 			<?php
 			foreach ( $stages as $s => $stage ) {
 				foreach ( $stage['jobs'] as $j => $job ) {
-					tvarkom_obd_render_job_panel( tvarkom_obd_job_panel_id( $s, $j ), $stage['name'], $job );
+					pirkoo_render_job_panel( pirkoo_job_panel_id( $s, $j ), $stage['name'], $job );
 				}
 			}
 			?>
@@ -194,9 +194,9 @@ function tvarkom_obd_render_pipeline( array $stages ) {
  * @param array<string, mixed> $job   The job.
  * @return void
  */
-function tvarkom_obd_render_job_panel( $id, $stage, array $job ) {
+function pirkoo_render_job_panel( $id, $stage, array $job ) {
 	$rows = array(
-		array( __( 'Status', 'pirkoo' ), tvarkom_obd_job_status_label( $job['status'], $job['na'] ) ),
+		array( __( 'Status', 'pirkoo' ), pirkoo_job_status_label( $job['status'], $job['na'] ) ),
 		array( __( 'Measured', 'pirkoo' ), $job['measured'] ),
 		array( __( 'Reference', 'pirkoo' ), $job['reference'] ),
 		array( __( 'Critical', 'pirkoo' ), $job['critical'] ),
@@ -204,12 +204,12 @@ function tvarkom_obd_render_job_panel( $id, $stage, array $job ) {
 		array( __( 'Points lost', 'pirkoo' ), null === $job['points'] ? '' : sprintf( __( '−%d', 'pirkoo' ), $job['points'] ) ),
 	);
 	?>
-	<section class="tobd__job-panel tobd__job-panel--<?php echo esc_attr( $job['status'] ); ?>" id="<?php echo esc_attr( $id ); ?>" aria-label="<?php echo esc_attr( $stage . ' › ' . $job['name'] ); ?>">
-		<p class="tobd__job-title"><?php echo esc_html( $stage . ' › ' . $job['name'] ); ?></p>
+	<section class="pirkoo__job-panel pirkoo__job-panel--<?php echo esc_attr( $job['status'] ); ?>" id="<?php echo esc_attr( $id ); ?>" aria-label="<?php echo esc_attr( $stage . ' › ' . $job['name'] ); ?>">
+		<p class="pirkoo__job-title"><?php echo esc_html( $stage . ' › ' . $job['name'] ); ?></p>
 		<?php if ( '' !== $job['about'] ) : ?>
-			<p class="tobd__job-about"><?php echo esc_html( $job['about'] ); ?></p>
+			<p class="pirkoo__job-about"><?php echo esc_html( $job['about'] ); ?></p>
 		<?php endif; ?>
-		<dl class="tobd__job-log">
+		<dl class="pirkoo__job-log">
 			<?php foreach ( $rows as $row ) : ?>
 				<?php if ( '' !== $row[1] ) : ?>
 					<div><dt><?php echo esc_html( $row[0] ); ?></dt><dd><?php echo esc_html( $row[1] ); ?></dd></div>

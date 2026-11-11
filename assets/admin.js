@@ -1,13 +1,13 @@
 /**
  * Pirkoo's page (WooCommerce → Pirkoo).
  *
- * - While a scan runs ([data-tobd-refresh] on the page), reloads the page every 20 seconds, at
+ * - While a scan runs ([data-pirkoo-refresh] on the page), reloads the page every 20 seconds, at
  *   most 30 times in a row (10 minutes), without the one-time result notice in the address.
  * - After "Connect and scan" or "Scan now" is clicked, says the request is running and ignores a
  *   second click.
  * - In the pipeline, a job's button opens its panel (one at a time); without this script every
  *   panel shows.
- * - A finding above the pipeline ([data-tobd-job]) brings its job into view and opens its panel
+ * - A finding above the pipeline ([data-pirkoo-job]) brings its job into view and opens its panel
  *   with that same button; without this script its link jumps to the panel.
  */
 ( function () {
@@ -29,13 +29,13 @@
 		return 0;
 	}
 
-	if ( document.querySelector( '[data-tobd-refresh]' ) ) {
+	if ( document.querySelector( '[data-pirkoo-refresh]' ) ) {
 		var count = reloads();
 		if ( count < MAX_RELOADS ) {
 			window.setTimeout( function () {
 				reloads( count + 1 );
 				var url = new URL( window.location.href );
-				url.searchParams.delete( 'obd_result' );
+				url.searchParams.delete( 'pirkoo_result' );
 				window.location.replace( url.toString() );
 			}, 20000 );
 		}
@@ -43,18 +43,18 @@
 		reloads( 0 );
 	}
 
-	var root = document.querySelector( '.tobd' );
+	var root = document.querySelector( '.pirkoo' );
 	if ( root ) {
-		root.classList.add( 'tobd-js' );
+		root.classList.add( 'pirkoo-js' );
 	}
-	Array.prototype.forEach.call( document.querySelectorAll( '.tobd__job' ), function ( button ) {
+	Array.prototype.forEach.call( document.querySelectorAll( '.pirkoo__job' ), function ( button ) {
 		button.addEventListener( 'click', function () {
 			var panel = document.getElementById( button.getAttribute( 'aria-controls' ) );
 			var open = 'true' === button.getAttribute( 'aria-expanded' );
-			Array.prototype.forEach.call( document.querySelectorAll( '.tobd__job' ), function ( other ) {
+			Array.prototype.forEach.call( document.querySelectorAll( '.pirkoo__job' ), function ( other ) {
 				other.setAttribute( 'aria-expanded', 'false' );
 			} );
-			Array.prototype.forEach.call( document.querySelectorAll( '.tobd__job-panel' ), function ( other ) {
+			Array.prototype.forEach.call( document.querySelectorAll( '.pirkoo__job-panel' ), function ( other ) {
 				other.classList.remove( 'is-open' );
 			} );
 			if ( panel && ! open ) {
@@ -65,15 +65,15 @@
 		} );
 	} );
 
-	Array.prototype.forEach.call( document.querySelectorAll( '[data-tobd-job]' ), function ( link ) {
+	Array.prototype.forEach.call( document.querySelectorAll( '[data-pirkoo-job]' ), function ( link ) {
 		link.addEventListener( 'click', function ( event ) {
-			var id = link.getAttribute( 'data-tobd-job' );
-			var button = document.querySelector( '.tobd__job[aria-controls="' + id + '"]' );
+			var id = link.getAttribute( 'data-pirkoo-job' );
+			var button = document.querySelector( '.pirkoo__job[aria-controls="' + id + '"]' );
 			if ( ! button ) {
 				return; // The link's own anchor.
 			}
 			event.preventDefault();
-			var pipeline = button.closest( '.tobd__pipeline' );
+			var pipeline = button.closest( '.pirkoo__pipeline' );
 			if ( pipeline ) {
 				pipeline.scrollIntoView( { block: 'start' } );
 			}
@@ -85,7 +85,7 @@
 		} );
 	} );
 
-	Array.prototype.forEach.call( document.querySelectorAll( '.tobd-scan-form' ), function ( form ) {
+	Array.prototype.forEach.call( document.querySelectorAll( '.pirkoo-scan-form' ), function ( form ) {
 		var sent = false;
 		form.addEventListener( 'submit', function ( event ) {
 			if ( sent ) {

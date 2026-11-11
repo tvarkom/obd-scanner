@@ -24,9 +24,9 @@
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
 		<properties>
 			<property name="prefixes" type="array">
-				<element value="tvarkom_obd"/>
-				<element value="TVARKOM_OBD"/>
-				<element value="Tvarkom_OBD"/>
+				<element value="pirkoo"/>
+				<element value="PIRKOO"/>
+				<element value="Pirkoo"/>
 			</property>
 		</properties>
 	</rule>

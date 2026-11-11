@@ -2,7 +2,7 @@
 /**
  * PHPStan only: constants that wp-config.php and WordPress core define, missing from the stubs.
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 // phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- WordPress's own constants, never loaded by the plugin.

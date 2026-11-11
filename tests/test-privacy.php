@@ -3,13 +3,13 @@
  * What leaves the store: values stripped from query shapes and error messages, order volume
  * as a range, and the metrics the gateway receives (metrics.php, detailed.php, profile-report.php).
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 /**
  * Data minimisation in what is sent.
  */
-class Tvarkom_OBD_Privacy_Test extends Tvarkom_OBD_Test_Case {
+class Pirkoo_Privacy_Test extends Pirkoo_Test_Case {
 
 	/**
 	 * Queries and their shapes.
@@ -36,17 +36,17 @@ class Tvarkom_OBD_Privacy_Test extends Tvarkom_OBD_Test_Case {
 	 * @param string $shape Expected shape.
 	 */
 	public function test_query_shape( $sql, $shape ) {
-		$this->assertSame( $shape, tvarkom_obd_profile_query_shape( $sql ) );
+		$this->assertSame( $shape, pirkoo_profile_query_shape( $sql ) );
 	}
 
 	public function test_query_shape_is_at_most_300_characters() {
-		$this->assertSame( 300, strlen( tvarkom_obd_profile_query_shape( 'SELECT ' . str_repeat( 'col, ', 200 ) . 'x FROM t' ) ) );
+		$this->assertSame( 300, strlen( pirkoo_profile_query_shape( 'SELECT ' . str_repeat( 'col, ', 200 ) . 'x FROM t' ) ) );
 	}
 
 	public function test_error_messages_are_scrubbed() {
 		$this->assertSame(
 			'Mail to [email] failed at [url] from [ip], order [number] (code 1234)',
-			tvarkom_obd_scrub( "Mail to jane.doe+shop@mail.example.com failed at <b>https://pay.example/x?id=1</b>\n from 192.168.10.20, order 1234567 (code 1234)" )
+			pirkoo_scrub( "Mail to jane.doe+shop@mail.example.com failed at <b>https://pay.example/x?id=1</b>\n from 192.168.10.20, order 1234567 (code 1234)" )
 		);
 	}
 
@@ -76,16 +76,16 @@ class Tvarkom_OBD_Privacy_Test extends Tvarkom_OBD_Test_Case {
 	 * @param string $sent What leaves the store.
 	 */
 	public function test_identifiers_are_masked( $name, $sent ) {
-		$this->assertSame( $sent, tvarkom_obd_identifier( $name ) );
+		$this->assertSame( $sent, pirkoo_identifier( $name ) );
 	}
 
 	public function test_order_volume_is_sent_as_a_range() {
-		$this->assertSame( '0-10', tvarkom_obd_order_tier() );
+		$this->assertSame( '0-10', pirkoo_order_tier() );
 		for ( $i = 0; $i < 10; $i++ ) {
 			wc_create_order( array( 'status' => 'completed' ) );
 		}
 		wc_create_order( array( 'status' => 'pending' ) ); // Unpaid: not counted.
-		$this->assertSame( '10-50', tvarkom_obd_order_tier() );
+		$this->assertSame( '10-50', pirkoo_order_tier() );
 	}
 
 	public function test_metrics_sent_with_a_full_scan() {
@@ -140,8 +140,8 @@ class Tvarkom_OBD_Privacy_Test extends Tvarkom_OBD_Test_Case {
 				'order_sources',
 				'utm_sources',
 			),
-			array_keys( tvarkom_obd_collect_metrics() )
+			array_keys( pirkoo_collect_metrics() )
 		);
-		$this->assertSame( 3, tvarkom_obd_collect_metrics()['schema'] );
+		$this->assertSame( 3, pirkoo_collect_metrics()['schema'] );
 	}
 }

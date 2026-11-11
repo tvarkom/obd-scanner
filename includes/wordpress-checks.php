@@ -6,7 +6,7 @@
  * permissions, an "admin" username and open registration. Counts and settings only: never file,
  * plugin or user names, log lines or messages.
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -18,23 +18,23 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @return array<string, mixed>
  */
-function tvarkom_obd_wordpress_checks() {
-	$clutter   = tvarkom_obd_database_clutter();
-	$checksums = tvarkom_obd_core_file_changes();
+function pirkoo_wordpress_checks() {
+	$clutter   = pirkoo_database_clutter();
+	$checksums = pirkoo_core_file_changes();
 	return array(
-		'paused_plugins'      => tvarkom_obd_paused( 'plugins' ),
-		'paused_themes'       => tvarkom_obd_paused( 'themes' ),
-		'fatal_errors_7d'     => tvarkom_obd_fatal_errors_7d(),
-		'core_auto_updates'   => tvarkom_obd_core_auto_updates(),
+		'paused_plugins'      => pirkoo_paused( 'plugins' ),
+		'paused_themes'       => pirkoo_paused( 'themes' ),
+		'fatal_errors_7d'     => pirkoo_fatal_errors_7d(),
+		'core_auto_updates'   => pirkoo_core_auto_updates(),
 		'plugin_auto_updates' => count( (array) get_site_option( 'auto_update_plugins', array() ) ),
 		'permalinks_plain'    => '' === (string) get_option( 'permalink_structure', '' ),
-		'db_latency_ms'       => tvarkom_obd_db_latency_ms(),
+		'db_latency_ms'       => pirkoo_db_latency_ms(),
 		'spam_comments'       => $clutter['spam'],
 		'auto_drafts'         => $clutter['auto_drafts'],
 		'old_revisions'       => $clutter['revisions'],
 		'core_files_modified' => $checksums['modified'],
 		'core_files_missing'  => $checksums['missing'],
-		'wp_config_mode'      => tvarkom_obd_wp_config_mode(),
+		'wp_config_mode'      => pirkoo_wp_config_mode(),
 		'admin_username'      => (bool) username_exists( 'admin' ),
 		'registration_open'   => (bool) get_option( 'users_can_register' ),
 		'registration_role'   => sanitize_key( (string) get_option( 'default_role', 'subscriber' ) ),
@@ -47,7 +47,7 @@ function tvarkom_obd_wordpress_checks() {
  * @param string $type plugins or themes.
  * @return int
  */
-function tvarkom_obd_paused( $type ) {
+function pirkoo_paused( $type ) {
 	$storage = 'plugins' === $type ? wp_paused_plugins() : wp_paused_themes();
 	return count( (array) $storage->get_all() );
 }
@@ -59,7 +59,7 @@ function tvarkom_obd_paused( $type ) {
  *
  * @return int|null
  */
-function tvarkom_obd_fatal_errors_7d() {
+function pirkoo_fatal_errors_7d() {
 	// WP_DEBUG_LOG is true (wp-content/debug.log) or a log path; else PHP's own log.
 	$setting = defined( 'WP_DEBUG_LOG' ) ? constant( 'WP_DEBUG_LOG' ) : false;
 	if ( is_string( $setting ) && '' !== $setting ) {
@@ -97,7 +97,7 @@ function tvarkom_obd_fatal_errors_7d() {
  *
  * @return string
  */
-function tvarkom_obd_core_auto_updates() {
+function pirkoo_core_auto_updates() {
 	if ( ( defined( 'AUTOMATIC_UPDATER_DISABLED' ) && AUTOMATIC_UPDATER_DISABLED ) || ! wp_is_file_mod_allowed( 'automatic_updater' ) ) {
 		return 'disabled';
 	}
@@ -117,7 +117,7 @@ function tvarkom_obd_core_auto_updates() {
  *
  * @return float
  */
-function tvarkom_obd_db_latency_ms() {
+function pirkoo_db_latency_ms() {
 	global $wpdb;
 	$times = array();
 	for ( $i = 0; $i < 3; $i++ ) {
@@ -135,7 +135,7 @@ function tvarkom_obd_db_latency_ms() {
  *
  * @return array{spam: int, auto_drafts: int, revisions: int}
  */
-function tvarkom_obd_database_clutter() {
+function pirkoo_database_clutter() {
 	global $wpdb;
 	$cutoff = gmdate( 'Y-m-d H:i:s', time() - 30 * DAY_IN_SECONDS );
 	// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- three COUNTs per scan.
@@ -156,10 +156,10 @@ function tvarkom_obd_database_clutter() {
  *
  * @return array{modified: int|null, missing: int|null}
  */
-function tvarkom_obd_core_file_changes() {
-	$checksums = tvarkom_obd_core_checksums( get_bloginfo( 'version' ), get_locale() );
+function pirkoo_core_file_changes() {
+	$checksums = pirkoo_core_checksums( get_bloginfo( 'version' ), get_locale() );
 	if ( null === $checksums && 'en_US' !== get_locale() ) {
-		$checksums = tvarkom_obd_core_checksums( get_bloginfo( 'version' ), 'en_US' );
+		$checksums = pirkoo_core_checksums( get_bloginfo( 'version' ), 'en_US' );
 	}
 	if ( null === $checksums ) {
 		return array(
@@ -196,7 +196,7 @@ function tvarkom_obd_core_file_changes() {
  * @param string $locale  Locale, e.g. en_US.
  * @return array<string, string>|null
  */
-function tvarkom_obd_core_checksums( $version, $locale ) {
+function pirkoo_core_checksums( $version, $locale ) {
 	$url      = add_query_arg(
 		array(
 			'version' => $version,
@@ -227,7 +227,7 @@ function tvarkom_obd_core_checksums( $version, $locale ) {
  *
  * @return string|null
  */
-function tvarkom_obd_wp_config_mode() {
+function pirkoo_wp_config_mode() {
 	foreach ( array( ABSPATH . 'wp-config.php', dirname( ABSPATH ) . '/wp-config.php' ) as $path ) {
 		if ( @file_exists( $path ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- open_basedir warns for the folder above.
 			$perms = fileperms( $path );

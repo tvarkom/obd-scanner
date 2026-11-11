@@ -1,15 +1,15 @@
 <?php
 /**
- * Base test case: a fake tvarkom gateway, and no other outgoing requests.
+ * Base test case: a fake Pirkoo gateway, and no other outgoing requests.
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 /**
- * Every request to TVARKOM_OBD_API_URL is recorded and answered from respond(); any other
+ * Every request to PIRKOO_API_URL is recorded and answered from respond(); any other
  * request fails as if offline.
  */
-abstract class Tvarkom_OBD_Test_Case extends WP_UnitTestCase {
+abstract class Pirkoo_Test_Case extends WP_UnitTestCase {
 
 	/**
 	 * Requests the gateway received: method, path, headers and decoded JSON body.
@@ -33,8 +33,8 @@ abstract class Tvarkom_OBD_Test_Case extends WP_UnitTestCase {
 		$this->requests  = array();
 		$this->responses = array();
 		add_filter( 'pre_http_request', array( $this, 'fake_http' ), 1, 3 );
-		delete_option( TVARKOM_OBD_OPTION );
-		delete_option( TVARKOM_OBD_LOCK );
+		delete_option( PIRKOO_OPTION );
+		delete_option( PIRKOO_LOCK );
 	}
 
 	/**
@@ -48,7 +48,7 @@ abstract class Tvarkom_OBD_Test_Case extends WP_UnitTestCase {
 		$wp_current_filter[] = 'admin_init'; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- standing in for WordPress's own admin_init.
 		foreach ( $wp_filter['admin_init']->callbacks as $callbacks ) {
 			foreach ( $callbacks as $callback ) {
-				if ( is_string( $callback['function'] ) && 0 === strpos( $callback['function'], 'tvarkom_obd_' ) ) {
+				if ( is_string( $callback['function'] ) && 0 === strpos( $callback['function'], 'pirkoo_' ) ) {
 					call_user_func( $callback['function'] );
 				}
 			}
@@ -81,7 +81,7 @@ abstract class Tvarkom_OBD_Test_Case extends WP_UnitTestCase {
 		if ( false !== $pre ) {
 			return $pre; // Already answered by a test's own fake (e.g. wordpress.org).
 		}
-		if ( 0 !== strpos( $url, TVARKOM_OBD_API_URL . '/' ) ) {
+		if ( 0 !== strpos( $url, PIRKOO_API_URL . '/' ) ) {
 			return new WP_Error( 'http_request_failed', 'Tests are offline: ' . $url );
 		}
 		$request          = array(
@@ -157,21 +157,21 @@ abstract class Tvarkom_OBD_Test_Case extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Calls $callback, which must end in a redirect, and returns the redirect's obd_result.
+	 * Calls $callback, which must end in a redirect, and returns the redirect's pirkoo_result.
 	 *
 	 * @param callable $callback Code that redirects (and exits otherwise).
 	 * @return string
 	 */
 	protected function result_of_redirect( callable $callback ) {
 		$stop = function ( $location ) {
-			throw new Tvarkom_OBD_Redirect( $location ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Caught below, never printed.
+			throw new Pirkoo_Redirect( $location ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Caught below, never printed.
 		};
 		add_filter( 'wp_redirect', $stop );
 		try {
 			$callback();
-		} catch ( Tvarkom_OBD_Redirect $redirect ) {
+		} catch ( Pirkoo_Redirect $redirect ) {
 			parse_str( (string) wp_parse_url( $redirect->location, PHP_URL_QUERY ), $query );
-			return isset( $query['obd_result'] ) ? (string) $query['obd_result'] : '';
+			return isset( $query['pirkoo_result'] ) ? (string) $query['pirkoo_result'] : '';
 		} finally {
 			remove_filter( 'wp_redirect', $stop );
 		}
@@ -189,7 +189,7 @@ abstract class Tvarkom_OBD_Test_Case extends WP_UnitTestCase {
 	 * A connected store with a key.
 	 */
 	protected function connect_store() {
-		tvarkom_obd_update_settings(
+		pirkoo_update_settings(
 			array(
 				'api_key'      => 'tvk_test',
 				'connected_at' => time() - DAY_IN_SECONDS,
@@ -204,7 +204,7 @@ abstract class Tvarkom_OBD_Test_Case extends WP_UnitTestCase {
 	 */
 	protected function render_page() {
 		ob_start();
-		tvarkom_obd_render_page();
+		pirkoo_render_page();
 		return (string) ob_get_clean();
 	}
 

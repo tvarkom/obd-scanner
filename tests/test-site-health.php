@@ -2,13 +2,13 @@
 /**
  * Site checks: core files against WordPress.org's checksums.
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 /**
  * Core file checksums.
  */
-class Tvarkom_OBD_Site_Health_Test extends Tvarkom_OBD_Test_Case {
+class Pirkoo_Site_Health_Test extends Pirkoo_Test_Case {
 
 	/**
 	 * WordPress.org's answer to the checksums request, or null for "unreachable".
@@ -62,7 +62,7 @@ class Tvarkom_OBD_Site_Health_Test extends Tvarkom_OBD_Test_Case {
 				'modified' => 1,
 				'missing'  => 1,
 			),
-			tvarkom_obd_core_file_changes(),
+			pirkoo_core_file_changes(),
 			'one modified, one missing; wp-content is not checked'
 		);
 	}
@@ -73,7 +73,7 @@ class Tvarkom_OBD_Site_Health_Test extends Tvarkom_OBD_Test_Case {
 				'modified' => null,
 				'missing'  => null,
 			),
-			tvarkom_obd_core_file_changes()
+			pirkoo_core_file_changes()
 		);
 	}
 
@@ -82,7 +82,7 @@ class Tvarkom_OBD_Site_Health_Test extends Tvarkom_OBD_Test_Case {
 	 * search engines and debug output don't count on a staging, development or local site.
 	 */
 	public function test_the_site_checks_send_the_environment_type() {
-		$checks = tvarkom_obd_site_health();
+		$checks = pirkoo_site_health();
 		$this->assertArrayHasKey( 'environment_type', $checks );
 		$this->assertContains( $checks['environment_type'], array( 'production', 'staging', 'development', 'local' ) );
 		$this->assertSame( wp_get_environment_type(), $checks['environment_type'] );

@@ -3,14 +3,14 @@
  * Business context for the audit (metrics schema 3): what kind of store this is, so the report
  * can put the technical findings in business terms. Aggregates only: counts, codes, component
  * names, and the last 30 days' gross sales and average order value in the store's own currency
- * (founder decision of 7 Nov 2026, replacing the euro ranges of schema 2), which tvarkom uses only
+ * (founder decision of 7 Nov 2026, replacing the euro ranges of schema 2), which Pirkoo uses only
  * to write the report and doesn't keep. No customer names, emails or addresses and no order
  * contents leave the store.
  *
  * Every value is read with WooCommerce or WordPress functions, or one aggregate query on an
  * indexed column; nothing runs in the background and nothing is written.
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Known backup plugins (main file => name), for "backup plugin active". Hosting companies' own
  * backups can't be seen from here, so the report says "no backup plugin found", never "no backups".
  */
-const TVARKOM_OBD_BACKUP_PLUGINS = array(
+const PIRKOO_BACKUP_PLUGINS = array(
 	'updraftplus/updraftplus.php'                         => 'UpdraftPlus',
 	'backwpup/backwpup.php'                               => 'BackWPup',
 	'jetpack-backup/jetpack-backup.php'                   => 'Jetpack VaultPress Backup',
@@ -45,36 +45,36 @@ const TVARKOM_OBD_BACKUP_PLUGINS = array(
  *
  * @return array<string, mixed>
  */
-function tvarkom_obd_collect_business() {
+function pirkoo_collect_business() {
 	$currency = get_woocommerce_currency();
-	$sales    = tvarkom_obd_sales_30d( $currency );
-	$returns  = tvarkom_obd_new_vs_returning_30d();
+	$sales    = pirkoo_sales_30d( $currency );
+	$returns  = pirkoo_new_vs_returning_30d();
 
 	return array(
 		'country'                     => strtoupper( (string) WC()->countries->get_base_country() ),
 		'currency'                    => strtoupper( $currency ),
-		'orders_30d'                  => tvarkom_obd_paid_orders_30d(),
-		'orders_failed_30d'           => tvarkom_obd_orders_30d( array( 'failed' ) ),
-		'orders_pending_30d'          => tvarkom_obd_orders_30d( array( 'pending' ) ),
-		'orders_cancelled_30d'        => tvarkom_obd_orders_30d( array( 'cancelled' ) ),
+		'orders_30d'                  => pirkoo_paid_orders_30d(),
+		'orders_failed_30d'           => pirkoo_orders_30d( array( 'failed' ) ),
+		'orders_pending_30d'          => pirkoo_orders_30d( array( 'pending' ) ),
+		'orders_cancelled_30d'        => pirkoo_orders_30d( array( 'cancelled' ) ),
 		'sales_30d'                   => round( $sales['total'], 2 ),
 		'aov_30d'                     => $sales['orders'] > 0 ? round( $sales['total'] / $sales['orders'], 2 ) : null,
 		'customers_new_30d'           => $returns['new'],
 		'customers_returning_30d'     => $returns['returning'],
-		'products'                    => tvarkom_obd_published_count( 'product' ),
-		'variations'                  => tvarkom_obd_published_count( 'product_variation' ),
+		'products'                    => pirkoo_published_count( 'product' ),
+		'variations'                  => pirkoo_published_count( 'product_variation' ),
 		'stock_management'            => 'yes' === get_option( 'woocommerce_manage_stock' ),
-		'payment_gateways'            => tvarkom_obd_payment_gateway_ids(),
-		'shipping_methods'            => tvarkom_obd_shipping_method_ids(),
-		'checkout_type'               => tvarkom_obd_checkout_type(),
-		'hpos'                        => tvarkom_obd_hpos(),
-		'database_server'             => tvarkom_obd_database_server(),
-		'web_server'                  => tvarkom_obd_web_server(),
-		'template_overrides_outdated' => tvarkom_obd_outdated_template_overrides(),
-		'plugins_updates_pending'     => tvarkom_obd_plugins_updates_pending(),
-		'backup_plugin'               => tvarkom_obd_backup_plugin(),
-		'email_from_domain'           => tvarkom_obd_email_from_domain(),
-	) + tvarkom_obd_funnel_totals() + tvarkom_obd_order_sources();
+		'payment_gateways'            => pirkoo_payment_gateway_ids(),
+		'shipping_methods'            => pirkoo_shipping_method_ids(),
+		'checkout_type'               => pirkoo_checkout_type(),
+		'hpos'                        => pirkoo_hpos(),
+		'database_server'             => pirkoo_database_server(),
+		'web_server'                  => pirkoo_web_server(),
+		'template_overrides_outdated' => pirkoo_outdated_template_overrides(),
+		'plugins_updates_pending'     => pirkoo_plugins_updates_pending(),
+		'backup_plugin'               => pirkoo_backup_plugin(),
+		'email_from_domain'           => pirkoo_email_from_domain(),
+	) + pirkoo_funnel_totals() + pirkoo_order_sources();
 }
 
 /**
@@ -82,7 +82,7 @@ function tvarkom_obd_collect_business() {
  *
  * @return string[] Without the "wc-" prefix.
  */
-function tvarkom_obd_paid_statuses() {
+function pirkoo_paid_statuses() {
 	return array_values( array_unique( array_merge( wc_get_is_paid_statuses(), array( 'on-hold' ) ) ) );
 }
 
@@ -92,7 +92,7 @@ function tvarkom_obd_paid_statuses() {
  * @param string[] $statuses Without the "wc-" prefix.
  * @return int
  */
-function tvarkom_obd_orders_30d( array $statuses ) {
+function pirkoo_orders_30d( array $statuses ) {
 	$result = wc_get_orders(
 		array(
 			'limit'        => 1,
@@ -111,8 +111,8 @@ function tvarkom_obd_orders_30d( array $statuses ) {
  *
  * @return int
  */
-function tvarkom_obd_paid_orders_30d() {
-	return tvarkom_obd_orders_30d( tvarkom_obd_paid_statuses() );
+function pirkoo_paid_orders_30d() {
+	return pirkoo_orders_30d( pirkoo_paid_statuses() );
 }
 
 /**
@@ -120,7 +120,7 @@ function tvarkom_obd_paid_orders_30d() {
  *
  * @return bool
  */
-function tvarkom_obd_hpos() {
+function pirkoo_hpos() {
 	return class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' )
 		&& \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
 }
@@ -133,18 +133,18 @@ function tvarkom_obd_hpos() {
  * @param string $currency The store's currency.
  * @return array{total: float, orders: int}
  */
-function tvarkom_obd_sales_30d( $currency ) {
+function pirkoo_sales_30d( $currency ) {
 	global $wpdb;
 	$since    = gmdate( 'Y-m-d H:i:s', time() - 30 * DAY_IN_SECONDS );
 	$statuses = array_map(
 		function ( $s ) {
 			return 'wc-' . $s;
 		},
-		tvarkom_obd_paid_statuses()
+		pirkoo_paid_statuses()
 	);
 	$in       = implode( ', ', array_fill( 0, count( $statuses ), '%s' ) );
 
-	if ( tvarkom_obd_hpos() ) {
+	if ( pirkoo_hpos() ) {
 		$table = $wpdb->prefix . 'wc_orders';
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- one aggregate per audit; the table as %i, statuses as placeholders.
 		$row = $wpdb->get_row(
@@ -182,7 +182,7 @@ function tvarkom_obd_sales_30d( $currency ) {
  *
  * @return array{new: int|null, returning: int|null}
  */
-function tvarkom_obd_new_vs_returning_30d() {
+function pirkoo_new_vs_returning_30d() {
 	global $wpdb;
 	$none  = array(
 		'new'       => null,
@@ -197,7 +197,7 @@ function tvarkom_obd_new_vs_returning_30d() {
 		function ( $s ) {
 			return 'wc-' . $s;
 		},
-		tvarkom_obd_paid_statuses()
+		pirkoo_paid_statuses()
 	);
 	$in       = implode( ', ', array_fill( 0, count( $statuses ), '%s' ) );
 	// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- one aggregate per audit; the table as %i, statuses as placeholders.
@@ -228,7 +228,7 @@ function tvarkom_obd_new_vs_returning_30d() {
  * @param string $type Post type.
  * @return int
  */
-function tvarkom_obd_published_count( $type ) {
+function pirkoo_published_count( $type ) {
 	$counts = wp_count_posts( $type );
 	return isset( $counts->publish ) ? (int) $counts->publish : 0;
 }
@@ -238,7 +238,7 @@ function tvarkom_obd_published_count( $type ) {
  *
  * @return string[]
  */
-function tvarkom_obd_payment_gateway_ids() {
+function pirkoo_payment_gateway_ids() {
 	$ids = array();
 	foreach ( WC()->payment_gateways()->payment_gateways() as $gateway ) {
 		if ( is_object( $gateway ) && isset( $gateway->enabled, $gateway->id ) && 'yes' === $gateway->enabled ) {
@@ -253,7 +253,7 @@ function tvarkom_obd_payment_gateway_ids() {
  *
  * @return string[]
  */
-function tvarkom_obd_shipping_method_ids() {
+function pirkoo_shipping_method_ids() {
 	if ( ! class_exists( 'WC_Shipping_Zones' ) ) {
 		return array();
 	}
@@ -275,7 +275,7 @@ function tvarkom_obd_shipping_method_ids() {
  *
  * @return string|null classic | block, or null without a checkout page.
  */
-function tvarkom_obd_checkout_type() {
+function pirkoo_checkout_type() {
 	$page = wc_get_page_id( 'checkout' );
 	if ( $page <= 0 ) {
 		return null;
@@ -288,7 +288,7 @@ function tvarkom_obd_checkout_type() {
  *
  * @return string|null
  */
-function tvarkom_obd_database_server() {
+function pirkoo_database_server() {
 	global $wpdb;
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- one read per audit.
 	$version = (string) $wpdb->get_var( 'SELECT VERSION()' );
@@ -304,7 +304,7 @@ function tvarkom_obd_database_server() {
  *
  * @return string|null
  */
-function tvarkom_obd_web_server() {
+function pirkoo_web_server() {
 	$software = isset( $_SERVER['SERVER_SOFTWARE'] ) ? sanitize_text_field( wp_unslash( $_SERVER['SERVER_SOFTWARE'] ) ) : '';
 	return preg_match( '/^([A-Za-z][A-Za-z\-]{0,29})/', $software, $m ) ? $m[1] : null;
 }
@@ -315,7 +315,7 @@ function tvarkom_obd_web_server() {
  *
  * @return int|null Null when WooCommerce's check isn't available.
  */
-function tvarkom_obd_outdated_template_overrides() {
+function pirkoo_outdated_template_overrides() {
 	if ( ! class_exists( 'WC_REST_System_Status_V2_Controller' ) ) {
 		return null;
 	}
@@ -340,7 +340,7 @@ function tvarkom_obd_outdated_template_overrides() {
  *
  * @return int|null Null when WordPress hasn't checked yet.
  */
-function tvarkom_obd_plugins_updates_pending() {
+function pirkoo_plugins_updates_pending() {
 	$updates = get_site_transient( 'update_plugins' );
 	if ( ! is_object( $updates ) || ! isset( $updates->response ) || ! is_array( $updates->response ) ) {
 		return null;
@@ -353,12 +353,12 @@ function tvarkom_obd_plugins_updates_pending() {
  *
  * @return string|null
  */
-function tvarkom_obd_backup_plugin() {
+function pirkoo_backup_plugin() {
 	$active = (array) get_option( 'active_plugins', array() );
 	if ( is_multisite() ) {
 		$active = array_merge( $active, array_keys( (array) get_site_option( 'active_sitewide_plugins', array() ) ) );
 	}
-	foreach ( TVARKOM_OBD_BACKUP_PLUGINS as $file => $name ) {
+	foreach ( PIRKOO_BACKUP_PLUGINS as $file => $name ) {
 		if ( in_array( $file, $active, true ) ) {
 			return $name;
 		}

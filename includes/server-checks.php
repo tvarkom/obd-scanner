@@ -5,7 +5,7 @@
  * Each value is null when the host doesn't let PHP read it (for example load and memory outside
  * Linux, or disk space under open_basedir).
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,22 +16,22 @@ if ( ! defined( 'ABSPATH' ) ) {
  * The PHP extensions WordPress and WooCommerce rely on, as in WordPress's Site Health; for images,
  * either imagick or gd is enough.
  */
-const TVARKOM_OBD_PHP_EXTENSIONS = array( 'curl', 'dom', 'exif', 'fileinfo', 'hash', 'intl', 'json', 'mbstring', 'mysqli', 'openssl', 'pcre', 'xml', 'zip' );
+const PIRKOO_PHP_EXTENSIONS = array( 'curl', 'dom', 'exif', 'fileinfo', 'hash', 'intl', 'json', 'mbstring', 'mysqli', 'openssl', 'pcre', 'xml', 'zip' );
 
 /**
  * The server checks.
  *
  * @return array<string, mixed>
  */
-function tvarkom_obd_server_checks() {
-	$memory = tvarkom_obd_memory_kb();
+function pirkoo_server_checks() {
+	$memory = pirkoo_memory_kb();
 	return array(
 		'upload_max_bytes'       => (int) wp_max_upload_size(),
-		'missing_php_extensions' => tvarkom_obd_missing_php_extensions(),
-		'disk_free_bytes'        => tvarkom_obd_disk( 'free' ),
-		'disk_total_bytes'       => tvarkom_obd_disk( 'total' ),
-		'load_average_1m'        => tvarkom_obd_load_average(),
-		'cpu_cores'              => tvarkom_obd_cpu_cores(),
+		'missing_php_extensions' => pirkoo_missing_php_extensions(),
+		'disk_free_bytes'        => pirkoo_disk( 'free' ),
+		'disk_total_bytes'       => pirkoo_disk( 'total' ),
+		'load_average_1m'        => pirkoo_load_average(),
+		'cpu_cores'              => pirkoo_cpu_cores(),
 		'memory_total_kb'        => $memory['total'],
 		'memory_available_kb'    => $memory['available'],
 	);
@@ -42,10 +42,10 @@ function tvarkom_obd_server_checks() {
  *
  * @return string[]
  */
-function tvarkom_obd_missing_php_extensions() {
+function pirkoo_missing_php_extensions() {
 	$missing = array_values(
 		array_filter(
-			TVARKOM_OBD_PHP_EXTENSIONS,
+			PIRKOO_PHP_EXTENSIONS,
 			function ( $extension ) {
 				return ! extension_loaded( $extension );
 			}
@@ -63,7 +63,7 @@ function tvarkom_obd_missing_php_extensions() {
  * @param string $which free or total.
  * @return int|null
  */
-function tvarkom_obd_disk( $which ) {
+function pirkoo_disk( $which ) {
 	$function = 'free' === $which ? 'disk_free_space' : 'disk_total_space';
 	if ( ! function_exists( $function ) ) {
 		return null;
@@ -77,7 +77,7 @@ function tvarkom_obd_disk( $which ) {
  *
  * @return float|null
  */
-function tvarkom_obd_load_average() {
+function pirkoo_load_average() {
 	if ( ! function_exists( 'sys_getloadavg' ) ) {
 		return null;
 	}
@@ -90,8 +90,8 @@ function tvarkom_obd_load_average() {
  *
  * @return int|null
  */
-function tvarkom_obd_cpu_cores() {
-	$info = tvarkom_obd_read_proc( '/proc/cpuinfo' );
+function pirkoo_cpu_cores() {
+	$info = pirkoo_read_proc( '/proc/cpuinfo' );
 	if ( null === $info ) {
 		return null;
 	}
@@ -104,8 +104,8 @@ function tvarkom_obd_cpu_cores() {
  *
  * @return array{total: int|null, available: int|null}
  */
-function tvarkom_obd_memory_kb() {
-	$info  = tvarkom_obd_read_proc( '/proc/meminfo' );
+function pirkoo_memory_kb() {
+	$info  = pirkoo_read_proc( '/proc/meminfo' );
 	$value = function ( $key ) use ( $info ) {
 		return null !== $info && preg_match( '/^' . $key . ':\s+(\d+)\s+kB/m', $info, $m ) ? (int) $m[1] : null;
 	};
@@ -121,7 +121,7 @@ function tvarkom_obd_memory_kb() {
  * @param string $path /proc/cpuinfo or /proc/meminfo.
  * @return string|null
  */
-function tvarkom_obd_read_proc( $path ) {
+function pirkoo_read_proc( $path ) {
 	if ( ! @is_readable( $path ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- open_basedir warns; null says "not measured".
 		return null;
 	}

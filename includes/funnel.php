@@ -13,25 +13,25 @@
  * Order sources come from WooCommerce Order Attribution (built in since 8.5): paid and on-hold
  * orders of the last 30 days by source type, and the top 10 UTM sources, as counts.
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'TVARKOM_OBD_FUNNEL_TABLE', 'tvarkom_obd_funnel' );
-define( 'TVARKOM_OBD_FUNNEL_SINCE', 'tvarkom_obd_funnel_since' ); // The day counting started, Y-m-d (UTC).
-define( 'TVARKOM_OBD_FUNNEL_KEEP_DAYS', 35 );
+define( 'PIRKOO_FUNNEL_TABLE', 'pirkoo_funnel' );
+define( 'PIRKOO_FUNNEL_SINCE', 'pirkoo_funnel_since' ); // The day counting started, Y-m-d (UTC).
+define( 'PIRKOO_FUNNEL_KEEP_DAYS', 35 );
 
 /**
  * The counter table's name.
  *
  * @return string
  */
-function tvarkom_obd_funnel_table() {
+function pirkoo_funnel_table() {
 	global $wpdb;
-	return $wpdb->prefix . TVARKOM_OBD_FUNNEL_TABLE;
+	return $wpdb->prefix . PIRKOO_FUNNEL_TABLE;
 }
 
 /**
@@ -41,13 +41,13 @@ function tvarkom_obd_funnel_table() {
  *
  * @return void
  */
-function tvarkom_obd_funnel_install() {
-	if ( get_option( TVARKOM_OBD_FUNNEL_SINCE ) ) {
+function pirkoo_funnel_install() {
+	if ( get_option( PIRKOO_FUNNEL_SINCE ) ) {
 		return;
 	}
 	global $wpdb;
 	require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-	$table   = tvarkom_obd_funnel_table();
+	$table   = pirkoo_funnel_table();
 	$charset = $wpdb->get_charset_collate();
 	dbDelta(
 		"CREATE TABLE $table (
@@ -58,17 +58,16 @@ function tvarkom_obd_funnel_install() {
 		PRIMARY KEY  (day)
 		) $charset;"
 	);
-	update_option( TVARKOM_OBD_FUNNEL_SINCE, gmdate( 'Y-m-d' ), true ); // Autoloaded: every counted event reads it.
+	update_option( PIRKOO_FUNNEL_SINCE, gmdate( 'Y-m-d' ), true ); // Autoloaded: every counted event reads it.
 }
 
 /**
- * Whether this request's events are counted: not by staff, not a checkout profile (this plugin's,
- * or another profiler using the same request marker).
+ * Whether this request's events are counted: not by staff, not this plugin's checkout profile.
  *
  * @return bool
  */
-function tvarkom_obd_funnel_counts_this_request() {
-	if ( ! empty( $_SERVER['HTTP_X_TVARKOM_OBD_PROFILE'] ) || ! empty( $_SERVER['HTTP_X_TVARKOM_PROFILE'] ) ) {
+function pirkoo_funnel_counts_this_request() {
+	if ( ! empty( $_SERVER['HTTP_X_PIRKOO_PROFILE'] ) ) {
 		return false;
 	}
 	return ! ( is_user_logged_in() && current_user_can( 'manage_woocommerce' ) );
@@ -80,21 +79,21 @@ function tvarkom_obd_funnel_counts_this_request() {
  * @param string $column add_to_cart | checkout_views | orders.
  * @return void
  */
-function tvarkom_obd_funnel_count( $column ) {
+function pirkoo_funnel_count( $column ) {
 	$queries = array(
 		'add_to_cart'    => 'INSERT INTO %i (day, add_to_cart) VALUES (%s, 1) ON DUPLICATE KEY UPDATE add_to_cart = add_to_cart + 1',
 		'checkout_views' => 'INSERT INTO %i (day, checkout_views) VALUES (%s, 1) ON DUPLICATE KEY UPDATE checkout_views = checkout_views + 1',
 		'orders'         => 'INSERT INTO %i (day, orders) VALUES (%s, 1) ON DUPLICATE KEY UPDATE orders = orders + 1',
 	);
-	if ( ! isset( $queries[ $column ] ) || ! get_option( TVARKOM_OBD_FUNNEL_SINCE ) ) {
+	if ( ! isset( $queries[ $column ] ) || ! get_option( PIRKOO_FUNNEL_SINCE ) ) {
 		return;
 	}
 	global $wpdb;
-	$table = tvarkom_obd_funnel_table();
+	$table = pirkoo_funnel_table();
 	// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- a counter: one write per event; fixed queries, the table as %i.
 	$affected = $wpdb->query( $wpdb->prepare( $queries[ $column ], $table, gmdate( 'Y-m-d' ) ) );
 	if ( 1 === $affected ) { // The day's first event: a new row.
-		$wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE day < %s', $table, gmdate( 'Y-m-d', time() - TVARKOM_OBD_FUNNEL_KEEP_DAYS * DAY_IN_SECONDS ) ) );
+		$wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE day < %s', $table, gmdate( 'Y-m-d', time() - PIRKOO_FUNNEL_KEEP_DAYS * DAY_IN_SECONDS ) ) );
 	}
 	// phpcs:enable
 }
@@ -104,9 +103,9 @@ function tvarkom_obd_funnel_count( $column ) {
  *
  * @return void
  */
-function tvarkom_obd_funnel_add_to_cart() {
-	if ( tvarkom_obd_funnel_counts_this_request() ) {
-		tvarkom_obd_funnel_count( 'add_to_cart' );
+function pirkoo_funnel_add_to_cart() {
+	if ( pirkoo_funnel_counts_this_request() ) {
+		pirkoo_funnel_count( 'add_to_cart' );
 	}
 }
 
@@ -115,9 +114,9 @@ function tvarkom_obd_funnel_add_to_cart() {
  *
  * @return void
  */
-function tvarkom_obd_funnel_checkout_view() {
-	if ( function_exists( 'is_checkout' ) && is_checkout() && ! is_wc_endpoint_url( 'order-received' ) && ! is_wc_endpoint_url( 'order-pay' ) && tvarkom_obd_funnel_counts_this_request() ) {
-		tvarkom_obd_funnel_count( 'checkout_views' );
+function pirkoo_funnel_checkout_view() {
+	if ( function_exists( 'is_checkout' ) && is_checkout() && ! is_wc_endpoint_url( 'order-received' ) && ! is_wc_endpoint_url( 'order-pay' ) && pirkoo_funnel_counts_this_request() ) {
+		pirkoo_funnel_count( 'checkout_views' );
 	}
 }
 
@@ -126,9 +125,9 @@ function tvarkom_obd_funnel_checkout_view() {
  *
  * @return void
  */
-function tvarkom_obd_funnel_order() {
-	if ( tvarkom_obd_funnel_counts_this_request() ) {
-		tvarkom_obd_funnel_count( 'orders' );
+function pirkoo_funnel_order() {
+	if ( pirkoo_funnel_counts_this_request() ) {
+		pirkoo_funnel_count( 'orders' );
 	}
 }
 
@@ -138,8 +137,8 @@ function tvarkom_obd_funnel_order() {
  *
  * @return array{funnel_days: int, funnel_add_to_cart: int, funnel_checkout_views: int, funnel_orders: int}
  */
-function tvarkom_obd_funnel_totals() {
-	$since = get_option( TVARKOM_OBD_FUNNEL_SINCE );
+function pirkoo_funnel_totals() {
+	$since = get_option( PIRKOO_FUNNEL_SINCE );
 	$days  = $since ? (int) floor( ( time() - (int) strtotime( $since . ' 00:00:00 UTC' ) ) / DAY_IN_SECONDS ) : 0;
 	$days  = max( 0, min( 30, $days ) ); // Complete days only: today is still counting.
 	$out   = array(
@@ -156,7 +155,7 @@ function tvarkom_obd_funnel_totals() {
 	$row = $wpdb->get_row(
 		$wpdb->prepare(
 			'SELECT COALESCE(SUM(add_to_cart), 0) AS a, COALESCE(SUM(checkout_views), 0) AS c, COALESCE(SUM(orders), 0) AS o FROM %i WHERE day >= %s AND day < %s',
-			tvarkom_obd_funnel_table(),
+			pirkoo_funnel_table(),
 			gmdate( 'Y-m-d', time() - $days * DAY_IN_SECONDS ),
 			gmdate( 'Y-m-d' )
 		)
@@ -175,18 +174,18 @@ function tvarkom_obd_funnel_totals() {
  * @param string $meta_key _wc_order_attribution_source_type or _wc_order_attribution_utm_source.
  * @return array<string, int> Value => orders, most first; orders without the meta aren't counted.
  */
-function tvarkom_obd_orders_by_attribution( $meta_key ) {
+function pirkoo_orders_by_attribution( $meta_key ) {
 	global $wpdb;
 	$since    = gmdate( 'Y-m-d H:i:s', time() - 30 * DAY_IN_SECONDS );
 	$statuses = array_map(
 		function ( $s ) {
 			return 'wc-' . $s;
 		},
-		tvarkom_obd_paid_statuses()
+		pirkoo_paid_statuses()
 	);
 	$in       = implode( ', ', array_fill( 0, count( $statuses ), '%s' ) );
 	// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.SlowDBQuery -- one aggregate per audit; tables as %i, statuses as placeholders.
-	if ( tvarkom_obd_hpos() ) {
+	if ( pirkoo_hpos() ) {
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT m.meta_value AS value, COUNT(*) AS orders FROM %i o JOIN %i m ON m.order_id = o.id AND m.meta_key = %s
@@ -217,9 +216,9 @@ function tvarkom_obd_orders_by_attribution( $meta_key ) {
  *
  * @return array{order_sources: array<string, int>|null, utm_sources: array<string, int>|null}
  */
-function tvarkom_obd_order_sources() {
-	$types = tvarkom_obd_orders_by_attribution( '_wc_order_attribution_source_type' );
-	$utm   = tvarkom_obd_orders_by_attribution( '_wc_order_attribution_utm_source' );
+function pirkoo_order_sources() {
+	$types = pirkoo_orders_by_attribution( '_wc_order_attribution_source_type' );
+	$utm   = pirkoo_orders_by_attribution( '_wc_order_attribution_utm_source' );
 	$top   = array();
 	$other = 0;
 	foreach ( $utm as $source => $orders ) {
@@ -248,7 +247,7 @@ function tvarkom_obd_order_sources() {
  *
  * @return string|null
  */
-function tvarkom_obd_email_from_domain() {
+function pirkoo_email_from_domain() {
 	$address = (string) get_option( 'woocommerce_email_from_address', get_option( 'admin_email' ) );
 	$at      = strrpos( $address, '@' );
 	if ( false === $at ) {

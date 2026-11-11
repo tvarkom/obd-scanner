@@ -3,13 +3,13 @@
  * The business context sent with an audit (includes/business.php): counts, codes and the 30-day
  * sales totals in the store's currency (schema 3, 7 Nov 2026), never names or addresses.
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 /**
  * Metrics schema 3's business fields.
  */
-class Tvarkom_OBD_Business_Test extends Tvarkom_OBD_Test_Case {
+class Pirkoo_Business_Test extends Pirkoo_Test_Case {
 
 	/**
 	 * A paid order of $total in the store's currency, created today.
@@ -32,7 +32,7 @@ class Tvarkom_OBD_Business_Test extends Tvarkom_OBD_Test_Case {
 		$this->order( 999, 'pending' ); // Not paid: not sales.
 		$this->order( 999, 'failed' );
 
-		$data = tvarkom_obd_collect_business();
+		$data = pirkoo_collect_business();
 
 		$this->assertSame( 'USD', $data['currency'] );
 		$this->assertSame( 3, $data['orders_30d'] );
@@ -45,7 +45,7 @@ class Tvarkom_OBD_Business_Test extends Tvarkom_OBD_Test_Case {
 	}
 
 	public function test_no_orders_has_no_average() {
-		$data = tvarkom_obd_collect_business();
+		$data = pirkoo_collect_business();
 		$this->assertSame( 0.0, $data['sales_30d'] );
 		$this->assertNull( $data['aov_30d'] );
 	}
@@ -57,7 +57,7 @@ class Tvarkom_OBD_Business_Test extends Tvarkom_OBD_Test_Case {
 		$product->set_status( 'publish' );
 		$product->save();
 
-		$data = tvarkom_obd_collect_business();
+		$data = pirkoo_collect_business();
 
 		$this->assertSame( 'LT', $data['country'] );
 		$this->assertTrue( $data['stock_management'] );
@@ -76,36 +76,36 @@ class Tvarkom_OBD_Business_Test extends Tvarkom_OBD_Test_Case {
 			)
 		);
 		update_option( 'woocommerce_checkout_page_id', $page );
-		$this->assertSame( 'block', tvarkom_obd_checkout_type() );
+		$this->assertSame( 'block', pirkoo_checkout_type() );
 		wp_update_post(
 			array(
 				'ID'           => $page,
 				'post_content' => '[woocommerce_checkout]',
 			)
 		);
-		$this->assertSame( 'classic', tvarkom_obd_checkout_type() );
+		$this->assertSame( 'classic', pirkoo_checkout_type() );
 	}
 
 	public function test_enabled_payment_gateways_only() {
 		update_option( 'woocommerce_cod_settings', array( 'enabled' => 'yes' ) );
 		update_option( 'woocommerce_bacs_settings', array( 'enabled' => 'no' ) );
 		WC()->payment_gateways()->init();
-		$ids = tvarkom_obd_payment_gateway_ids();
+		$ids = pirkoo_payment_gateway_ids();
 		$this->assertContains( 'cod', $ids );
 		$this->assertNotContains( 'bacs', $ids );
 	}
 
 	public function test_backup_plugin() {
-		$this->assertNull( tvarkom_obd_backup_plugin() );
+		$this->assertNull( pirkoo_backup_plugin() );
 		update_option( 'active_plugins', array( 'akismet/akismet.php', 'updraftplus/updraftplus.php' ) );
-		$this->assertSame( 'UpdraftPlus', tvarkom_obd_backup_plugin() );
+		$this->assertSame( 'UpdraftPlus', pirkoo_backup_plugin() );
 	}
 
 	public function test_web_server_is_the_product_name_only() {
 		$_SERVER['SERVER_SOFTWARE'] = 'nginx/1.25.3 (Ubuntu)';
-		$this->assertSame( 'nginx', tvarkom_obd_web_server() );
+		$this->assertSame( 'nginx', pirkoo_web_server() );
 		$_SERVER['SERVER_SOFTWARE'] = '';
-		$this->assertNull( tvarkom_obd_web_server() );
+		$this->assertNull( pirkoo_web_server() );
 	}
 
 	public function test_the_audit_sends_sales_in_the_store_currency() {
@@ -114,7 +114,7 @@ class Tvarkom_OBD_Business_Test extends Tvarkom_OBD_Test_Case {
 		$this->order( 2000 );
 		$this->respond( 'POST', '/v1/audits', 202, array( 'status' => 'queued' ) );
 
-		tvarkom_obd_scan();
+		pirkoo_scan();
 
 		$metrics = $this->requests[0]['body']['metrics'];
 		$this->assertSame( 3, $metrics['schema'] );

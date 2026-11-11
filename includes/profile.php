@@ -2,7 +2,7 @@
 /**
  * Full Scan checkout profile: where the server's time goes on one checkout page load.
  *
- * The detailed audit job (tvarkom_obd_profile_checkout) requests this store's own
+ * The detailed audit job (pirkoo_profile_checkout) requests this store's own
  * checkout page once, with a single-use token in a header. Only on that request,
  * the plugin times every hook callback and groups the time by plugin, logs the
  * database queries and outgoing HTTP calls, and reads the object cache's hit and
@@ -16,19 +16,19 @@
  * calls. Never query values, URLs, cookies or customer data.
  *
  * This file is the profiler inside the profiled request. Its state is in
- * class-tvarkom-obd-profiler.php, the result it builds in profile-report.php, and
+ * class-pirkoo-profiler.php, the result it builds in profile-report.php, and
  * the audit side that requests the checkout in profile-request.php.
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'TVARKOM_OBD_PROFILE_TOKEN', 'tvarkom_obd_profile_token' );
-define( 'TVARKOM_OBD_PROFILE_RESULT', 'tvarkom_obd_profile_result' );
-define( 'TVARKOM_OBD_PROFILE_HEADER', 'X-Tvarkom-Obd-Profile' );
+define( 'PIRKOO_PROFILE_TOKEN', 'pirkoo_profile_token' );
+define( 'PIRKOO_PROFILE_RESULT', 'pirkoo_profile_result' );
+define( 'PIRKOO_PROFILE_HEADER', 'X-Pirkoo-Profile' );
 
 /**
  * Starts the profiler if this request carries the token the audit job set a moment ago.
@@ -36,17 +36,17 @@ define( 'TVARKOM_OBD_PROFILE_HEADER', 'X-Tvarkom-Obd-Profile' );
  *
  * @return void
  */
-function tvarkom_obd_profile_maybe_start() {
-	if ( empty( $_SERVER['HTTP_X_TVARKOM_OBD_PROFILE'] ) || ! isset( $_SERVER['REQUEST_METHOD'] ) || 'GET' !== $_SERVER['REQUEST_METHOD'] ) {
+function pirkoo_profile_maybe_start() {
+	if ( empty( $_SERVER['HTTP_X_PIRKOO_PROFILE'] ) || ! isset( $_SERVER['REQUEST_METHOD'] ) || 'GET' !== $_SERVER['REQUEST_METHOD'] ) {
 		return;
 	}
-	$sent    = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_TVARKOM_OBD_PROFILE'] ) );
-	$pending = get_transient( TVARKOM_OBD_PROFILE_TOKEN );
+	$sent    = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_PIRKOO_PROFILE'] ) );
+	$pending = get_transient( PIRKOO_PROFILE_TOKEN );
 	if ( ! is_array( $pending ) || empty( $pending['token'] ) || ! hash_equals( (string) $pending['token'], $sent ) ) {
 		return;
 	}
-	delete_transient( TVARKOM_OBD_PROFILE_TOKEN ); // Single use.
-	Tvarkom_OBD_Profiler::$product_id = isset( $pending['product_id'] ) ? (int) $pending['product_id'] : 0;
+	delete_transient( PIRKOO_PROFILE_TOKEN ); // Single use.
+	Pirkoo_Profiler::$product_id = isset( $pending['product_id'] ) ? (int) $pending['product_id'] : 0;
 
 	if ( ! defined( 'SAVEQUERIES' ) ) {
 		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- WordPress core's query log switch; set only on the profiled request.
@@ -57,40 +57,40 @@ function tvarkom_obd_profile_maybe_start() {
 	$self = wp_normalize_path( dirname( __DIR__ ) ) . '/';
 	$real = realpath( dirname( __DIR__ ) );
 
-	Tvarkom_OBD_Profiler::$dirs = array(
+	Pirkoo_Profiler::$dirs = array(
 		'self'   => array_unique( array( $self, false !== $real ? wp_normalize_path( $real ) . '/' : $self ) ),
-		'plugin' => tvarkom_obd_profile_dir_variants( WP_PLUGIN_DIR ),
-		'mu'     => tvarkom_obd_profile_dir_variants( WPMU_PLUGIN_DIR ),
-		'theme'  => tvarkom_obd_profile_dir_variants( get_theme_root() ),
-		'core'   => array_merge( tvarkom_obd_profile_dir_variants( ABSPATH . WPINC ), tvarkom_obd_profile_dir_variants( ABSPATH . 'wp-admin' ) ),
-		'dropin' => tvarkom_obd_profile_dir_variants( WP_CONTENT_DIR ),
+		'plugin' => pirkoo_profile_dir_variants( WP_PLUGIN_DIR ),
+		'mu'     => pirkoo_profile_dir_variants( WPMU_PLUGIN_DIR ),
+		'theme'  => pirkoo_profile_dir_variants( get_theme_root() ),
+		'core'   => array_merge( pirkoo_profile_dir_variants( ABSPATH . WPINC ), pirkoo_profile_dir_variants( ABSPATH . 'wp-admin' ) ),
+		'dropin' => pirkoo_profile_dir_variants( WP_CONTENT_DIR ),
 	);
-	tvarkom_obd_profile_calibrate();
+	pirkoo_profile_calibrate();
 
 	// Callbacks added after a pass are picked up by the next one.
-	tvarkom_obd_profile_wrap();
-	add_action( 'plugins_loaded', 'tvarkom_obd_profile_wrap', PHP_INT_MAX );
-	add_action( 'after_setup_theme', 'tvarkom_obd_profile_wrap', PHP_INT_MIN );
-	add_action( 'init', 'tvarkom_obd_profile_wrap', PHP_INT_MAX );
-	add_action( 'wp_loaded', 'tvarkom_obd_profile_wrap', PHP_INT_MAX );
-	add_action( 'template_redirect', 'tvarkom_obd_profile_wrap', PHP_INT_MIN );
-	add_action( 'wp_head', 'tvarkom_obd_profile_wrap', PHP_INT_MIN );
+	pirkoo_profile_wrap();
+	add_action( 'plugins_loaded', 'pirkoo_profile_wrap', PHP_INT_MAX );
+	add_action( 'after_setup_theme', 'pirkoo_profile_wrap', PHP_INT_MIN );
+	add_action( 'init', 'pirkoo_profile_wrap', PHP_INT_MAX );
+	add_action( 'wp_loaded', 'pirkoo_profile_wrap', PHP_INT_MAX );
+	add_action( 'template_redirect', 'pirkoo_profile_wrap', PHP_INT_MIN );
+	add_action( 'wp_head', 'pirkoo_profile_wrap', PHP_INT_MIN );
 
 	foreach ( array( 'plugins_loaded', 'wp_loaded', 'template_redirect' ) as $phase ) {
 		add_action(
 			$phase,
 			function () use ( $phase ) {
-				Tvarkom_OBD_Profiler::$marks[ $phase ] = tvarkom_obd_profile_elapsed();
+				Pirkoo_Profiler::$marks[ $phase ] = pirkoo_profile_elapsed();
 			},
 			PHP_INT_MIN
 		);
 	}
 
-	add_filter( 'log_query_custom_data', 'tvarkom_obd_profile_tag_query', 10, 1 );
-	add_filter( 'pre_http_request', 'tvarkom_obd_profile_http_start', PHP_INT_MAX, 3 );
-	add_action( 'http_api_debug', 'tvarkom_obd_profile_http_end', 10, 5 );
-	add_action( 'wp_loaded', 'tvarkom_obd_profile_fill_cart', 30 );
-	add_action( 'shutdown', 'tvarkom_obd_profile_finish', PHP_INT_MAX );
+	add_filter( 'log_query_custom_data', 'pirkoo_profile_tag_query', 10, 1 );
+	add_filter( 'pre_http_request', 'pirkoo_profile_http_start', PHP_INT_MAX, 3 );
+	add_action( 'http_api_debug', 'pirkoo_profile_http_end', 10, 5 );
+	add_action( 'wp_loaded', 'pirkoo_profile_fill_cart', 30 );
+	add_action( 'shutdown', 'pirkoo_profile_finish', PHP_INT_MAX );
 }
 
 /**
@@ -99,7 +99,7 @@ function tvarkom_obd_profile_maybe_start() {
  * @param string $dir Directory.
  * @return string[]
  */
-function tvarkom_obd_profile_dir_variants( $dir ) {
+function pirkoo_profile_dir_variants( $dir ) {
 	$out  = array( trailingslashit( wp_normalize_path( $dir ) ) );
 	$real = realpath( $dir );
 	if ( false !== $real ) {
@@ -113,7 +113,7 @@ function tvarkom_obd_profile_dir_variants( $dir ) {
  *
  * @return float
  */
-function tvarkom_obd_profile_elapsed() {
+function pirkoo_profile_elapsed() {
 	global $timestart;
 	return microtime( true ) - (float) $timestart;
 }
@@ -123,16 +123,16 @@ function tvarkom_obd_profile_elapsed() {
  *
  * @return void
  */
-function tvarkom_obd_profile_calibrate() {
-	$wrapper = tvarkom_obd_profile_wrapper( '__return_null', 'self', 'calibrate' );
+function pirkoo_profile_calibrate() {
+	$wrapper = pirkoo_profile_wrapper( '__return_null', 'self', 'calibrate' );
 	$runs    = 200;
 	$start   = hrtime( true );
 	for ( $i = 0; $i < $runs; $i++ ) {
 		$wrapper();
 	}
-	Tvarkom_OBD_Profiler::$call_cost_ns = ( hrtime( true ) - $start ) / $runs;
-	Tvarkom_OBD_Profiler::$components   = array();
-	Tvarkom_OBD_Profiler::$hooks        = array();
+	Pirkoo_Profiler::$call_cost_ns = ( hrtime( true ) - $start ) / $runs;
+	Pirkoo_Profiler::$components   = array();
+	Pirkoo_Profiler::$hooks        = array();
 }
 
 /**
@@ -143,20 +143,20 @@ function tvarkom_obd_profile_calibrate() {
  * @param string   $hook      Hook name.
  * @return Closure
  */
-function tvarkom_obd_profile_wrapper( $callback, $component, $hook ) {
+function pirkoo_profile_wrapper( $callback, $component, $hook ) {
 	return static function ( ...$args ) use ( $callback, $component, $hook ) {
-		Tvarkom_OBD_Profiler::$stack[] = 0;
+		Pirkoo_Profiler::$stack[] = 0;
 		$start                         = hrtime( true );
 		try {
 			return call_user_func_array( $callback, $args );
 		} finally {
 			$elapsed  = hrtime( true ) - $start;
-			$children = (int) array_pop( Tvarkom_OBD_Profiler::$stack );
-			$depth    = count( Tvarkom_OBD_Profiler::$stack );
+			$children = (int) array_pop( Pirkoo_Profiler::$stack );
+			$depth    = count( Pirkoo_Profiler::$stack );
 			if ( $depth > 0 ) {
-				Tvarkom_OBD_Profiler::$stack[ $depth - 1 ] += $elapsed;
+				Pirkoo_Profiler::$stack[ $depth - 1 ] += $elapsed;
 			}
-			Tvarkom_OBD_Profiler::record( $component, $hook, $elapsed - $children );
+			Pirkoo_Profiler::record( $component, $hook, $elapsed - $children );
 		}
 	};
 }
@@ -168,33 +168,33 @@ function tvarkom_obd_profile_wrapper( $callback, $component, $hook ) {
  *
  * @return void
  */
-function tvarkom_obd_profile_wrap() {
+function pirkoo_profile_wrap() {
 	global $wp_filter;
 	$start = hrtime( true );
 	foreach ( $wp_filter as $tag => $hook ) {
 		if ( ! $hook instanceof WP_Hook || 'all' === $tag ) {
 			continue;
 		}
-		$name = tvarkom_obd_profile_hook_name( (string) $tag );
+		$name = pirkoo_profile_hook_name( (string) $tag );
 		foreach ( $hook->callbacks as $priority => $callbacks ) {
 			foreach ( $callbacks as $id => $callback ) {
 				$key = $tag . "\0" . $priority . "\0" . $id;
-				if ( isset( Tvarkom_OBD_Profiler::$wrapped[ $key ] ) ) {
+				if ( isset( Pirkoo_Profiler::$wrapped[ $key ] ) ) {
 					continue;
 				}
-				Tvarkom_OBD_Profiler::$wrapped[ $key ] = true;
-				if ( ! isset( Tvarkom_OBD_Profiler::$callback_component[ $id ] ) ) {
-					Tvarkom_OBD_Profiler::$callback_component[ $id ] = tvarkom_obd_profile_callback_component( $callback['function'] );
+				Pirkoo_Profiler::$wrapped[ $key ] = true;
+				if ( ! isset( Pirkoo_Profiler::$callback_component[ $id ] ) ) {
+					Pirkoo_Profiler::$callback_component[ $id ] = pirkoo_profile_callback_component( $callback['function'] );
 				}
-				$component = Tvarkom_OBD_Profiler::$callback_component[ $id ];
+				$component = Pirkoo_Profiler::$callback_component[ $id ];
 				if ( false === $component || 'self' === $component ) {
 					continue;
 				}
-				$hook->callbacks[ $priority ][ $id ]['function'] = tvarkom_obd_profile_wrapper( $callback['function'], $component, $name );
+				$hook->callbacks[ $priority ][ $id ]['function'] = pirkoo_profile_wrapper( $callback['function'], $component, $name );
 			}
 		}
 	}
-	Tvarkom_OBD_Profiler::$wrap_ns += hrtime( true ) - $start;
+	Pirkoo_Profiler::$wrap_ns += hrtime( true ) - $start;
 }
 
 /**
@@ -203,7 +203,7 @@ function tvarkom_obd_profile_wrap() {
  * @param string $tag Hook name.
  * @return string
  */
-function tvarkom_obd_profile_hook_name( $tag ) {
+function pirkoo_profile_hook_name( $tag ) {
 	return substr( (string) preg_replace( '/[^\x21-\x7e]/', '?', $tag ), 0, 120 );
 }
 
@@ -214,7 +214,7 @@ function tvarkom_obd_profile_hook_name( $tag ) {
  * @param mixed $callback Callback.
  * @return string|false
  */
-function tvarkom_obd_profile_callback_component( $callback ) {
+function pirkoo_profile_callback_component( $callback ) {
 	try {
 		if ( is_string( $callback ) && false !== strpos( $callback, '::' ) ) {
 			$callback = explode( '::', $callback, 2 );
@@ -237,7 +237,7 @@ function tvarkom_obd_profile_callback_component( $callback ) {
 		}
 	}
 	$file = $ref->getFileName();
-	return false === $file ? 'core' : tvarkom_obd_profile_file_component( $file ); // Internal PHP functions count as core.
+	return false === $file ? 'core' : pirkoo_profile_file_component( $file ); // Internal PHP functions count as core.
 }
 
 /**
@@ -246,17 +246,17 @@ function tvarkom_obd_profile_callback_component( $callback ) {
  * @param string $file Absolute path.
  * @return string
  */
-function tvarkom_obd_profile_file_component( $file ) {
-	if ( isset( Tvarkom_OBD_Profiler::$file_component[ $file ] ) ) {
-		return Tvarkom_OBD_Profiler::$file_component[ $file ];
+function pirkoo_profile_file_component( $file ) {
+	if ( isset( Pirkoo_Profiler::$file_component[ $file ] ) ) {
+		return Pirkoo_Profiler::$file_component[ $file ];
 	}
 	$path      = wp_normalize_path( $file );
 	$component = 'other';
-	if ( in_array( trailingslashit( dirname( $path ) ), tvarkom_obd_profile_dir_variants( ABSPATH ), true ) && preg_match( '/^(wp-[\w-]+|index)\.php$/', basename( $path ) ) ) {
+	if ( in_array( trailingslashit( dirname( $path ) ), pirkoo_profile_dir_variants( ABSPATH ), true ) && preg_match( '/^(wp-[\w-]+|index)\.php$/', basename( $path ) ) ) {
 		$component = 'core'; // index.php, wp-blog-header.php, wp-load.php and the like.
 	}
 	foreach ( 'core' === $component ? array() : array( 'self', 'mu', 'plugin', 'theme', 'core', 'dropin' ) as $type ) {
-		foreach ( Tvarkom_OBD_Profiler::$dirs[ $type ] as $dir ) {
+		foreach ( Pirkoo_Profiler::$dirs[ $type ] as $dir ) {
 			if ( 0 !== strpos( $path, $dir ) ) {
 				continue;
 			}
@@ -275,7 +275,7 @@ function tvarkom_obd_profile_file_component( $file ) {
 			break 2;
 		}
 	}
-	Tvarkom_OBD_Profiler::$file_component[ $file ] = $component;
+	Pirkoo_Profiler::$file_component[ $file ] = $component;
 	return $component;
 }
 
@@ -286,7 +286,7 @@ function tvarkom_obd_profile_file_component( $file ) {
  *
  * @return string
  */
-function tvarkom_obd_profile_caller() {
+function pirkoo_profile_caller() {
 	// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace -- only on the profiled request.
 	$frames = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 40 );
 	for ( $i = count( $frames ) - 1; $i > 0; $i-- ) {
@@ -299,7 +299,7 @@ function tvarkom_obd_profile_caller() {
 		if ( empty( $frame['file'] ) ) {
 			continue;
 		}
-		$component = tvarkom_obd_profile_file_component( $frame['file'] );
+		$component = pirkoo_profile_file_component( $frame['file'] );
 		if ( 'core' !== $component && 'self' !== $component ) {
 			return $component;
 		}
@@ -313,9 +313,9 @@ function tvarkom_obd_profile_caller() {
  * @param mixed $data Custom query data (an array, unless another filter broke it).
  * @return array<string, mixed>
  */
-function tvarkom_obd_profile_tag_query( $data ) {
+function pirkoo_profile_tag_query( $data ) {
 	$data                = is_array( $data ) ? $data : array();
-	$data['tvarkom_obd'] = tvarkom_obd_profile_caller();
+	$data['pirkoo'] = pirkoo_profile_caller();
 	return $data;
 }
 
@@ -327,8 +327,8 @@ function tvarkom_obd_profile_tag_query( $data ) {
  * @param string               $url  URL.
  * @return mixed
  */
-function tvarkom_obd_profile_http_start( $pre, $args, $url ) {
-	Tvarkom_OBD_Profiler::$http_open[] = array( hrtime( true ), (string) $url, tvarkom_obd_profile_caller() );
+function pirkoo_profile_http_start( $pre, $args, $url ) {
+	Pirkoo_Profiler::$http_open[] = array( hrtime( true ), (string) $url, pirkoo_profile_caller() );
 	return $pre;
 }
 
@@ -342,19 +342,19 @@ function tvarkom_obd_profile_http_start( $pre, $args, $url ) {
  * @param string                        $url       URL.
  * @return void
  */
-function tvarkom_obd_profile_http_end( $response, $context, $transport, $args, $url ) {
-	for ( $i = count( Tvarkom_OBD_Profiler::$http_open ) - 1; $i >= 0; $i-- ) {
-		if ( Tvarkom_OBD_Profiler::$http_open[ $i ][1] !== (string) $url ) {
+function pirkoo_profile_http_end( $response, $context, $transport, $args, $url ) {
+	for ( $i = count( Pirkoo_Profiler::$http_open ) - 1; $i >= 0; $i-- ) {
+		if ( Pirkoo_Profiler::$http_open[ $i ][1] !== (string) $url ) {
 			continue;
 		}
-		list( $start, , $component ) = Tvarkom_OBD_Profiler::$http_open[ $i ];
-		array_splice( Tvarkom_OBD_Profiler::$http_open, $i, 1 );
+		list( $start, , $component ) = Pirkoo_Profiler::$http_open[ $i ];
+		array_splice( Pirkoo_Profiler::$http_open, $i, 1 );
 		$host = wp_parse_url( (string) $url, PHP_URL_HOST );
 		$host = is_string( $host ) ? strtolower( $host ) : 'unknown';
 		$own  = array( 'localhost', '127.0.0.1', '::1', '[::1]', strtolower( (string) wp_parse_url( home_url(), PHP_URL_HOST ) ), strtolower( (string) wp_parse_url( site_url(), PHP_URL_HOST ) ) );
-		if ( count( Tvarkom_OBD_Profiler::$http ) < 25 ) {
-			Tvarkom_OBD_Profiler::$http[] = array(
-				'host'      => tvarkom_obd_identifier( $host ),
+		if ( count( Pirkoo_Profiler::$http ) < 25 ) {
+			Pirkoo_Profiler::$http[] = array(
+				'host'      => pirkoo_identifier( $host ),
 				'own_site'  => in_array( $host, $own, true ), // E.g. WordPress starting WP-Cron.
 				'component' => $component,
 				'ms'        => round( ( hrtime( true ) - $start ) / 1e6, 1 ),
@@ -372,7 +372,7 @@ function tvarkom_obd_profile_http_end( $response, $context, $transport, $args, $
  *
  * @return void
  */
-function tvarkom_obd_profile_fill_cart() {
+function pirkoo_profile_fill_cart() {
 	if ( ! function_exists( 'WC' ) || ! WC()->cart || ! WC()->cart->is_empty() ) {
 		return;
 	}
@@ -380,9 +380,9 @@ function tvarkom_obd_profile_fill_cart() {
 	if ( WC()->session ) {
 		remove_action( 'shutdown', array( WC()->session, 'save_data' ), 20 );
 	}
-	$product = Tvarkom_OBD_Profiler::$product_id ? wc_get_product( Tvarkom_OBD_Profiler::$product_id ) : null;
+	$product = Pirkoo_Profiler::$product_id ? wc_get_product( Pirkoo_Profiler::$product_id ) : null;
 	if ( ! $product || ! $product->is_purchasable() || ! $product->is_in_stock() ) {
-		Tvarkom_OBD_Profiler::$product_id = 0;
+		Pirkoo_Profiler::$product_id = 0;
 		add_filter( 'woocommerce_checkout_redirect_empty_cart', '__return_false' ); // Profile the empty checkout instead.
 		return;
 	}

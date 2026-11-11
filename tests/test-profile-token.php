@@ -2,7 +2,7 @@
 /**
  * The profiler starts only on the audit's own checkout request (includes/profile.php).
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 /**
@@ -10,7 +10,7 @@
  * whole process (SAVEQUERIES, wrapped hooks), so it is covered by the Playground check in
  * DEVELOPMENT.md rather than here.
  */
-class Tvarkom_OBD_Profile_Token_Test extends Tvarkom_OBD_Test_Case {
+class Pirkoo_Profile_Token_Test extends Pirkoo_Test_Case {
 
 	/**
 	 * The server variables before the test.
@@ -26,7 +26,7 @@ class Tvarkom_OBD_Profile_Token_Test extends Tvarkom_OBD_Test_Case {
 		parent::set_up();
 		$this->server = $_SERVER;
 		set_transient(
-			TVARKOM_OBD_PROFILE_TOKEN,
+			PIRKOO_PROFILE_TOKEN,
 			array(
 				'token'      => 'right-token',
 				'product_id' => 0,
@@ -63,18 +63,18 @@ class Tvarkom_OBD_Profile_Token_Test extends Tvarkom_OBD_Test_Case {
 	 * @dataProvider data_refused
 	 *
 	 * @param string      $method Request method.
-	 * @param string|null $header X-Tvarkom-Obd-Profile header.
+	 * @param string|null $header X-Pirkoo-Profile header.
 	 */
 	public function test_refused( $method, $header ) {
 		$_SERVER['REQUEST_METHOD'] = $method;
-		unset( $_SERVER['HTTP_X_TVARKOM_OBD_PROFILE'] );
+		unset( $_SERVER['HTTP_X_PIRKOO_PROFILE'] );
 		if ( null !== $header ) {
-			$_SERVER['HTTP_X_TVARKOM_OBD_PROFILE'] = $header;
+			$_SERVER['HTTP_X_PIRKOO_PROFILE'] = $header;
 		}
 
-		tvarkom_obd_profile_maybe_start();
+		pirkoo_profile_maybe_start();
 
-		$this->assertSame( 'right-token', get_transient( TVARKOM_OBD_PROFILE_TOKEN )['token'] );
-		$this->assertFalse( has_action( 'shutdown', 'tvarkom_obd_profile_finish' ) );
+		$this->assertSame( 'right-token', get_transient( PIRKOO_PROFILE_TOKEN )['token'] );
+		$this->assertFalse( has_action( 'shutdown', 'pirkoo_profile_finish' ) );
 	}
 }

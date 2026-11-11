@@ -2,7 +2,7 @@
 /**
  * Profiler state for the one profiled checkout request (see profile.php).
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Profiler state for the one profiled request.
  */
-final class Tvarkom_OBD_Profiler {
+final class Pirkoo_Profiler {
 	/**
 	 * Time (ns) spent in child callbacks, one entry per callback running.
 	 *

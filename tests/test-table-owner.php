@@ -3,13 +3,13 @@
  * Who a database table belongs to (detailed.php): the report suggests removing only tables of
  * known plugins that aren't installed, so every other case must stay out of that class.
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 /**
  * Table classification.
  */
-class Tvarkom_OBD_Table_Owner_Test extends Tvarkom_OBD_Test_Case {
+class Pirkoo_Table_Owner_Test extends Pirkoo_Test_Case {
 
 	/**
 	 * Installed plugins and themes like a real store's: Defender Pro (folder wp-defender) and
@@ -29,13 +29,13 @@ class Tvarkom_OBD_Table_Owner_Test extends Tvarkom_OBD_Test_Case {
 			array( 'wordfence', 'Wordfence Security', true ),
 			array( 'old-forms', 'Old Forms', false ),
 		) as list( $folder, $name, $on ) ) {
-			foreach ( tvarkom_obd_slug_variants( $folder ) as $prefix ) {
+			foreach ( pirkoo_slug_variants( $folder ) as $prefix ) {
 				$out['plugins'][ $prefix ] = array( $name, $on );
 			}
 			$out['names'][ $name ] = $on;
 		}
 		foreach ( array( array( 'woodmart', 'Woodmart', true ), array( 'oldtheme', 'Old Theme', false ) ) as list( $slug, $name, $on ) ) {
-			foreach ( tvarkom_obd_slug_variants( $slug ) as $prefix ) {
+			foreach ( pirkoo_slug_variants( $slug ) as $prefix ) {
 				$out['themes'][ $prefix ] = array( $name, $on );
 			}
 		}
@@ -72,35 +72,35 @@ class Tvarkom_OBD_Table_Owner_Test extends Tvarkom_OBD_Test_Case {
 	 * @param string|null $owner          Expected owner.
 	 */
 	public function test_table_owner( $table, $classification, $owner ) {
-		$this->assertSame( array( $classification, $owner ), tvarkom_obd_table_owner( $table, $this->components() ) );
+		$this->assertSame( array( $classification, $owner ), pirkoo_table_owner( $table, $this->components() ) );
 	}
 
 	/**
 	 * Folder names give their table prefixes, without short or generic ones.
 	 */
 	public function test_slug_variants() {
-		$this->assertSame( array( 'wp_defender', 'defender' ), tvarkom_obd_slug_variants( 'wp-defender' ) );
-		$this->assertSame( array( 'elementor_pro', 'elementor' ), tvarkom_obd_slug_variants( 'elementor-pro' ) );
-		$this->assertSame( array( 'woodmart' ), tvarkom_obd_slug_variants( 'woodmart' ) );
-		$this->assertSame( array( 'wp_seo' ), tvarkom_obd_slug_variants( 'wp-seo' ), '"seo" alone is too short to tie a table to it' );
+		$this->assertSame( array( 'wp_defender', 'defender' ), pirkoo_slug_variants( 'wp-defender' ) );
+		$this->assertSame( array( 'elementor_pro', 'elementor' ), pirkoo_slug_variants( 'elementor-pro' ) );
+		$this->assertSame( array( 'woodmart' ), pirkoo_slug_variants( 'woodmart' ) );
+		$this->assertSame( array( 'wp_seo' ), pirkoo_slug_variants( 'wp-seo' ), '"seo" alone is too short to tie a table to it' );
 	}
 
 	/**
 	 * On the test site, the active theme and WooCommerce count as installed and active.
 	 */
 	public function test_installed_components_include_the_active_theme() {
-		$components = tvarkom_obd_installed_components();
+		$components = pirkoo_installed_components();
 		$theme      = str_replace( '-', '_', strtolower( get_stylesheet() ) );
 		$this->assertArrayHasKey( $theme, $components['themes'] );
 		$this->assertTrue( $components['themes'][ $theme ][1] );
-		$this->assertSame( 'active', tvarkom_obd_table_owner( $theme . '_settings', $components )[0] );
+		$this->assertSame( 'active', pirkoo_table_owner( $theme . '_settings', $components )[0] );
 	}
 
 	/**
 	 * Every listed table carries a classification the scanner reads, and never "active".
 	 */
 	public function test_orphaned_tables_carry_a_classification() {
-		$tables = tvarkom_obd_orphaned_tables();
+		$tables = pirkoo_orphaned_tables();
 		$this->assertIsArray( $tables ); // The suite's tables are temporary, so the list may be empty.
 		foreach ( $tables as $table ) {
 			$this->assertContains( $table['classification'], array( 'not_installed', 'inactive', 'unknown' ) );

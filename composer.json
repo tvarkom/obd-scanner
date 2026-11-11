@@ -1,6 +1,6 @@
 {
-    "name": "tvarkom/obd-scanner",
-    "description": "Development tools for the Pirkoo plugin (On-board Diagnostics Scanner for WooCommerce) by tvarkom (not shipped in the plugin zip).",
+    "name": "pirkoo/pirkoo",
+    "description": "Development tools for the Pirkoo plugin (On-board Diagnostics Scanner for WooCommerce), not shipped in the plugin zip.",
     "license": "GPL-2.0-or-later",
     "type": "wordpress-plugin",
     "require-dev": {

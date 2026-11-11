@@ -3,7 +3,7 @@
  * Full Scan checkout profile, audit side: picks the product for the temporary cart, requests this
  * store's own checkout with the single-use token and reads the result (see profile.php).
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @return int
  */
-function tvarkom_obd_profile_product() {
+function pirkoo_profile_product() {
 	foreach ( array( false, null ) as $virtual ) {
 		$args = array(
 			'status'       => 'publish',
@@ -45,28 +45,28 @@ function tvarkom_obd_profile_product() {
  *
  * @return array<string, mixed>
  */
-function tvarkom_obd_profile_checkout() {
+function pirkoo_profile_checkout() {
 	$token = wp_generate_password( 40, false, false );
 	set_transient(
-		TVARKOM_OBD_PROFILE_TOKEN,
+		PIRKOO_PROFILE_TOKEN,
 		array(
 			'token'      => $token,
-			'product_id' => tvarkom_obd_profile_product(),
+			'product_id' => pirkoo_profile_product(),
 		),
 		2 * MINUTE_IN_SECONDS
 	);
-	delete_transient( TVARKOM_OBD_PROFILE_RESULT );
+	delete_transient( PIRKOO_PROFILE_RESULT );
 
 	$start    = microtime( true );
 	$response = wp_remote_get(
 		// The extra argument keeps page caches from answering instead of WordPress.
-		add_query_arg( 'tvarkom_obd_profile', substr( md5( $token ), 0, 12 ), wc_get_checkout_url() ),
+		add_query_arg( 'pirkoo_profile', substr( md5( $token ), 0, 12 ), wc_get_checkout_url() ),
 		array(
 			'timeout'     => 30,
 			'redirection' => 0,
 			'user-agent'  => 'Pirkoo checkout profiler (+https://pirkoo.com)',
 			'headers'     => array(
-				TVARKOM_OBD_PROFILE_HEADER => $token,
+				PIRKOO_PROFILE_HEADER => $token,
 				'Cache-Control'            => 'no-cache',
 			),
 			// Same as WordPress's own loopback checks: the request goes to this server.
@@ -74,9 +74,9 @@ function tvarkom_obd_profile_checkout() {
 		)
 	);
 	$wall_ms = round( ( microtime( true ) - $start ) * 1000, 1 );
-	delete_transient( TVARKOM_OBD_PROFILE_TOKEN );
-	$result = get_transient( TVARKOM_OBD_PROFILE_RESULT );
-	delete_transient( TVARKOM_OBD_PROFILE_RESULT );
+	delete_transient( PIRKOO_PROFILE_TOKEN );
+	$result = get_transient( PIRKOO_PROFILE_RESULT );
+	delete_transient( PIRKOO_PROFILE_RESULT );
 
 	$status = is_wp_error( $response ) ? null : (int) wp_remote_retrieve_response_code( $response );
 	if ( ! is_array( $result ) ) {

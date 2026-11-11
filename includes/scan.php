@@ -1,13 +1,13 @@
 <?php
 /**
- * Scans: one request to tvarkom when an administrator clicks the button (register first when the
+ * Scans: one request to Pirkoo when an administrator clicks the button (register first when the
  * store has no key), and the result stored for the page.
  *
- * One scan a week per store: tvarkom's gateway refuses earlier ones (a scan that fails doesn't
+ * One scan a week per store: Pirkoo's gateway refuses earlier ones (a scan that fails doesn't
  * count) and says when the next one may run; the page shows that date and disables the button
  * until then. Scans run only on a click: there is no scheduled scan.
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -18,23 +18,23 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Requests one scan: registers the store when it has no key (or its key stopped working), sends
  * the scan request and stores the result.
  *
- * @return string The result code: queued, or the reason it wasn't (see tvarkom_obd_messages()).
+ * @return string The result code: queued, or the reason it wasn't (see pirkoo_messages()).
  */
-function tvarkom_obd_scan() {
-	if ( ! tvarkom_obd_is_connected() ) {
+function pirkoo_scan() {
+	if ( ! pirkoo_is_connected() ) {
 		return 'not_connected';
 	}
-	if ( ! tvarkom_obd_lock() ) {
+	if ( ! pirkoo_lock() ) {
 		return 'scan_running';
 	}
-	$code = tvarkom_obd_send_scan();
+	$code = pirkoo_send_scan();
 	if ( 'invalid_key' === $code || 'website_not_allowed' === $code ) {
-		// The key was replaced (the store registered again, for example from another of
-		// tvarkom's plugins) or is for the address this site had before a move: register again.
-		tvarkom_obd_update_settings( array( 'api_key' => '' ) );
-		$code = tvarkom_obd_send_scan();
+		// The key was replaced (the store registered again, for example from another copy of the
+		// site) or is for the address this site had before a move: register again.
+		pirkoo_update_settings( array( 'api_key' => '' ) );
+		$code = pirkoo_send_scan();
 	}
-	tvarkom_obd_unlock();
+	pirkoo_unlock();
 	return $code;
 }
 
@@ -43,15 +43,15 @@ function tvarkom_obd_scan() {
  *
  * @return string The result code.
  */
-function tvarkom_obd_send_scan() {
-	if ( '' === tvarkom_obd_settings()['api_key'] ) {
-		$error = tvarkom_obd_register();
+function pirkoo_send_scan() {
+	if ( '' === pirkoo_settings()['api_key'] ) {
+		$error = pirkoo_register();
 		if ( '' !== $error ) {
-			return tvarkom_obd_finish_scan( $error );
+			return pirkoo_finish_scan( $error );
 		}
 	}
 
-	$response = tvarkom_obd_request(
+	$response = pirkoo_request(
 		'POST',
 		'/v1/audits',
 		array(
@@ -62,18 +62,18 @@ function tvarkom_obd_send_scan() {
 				'cart'     => wc_get_cart_url(),
 				'checkout' => wc_get_checkout_url(),
 			),
-			'metrics'  => tvarkom_obd_collect_metrics(),
-			'detailed' => tvarkom_obd_collect_detailed(),
+			'metrics'  => pirkoo_collect_metrics(),
+			'detailed' => pirkoo_collect_detailed(),
 		),
-		tvarkom_obd_settings()['api_key']
+		pirkoo_settings()['api_key']
 	);
 	if ( is_wp_error( $response ) ) {
-		return tvarkom_obd_finish_scan( 'network' );
+		return pirkoo_finish_scan( 'network' );
 	}
 	if ( 202 === $response['status'] ) {
-		return tvarkom_obd_finish_scan( 'queued' );
+		return pirkoo_finish_scan( 'queued' );
 	}
-	return tvarkom_obd_finish_scan( tvarkom_obd_error_code( $response ) );
+	return pirkoo_finish_scan( pirkoo_error_code( $response ) );
 }
 
 /**
@@ -82,8 +82,8 @@ function tvarkom_obd_send_scan() {
  * @param string $code The result code.
  * @return string $code.
  */
-function tvarkom_obd_finish_scan( $code ) {
-	tvarkom_obd_update_settings(
+function pirkoo_finish_scan( $code ) {
+	pirkoo_update_settings(
 		array(
 			'last' => array(
 				'code' => $code,
@@ -102,28 +102,28 @@ function tvarkom_obd_finish_scan( $code ) {
  *
  * @return bool Whether this request now holds the lock.
  */
-function tvarkom_obd_lock() {
+function pirkoo_lock() {
 	global $wpdb;
 	$now = (string) time();
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- The atomic insert is the lock; the options API can't refuse a row that exists.
-	if ( $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO `$wpdb->options` ( `option_name`, `option_value`, `autoload` ) VALUES ( %s, %s, 'no' )", TVARKOM_OBD_LOCK, $now ) ) ) {
+	if ( $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO `$wpdb->options` ( `option_name`, `option_value`, `autoload` ) VALUES ( %s, %s, 'no' )", PIRKOO_LOCK, $now ) ) ) {
 		return true;
 	}
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Read the row itself: the options cache doesn't know about the insert above.
-	$since = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM `$wpdb->options` WHERE option_name = %s", TVARKOM_OBD_LOCK ) );
+	$since = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM `$wpdb->options` WHERE option_name = %s", PIRKOO_LOCK ) );
 	if ( null === $since || (int) $since > time() - 5 * MINUTE_IN_SECONDS ) {
 		return false;
 	}
 	// Take over a stale lock only if no other request took it over first.
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Compare-and-set on the lock row.
-	return 1 === $wpdb->query( $wpdb->prepare( "UPDATE `$wpdb->options` SET option_value = %s WHERE option_name = %s AND option_value = %s", $now, TVARKOM_OBD_LOCK, $since ) );
+	return 1 === $wpdb->query( $wpdb->prepare( "UPDATE `$wpdb->options` SET option_value = %s WHERE option_name = %s AND option_value = %s", $now, PIRKOO_LOCK, $since ) );
 }
 
 /**
- * Releases the lock taken by tvarkom_obd_lock().
+ * Releases the lock taken by pirkoo_lock().
  *
  * @return void
  */
-function tvarkom_obd_unlock() {
-	delete_option( TVARKOM_OBD_LOCK );
+function pirkoo_unlock() {
+	delete_option( PIRKOO_LOCK );
 }

@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Pirkoo
  * Description:       On-board Diagnostics Scanner for WooCommerce
- * Version:           0.2.2
+ * Version:           0.2.3
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Requires Plugins:  woocommerce
@@ -13,23 +13,23 @@
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       pirkoo
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'TVARKOM_OBD_VERSION', '0.2.2' );
-define( 'TVARKOM_OBD_FILE', __FILE__ );
-define( 'TVARKOM_OBD_OPTION', 'tvarkom_obd' );
-define( 'TVARKOM_OBD_TOKEN', 'tvarkom_obd_verify_token' );
-define( 'TVARKOM_OBD_LOCK', 'tvarkom_obd_scan_lock' );
-define( 'TVARKOM_OBD_PAGE', 'pirkoo' ); // admin.php?page=pirkoo (before: obd-scanner, and tvarkom-obd in 0.1.0; both redirected).
+define( 'PIRKOO_VERSION', '0.2.3' );
+define( 'PIRKOO_FILE', __FILE__ );
+define( 'PIRKOO_OPTION', 'pirkoo' );
+define( 'PIRKOO_TOKEN', 'pirkoo_verify_token' );
+define( 'PIRKOO_LOCK', 'pirkoo_scan_lock' );
+define( 'PIRKOO_PAGE', 'pirkoo' ); // admin.php?page=pirkoo
 
 // Overridable in wp-config.php, e.g. for testing against a local gateway.
-if ( ! defined( 'TVARKOM_OBD_API_URL' ) ) {
-	define( 'TVARKOM_OBD_API_URL', 'https://api.pirkoo.com' );
+if ( ! defined( 'PIRKOO_API_URL' ) ) {
+	define( 'PIRKOO_API_URL', 'https://api.pirkoo.com' );
 }
 
 require_once __DIR__ . '/includes/settings.php';
@@ -42,7 +42,7 @@ require_once __DIR__ . '/includes/detailed.php';
 require_once __DIR__ . '/includes/site-health.php';
 require_once __DIR__ . '/includes/server-checks.php';
 require_once __DIR__ . '/includes/wordpress-checks.php';
-require_once __DIR__ . '/includes/class-tvarkom-obd-profiler.php';
+require_once __DIR__ . '/includes/class-pirkoo-profiler.php';
 require_once __DIR__ . '/includes/profile.php';
 require_once __DIR__ . '/includes/profile-report.php';
 require_once __DIR__ . '/includes/profile-request.php';
@@ -54,27 +54,26 @@ require_once __DIR__ . '/includes/pipeline.php';
 require_once __DIR__ . '/includes/overview.php';
 require_once __DIR__ . '/includes/admin.php';
 
-// Every hook the plugin registers. Nothing contacts tvarkom until an administrator clicks
+// Every hook the plugin registers. Nothing contacts Pirkoo until an administrator clicks
 // "Connect and scan" on the plugin's page (includes/admin.php); scans run only on a click.
 
 // The checkout profiler registers its own hooks, and only on a scan's own checkout request
 // (includes/profile.php); every other request returns after one header check.
-tvarkom_obd_profile_maybe_start();
-add_action( 'admin_menu', 'tvarkom_obd_admin_menu', 99 );
-add_action( 'admin_post_tvarkom_obd_scan', 'tvarkom_obd_handle_scan' );
-add_action( 'admin_page_access_denied', 'tvarkom_obd_redirect_old_page' ); // WordPress refuses an unknown page before admin_init.
-add_action( 'admin_enqueue_scripts', 'tvarkom_obd_admin_assets' );
-add_action( 'admin_init', 'tvarkom_obd_privacy_policy_content' );
-add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'tvarkom_obd_plugin_action_links' );
+pirkoo_profile_maybe_start();
+add_action( 'admin_menu', 'pirkoo_admin_menu', 99 );
+add_action( 'admin_post_pirkoo_scan', 'pirkoo_handle_scan' );
+add_action( 'admin_enqueue_scripts', 'pirkoo_admin_assets' );
+add_action( 'admin_init', 'pirkoo_privacy_policy_content' );
+add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'pirkoo_plugin_action_links' );
 
 // Shop activity counters (includes/funnel.php): the table on activation, or on the first admin page
 // after an update; daily totals of add-to-cart, checkout loads and orders, kept 35 days.
-register_activation_hook( __FILE__, 'tvarkom_obd_funnel_install' );
-add_action( 'admin_init', 'tvarkom_obd_funnel_install' );
-add_action( 'woocommerce_add_to_cart', 'tvarkom_obd_funnel_add_to_cart' );
-add_action( 'template_redirect', 'tvarkom_obd_funnel_checkout_view' );
-add_action( 'woocommerce_checkout_order_processed', 'tvarkom_obd_funnel_order' );
-add_action( 'woocommerce_store_api_checkout_order_processed', 'tvarkom_obd_funnel_order' );
+register_activation_hook( __FILE__, 'pirkoo_funnel_install' );
+add_action( 'admin_init', 'pirkoo_funnel_install' );
+add_action( 'woocommerce_add_to_cart', 'pirkoo_funnel_add_to_cart' );
+add_action( 'template_redirect', 'pirkoo_funnel_checkout_view' );
+add_action( 'woocommerce_checkout_order_processed', 'pirkoo_funnel_order' );
+add_action( 'woocommerce_store_api_checkout_order_processed', 'pirkoo_funnel_order' );
 
 // Domain check for registration (includes/rest.php).
-add_action( 'rest_api_init', 'tvarkom_obd_register_routes' );
+add_action( 'rest_api_init', 'pirkoo_register_routes' );

@@ -7,7 +7,7 @@
  * WP_TESTS_DB_NAME  Database the suite may empty; never a real site's.
  * WP_TESTS_DB_USER, WP_TESTS_DB_PASSWORD, WP_TESTS_DB_HOST
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 // phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- The test suite's own constants.
@@ -19,17 +19,17 @@
  * @param string $fallback Default.
  * @return string
  */
-function tvarkom_obd_tests_env( $name, $fallback ) {
+function pirkoo_tests_env( $name, $fallback ) {
 	$value = getenv( $name );
 	return false === $value || '' === $value ? $fallback : $value;
 }
 
-define( 'ABSPATH', rtrim( tvarkom_obd_tests_env( 'WP_CORE_DIR', '/tmp/wordpress' ), '/' ) . '/' );
+define( 'ABSPATH', rtrim( pirkoo_tests_env( 'WP_CORE_DIR', '/tmp/wordpress' ), '/' ) . '/' );
 
-define( 'DB_NAME', tvarkom_obd_tests_env( 'WP_TESTS_DB_NAME', 'wordpress_test' ) );
-define( 'DB_USER', tvarkom_obd_tests_env( 'WP_TESTS_DB_USER', 'root' ) );
-define( 'DB_PASSWORD', tvarkom_obd_tests_env( 'WP_TESTS_DB_PASSWORD', '' ) );
-define( 'DB_HOST', tvarkom_obd_tests_env( 'WP_TESTS_DB_HOST', 'localhost' ) );
+define( 'DB_NAME', pirkoo_tests_env( 'WP_TESTS_DB_NAME', 'wordpress_test' ) );
+define( 'DB_USER', pirkoo_tests_env( 'WP_TESTS_DB_USER', 'root' ) );
+define( 'DB_PASSWORD', pirkoo_tests_env( 'WP_TESTS_DB_PASSWORD', '' ) );
+define( 'DB_HOST', pirkoo_tests_env( 'WP_TESTS_DB_HOST', 'localhost' ) );
 define( 'DB_CHARSET', 'utf8mb4' );
 define( 'DB_COLLATE', '' );
 
@@ -40,7 +40,7 @@ define( 'WP_PHP_BINARY', 'php' );
 define( 'WPLANG', '' );
 define( 'WP_DEBUG', true );
 
-// A gateway that doesn't exist: every request to it is answered by the tests (Tvarkom_OBD_Test_Case).
-define( 'TVARKOM_OBD_API_URL', 'https://gateway.test' );
+// A gateway that doesn't exist: every request to it is answered by the tests (Pirkoo_Test_Case).
+define( 'PIRKOO_API_URL', 'https://gateway.test' );
 
 $table_prefix = 'wptests_'; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Required by the test suite.

@@ -3,13 +3,13 @@
  * The page once connected: the scan in progress, the dashboard, a key to renew, and the results'
  * shape and escaping.
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 /**
  * Dashboard.
  */
-class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
+class Pirkoo_Dashboard_Test extends Pirkoo_Test_Case {
 
 	public function set_up() {
 		parent::set_up();
@@ -34,25 +34,25 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$this->assertSame( array( 'GET /v1/results' ), $this->request_lines() );
 		$this->assertSame( 'Bearer tvk_test', $this->requests[0]['headers']['Authorization'] );
 		$this->assertStringContainsString( 'Scanning your store', $html );
-		$this->assertStringContainsString( 'data-tobd-refresh', $html );
+		$this->assertStringContainsString( 'data-pirkoo-refresh', $html );
 	}
 
 	public function test_results_show_the_score_lost_points_and_measurements() {
 		$this->respond( 'GET', '/v1/results', 200, $this->ready_results() );
 		$html = $this->render_page();
 
-		$this->assertStringContainsString( '<span class="tobd__score-value">40</span>', $html );
+		$this->assertStringContainsString( '<span class="pirkoo__score-value">40</span>', $html );
 		$this->assertStringContainsString( 'High risk', $html );
 		$this->assertStringContainsString( 'Slow cart or checkout', $html );
-		$this->assertSame( 3, substr_count( $html, '<span class="tobd__points">−20</span>' ) );
+		$this->assertSame( 3, substr_count( $html, '<span class="pirkoo__points">−20</span>' ) );
 		$this->assertStringContainsString( '1.03 s', $html, 'the cart time in seconds' );
 		$this->assertStringContainsString( '8.3.14', $html );
-		$this->assertStringContainsString( 'class="tobd__history"', $html );
+		$this->assertStringContainsString( 'class="pirkoo__history"', $html );
 		$this->assertStringContainsString( 'Up 10 points since the previous scan, on', $html, 'the change since the previous scan' );
-		$this->assertStringContainsString( 'id="tobd-trends-title">Store health trends', $html );
-		$this->assertStringContainsString( 'class="tobd__scale-mark" style="left: 40%"', $html, 'the score on the risk bands' );
-		$this->assertStringContainsString( 'id="tobd-summary-title"', $html, 'the store summary, also before the analysis' );
-		$this->assertStringNotContainsString( 'data-tobd-refresh', $html );
+		$this->assertStringContainsString( 'id="pirkoo-trends-title">Store health trends', $html );
+		$this->assertStringContainsString( 'class="pirkoo__scale-mark" style="left: 40%"', $html, 'the score on the risk bands' );
+		$this->assertStringContainsString( 'id="pirkoo-summary-title"', $html, 'the store summary, also before the analysis' );
+		$this->assertStringNotContainsString( 'data-pirkoo-refresh', $html );
 		$this->assertDoesNotMatchRegularExpression( '/\\b(fix plan|Pro|steps?|hours|price|upgrade)\\b/i', wp_strip_all_tags( $html ), 'no fix plan and no paid offer' );
 	}
 
@@ -80,16 +80,16 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 				'model'        => 2,
 			),
 		);
-		$comparable = tvarkom_obd_comparable_history( $history, 2 );
+		$comparable = pirkoo_comparable_history( $history, 2 );
 		$this->assertSame( array( 23, 41 ), wp_list_pluck( $comparable['points'], 'score' ), 'only the latest model\'s scores, as stored' );
 		$this->assertSame( 2, $comparable['other'] );
 
 		ob_start();
-		tvarkom_obd_render_trends( $history, 2, 0 );
+		pirkoo_render_trends( $history, 2, 0 );
 		$html = (string) ob_get_clean();
-		$this->assertStringContainsString( 'Up 18 points since the previous scan, on ' . tvarkom_obd_datetime( $day ), $html, 'two scans on one day: the time tells them apart' );
-		$this->assertStringContainsString( '2 earlier scores, until ' . tvarkom_obd_date( $day - 7 * DAY_IN_SECONDS ) . ', came from the previous scoring model', $html );
-		$this->assertStringContainsString( 'class="tobd__history"', $html );
+		$this->assertStringContainsString( 'Up 18 points since the previous scan, on ' . pirkoo_datetime( $day ), $html, 'two scans on one day: the time tells them apart' );
+		$this->assertStringContainsString( '2 earlier scores, until ' . pirkoo_date( $day - 7 * DAY_IN_SECONDS ) . ', came from the previous scoring model', $html );
+		$this->assertStringContainsString( 'class="pirkoo__history"', $html );
 		$this->assertStringNotContainsString( 'aria-hidden="true">0</text>', $html, 'a model-1 score is never charted' );
 		$this->assertStringContainsString( 'aria-hidden="true">23</text>', $html, 'model-2 scores are' );
 	}
@@ -97,7 +97,7 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 	public function test_trends_before_a_second_comparable_scan_say_when_the_trend_starts() {
 		$next = time() + 3 * DAY_IN_SECONDS;
 		ob_start();
-		tvarkom_obd_render_trends(
+		pirkoo_render_trends(
 			array(
 				array(
 					'completed_at' => time() - HOUR_IN_SECONDS,
@@ -110,8 +110,8 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		);
 		$html = (string) ob_get_clean();
 		$this->assertStringContainsString( 'Your trend starts with your next scan.', $html );
-		$this->assertStringContainsString( 'Your next scan is available from ' . tvarkom_obd_date( $next ), $html );
-		$this->assertStringNotContainsString( 'tobd__history', $html, 'no chart from a single point' );
+		$this->assertStringContainsString( 'Your next scan is available from ' . pirkoo_date( $next ), $html );
+		$this->assertStringNotContainsString( 'pirkoo__history', $html, 'no chart from a single point' );
 		$this->assertStringNotContainsString( 'since the previous scan', $html, 'no invented trend' );
 	}
 
@@ -119,37 +119,37 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$this->respond( 'GET', '/v1/results', 200, $this->ready_results( 'scanning' ) );
 		$html = $this->render_page();
 
-		$this->assertSame( 1, substr_count( $html, 'class="tobd__progress"' ), 'one status bar' );
+		$this->assertSame( 1, substr_count( $html, 'class="pirkoo__progress"' ), 'one status bar' );
 		$this->assertStringContainsString( 'Scanning your store…', $html );
-		$this->assertStringContainsString( 'tobd__spinner', $html );
+		$this->assertStringContainsString( 'pirkoo__spinner', $html );
 		$this->assertStringContainsString( 'you&#039;re seeing your scan from', $html );
-		$this->assertStringNotContainsString( 'tobd__notice', $html, 'no second notice' );
-		$this->assertStringContainsString( 'data-tobd-refresh', $html );
-		$this->assertStringContainsString( '<span class="tobd__score-value">40</span>', $html );
+		$this->assertStringNotContainsString( 'pirkoo__notice', $html, 'no second notice' );
+		$this->assertStringContainsString( 'data-pirkoo-refresh', $html );
+		$this->assertStringContainsString( '<span class="pirkoo__score-value">40</span>', $html );
 	}
 
 	public function test_a_requested_scan_shows_one_status_bar_not_two_notices() {
 		$this->respond( 'GET', '/v1/results', 200, $this->ready_results() );
-		$_GET['obd_result'] = 'queued';
+		$_GET['pirkoo_result'] = 'queued';
 		try {
 			$html = $this->render_page();
 		} finally {
-			unset( $_GET['obd_result'] );
+			unset( $_GET['pirkoo_result'] );
 		}
 
-		$this->assertSame( 1, substr_count( $html, 'class="tobd__progress"' ) );
+		$this->assertSame( 1, substr_count( $html, 'class="pirkoo__progress"' ) );
 		$this->assertStringNotContainsString( 'Scan requested', $html );
-		$this->assertStringNotContainsString( 'tobd__scanbar', $html, 'no scan button while scanning' );
+		$this->assertStringNotContainsString( 'pirkoo__scanbar', $html, 'no scan button while scanning' );
 	}
 
 	public function test_the_page_lives_at_pirkoo() {
-		$this->assertSame( admin_url( 'admin.php?page=pirkoo' ), tvarkom_obd_page_url() );
+		$this->assertSame( admin_url( 'admin.php?page=pirkoo' ), pirkoo_page_url() );
 	}
 
 	public function test_assets_change_url_when_their_files_change() {
-		$version = tvarkom_obd_asset_version( 'assets/admin.css' );
-		$this->assertSame( TVARKOM_OBD_VERSION . '.' . filemtime( dirname( __DIR__ ) . '/assets/admin.css' ), $version );
-		$this->assertSame( TVARKOM_OBD_VERSION, tvarkom_obd_asset_version( 'assets/missing.css' ) );
+		$version = pirkoo_asset_version( 'assets/admin.css' );
+		$this->assertSame( PIRKOO_VERSION . '.' . filemtime( dirname( __DIR__ ) . '/assets/admin.css' ), $version );
+		$this->assertSame( PIRKOO_VERSION, pirkoo_asset_version( 'assets/missing.css' ) );
 	}
 
 	public function test_a_failed_scan_can_be_scanned_again() {
@@ -159,16 +159,16 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$html = $this->render_page();
 
 		$this->assertStringContainsString( 'couldn&#039;t be completed', $html );
-		$this->assertMatchesRegularExpression( '/<button type="submit" class="tobd__btn"\s*>Scan now/', $html, 'enabled' );
+		$this->assertMatchesRegularExpression( '/<button type="submit" class="pirkoo__btn"\s*>Scan now/', $html, 'enabled' );
 	}
 
 	public function test_the_scan_button_waits_for_the_week() {
 		$this->respond( 'GET', '/v1/results', 200, $this->ready_results() );
 		$html = $this->render_page();
 
-		$this->assertMatchesRegularExpression( '/<button type="submit" class="tobd__btn"\s*disabled=\'disabled\'\s*>Scan now/', $html );
+		$this->assertMatchesRegularExpression( '/<button type="submit" class="pirkoo__btn"\s*disabled=\'disabled\'\s*>Scan now/', $html );
 		$this->assertStringContainsString( 'Your next scan is available on', $html );
-		$this->assertStringContainsString( 'name="action" value="tvarkom_obd_scan"', $html );
+		$this->assertStringContainsString( 'name="action" value="pirkoo_scan"', $html );
 	}
 
 	public function test_a_replaced_key_offers_to_connect_again() {
@@ -176,7 +176,7 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$html = $this->render_page();
 
 		$this->assertStringContainsString( 'Connect again', $html );
-		$this->assertStringContainsString( 'tobd-connect-form', $html );
+		$this->assertStringContainsString( 'pirkoo-connect-form', $html );
 	}
 
 	public function test_unreachable_results_say_so() {
@@ -200,7 +200,7 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 			'score'        => 50,
 		);
 
-		$parsed = tvarkom_obd_parse_results( $body );
+		$parsed = pirkoo_parse_results( $body );
 		$this->assertSame( 'none', $parsed['status'] );
 		$this->assertNull( $parsed['latest']['score'] );
 		$this->assertSame( '', $parsed['latest']['level'] );
@@ -215,7 +215,7 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$this->assertCount( 2, $parsed['history'] );
 
 		ob_start();
-		tvarkom_obd_render_dashboard( $parsed );
+		pirkoo_render_dashboard( $parsed );
 		$html = (string) ob_get_clean();
 		$this->assertStringNotContainsString( '<script>', $html );
 		$this->assertStringContainsString( '&lt;script&gt;', $html );
@@ -268,11 +268,11 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$html = $this->render_page();
 
 		$this->assertStringContainsString( 'Your store has serious speed problems.', $html );
-		$this->assertStringContainsString( '<h2 class="tobd__h2" id="tobd-score-title">Store health score</h2>', $html, 'the risk shows once, as the badge' );
+		$this->assertStringContainsString( '<h2 class="pirkoo__h2" id="pirkoo-score-title">Store health score</h2>', $html, 'the risk shows once, as the badge' );
 		$this->assertStringNotContainsString( 'Modelled sales at risk', $html, 'a stored estimate is no longer shown' );
 		$this->assertStringNotContainsString( 'Store performance risk: High', $html );
 		$this->assertStringNotContainsString( 'Full analysis', $html );
-		$this->assertStringContainsString( '<span class="tobd__status">Needs attention</span>', $html );
+		$this->assertStringContainsString( '<span class="pirkoo__status">Needs attention</span>', $html );
 		$this->assertStringContainsString( 'Homepage: &lt;b&gt;0.95 s&lt;/b&gt;', $html );
 		$this->assertStringNotContainsString( '<b>0.95', $html );
 		$this->assertStringContainsString( '<dt>Slow server</dt>', $html );
@@ -282,7 +282,7 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 	public function test_scans_before_0_2_0_have_no_analysis() {
 		$this->respond( 'GET', '/v1/results', 200, $this->ready_results() );
 		$this->assertStringNotContainsString( 'Full analysis', $this->render_page() );
-		$this->assertNull( tvarkom_obd_parse_analysis( array( 'schema' => 2 ) ) );
+		$this->assertNull( pirkoo_parse_analysis( array( 'schema' => 2 ) ) );
 	}
 
 	public function test_free_sections_are_charts_and_paid_ones_never_show() {
@@ -376,20 +376,20 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 
 		$this->assertStringNotContainsString( 'PAID-ONLY', $html, 'paid-version sections never show, even without a tier' );
 		$this->assertStringNotContainsString( 'Full analysis', $html );
-		$this->assertStringContainsString( 'class="tobd__stack"', $html, 'the order outcomes bar' );
-		$this->assertStringContainsString( 'id="tobd-store-title">Store profile', $html, 'the store profile widget' );
-		$this->assertStringNotContainsString( 'tobd-impact-title', $html, 'no revenue-at-risk card (removed 10 Nov 2026)' );
+		$this->assertStringContainsString( 'class="pirkoo__stack"', $html, 'the order outcomes bar' );
+		$this->assertStringContainsString( 'id="pirkoo-store-title">Store profile', $html, 'the store profile widget' );
+		$this->assertStringNotContainsString( 'pirkoo-impact-title', $html, 'no revenue-at-risk card (removed 10 Nov 2026)' );
 		$this->assertStringNotContainsString( 'Modelled sales at risk', $html, 'nor the estimate as text' );
 		$this->assertStringNotContainsString( 'Potential sales impact', $html );
-		$this->assertLessThan( strpos( $html, 'tobd-score-title' ), strpos( $html, 'tobd-summary-title' ), 'the store summary first' );
-		$this->assertLessThan( strpos( $html, 'tobd-trends-title' ), strpos( $html, 'tobd-score-title' ), 'then the score, … and the trends' );
-		$this->assertLessThan( strpos( $html, 'tobd-store-title' ), strpos( $html, 'tobd-trends-title' ), 'then the store profile in detail' );
+		$this->assertLessThan( strpos( $html, 'pirkoo-score-title' ), strpos( $html, 'pirkoo-summary-title' ), 'the store summary first' );
+		$this->assertLessThan( strpos( $html, 'pirkoo-trends-title' ), strpos( $html, 'pirkoo-score-title' ), 'then the score, … and the trends' );
+		$this->assertLessThan( strpos( $html, 'pirkoo-store-title' ), strpos( $html, 'pirkoo-trends-title' ), 'then the store profile in detail' );
 		$this->assertStringContainsString( '<dt>Checkout</dt><dd>Checkout block</dd>', $html, 'the checkout in the summary' );
 		$this->assertStringContainsString( '<dt>Order storage</dt><dd>Order tables (HPOS)</dd>', $html, 'order storage in plain words' );
 		$this->assertStringContainsString( 'What these terms mean', $html, 'with the store sizes and HPOS explained' );
 		$this->assertStringContainsString( '300 to 899 (10 to 29 a day)', $html );
 		$this->assertStringContainsString( '<dt>Failed at payment</dt><dd title="3%">3%</dd>', $html, 'failed orders stay, as counted' );
-		$this->assertStringContainsString( '<div class="tobd__mini--wide"><dt>Gross sales</dt>', $html, 'a sales range takes two tiles, without wrapping' );
+		$this->assertStringContainsString( '<div class="pirkoo__mini--wide"><dt>Gross sales</dt>', $html, 'a sales range takes two tiles, without wrapping' );
 		$this->assertStringContainsString( '<li>Stripe</li>', $html );
 		$this->assertStringContainsString( '&lt;b&gt;50 €&lt;/b&gt;', $html );
 		$this->assertStringNotContainsString( 'Paid and on-hold orders in the last 30 days: 312', $html, 'the sales sentences become the figures' );
@@ -442,9 +442,9 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 	}
 
 	public function test_the_score_says_how_many_checks_it_is_based_on() {
-		$this->assertNull( tvarkom_obd_parse_scoring( array( 'model' => 2 ) ), 'incomplete' );
+		$this->assertNull( pirkoo_parse_scoring( array( 'model' => 2 ) ), 'incomplete' );
 		$this->assertNull(
-			tvarkom_obd_parse_scoring(
+			pirkoo_parse_scoring(
 				array(
 					'model'          => 2,
 					'total'          => 44,
@@ -516,17 +516,17 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$html = $this->render_page();
 
 		$this->assertStringContainsString( 'Scanner pipeline', $html );
-		$this->assertStringNotContainsString( 'tobd__pipeline-legend', $html, 'no captions' );
-		$this->assertStringContainsString( '<h3 class="tobd__stage-name">', $html, 'each stage is a card with its name as the title' );
-		$this->assertStringContainsString( 'tobd__job-action', $html, 'each job has its round button, as in GitLab' );
-		$this->assertStringContainsString( 'tobd__job--red', $html );
-		$this->assertStringContainsString( 'aria-controls="tobd-job-0-0"', $html );
-		$this->assertStringContainsString( 'id="tobd-job-0-0"', $html );
+		$this->assertStringNotContainsString( 'pirkoo__pipeline-legend', $html, 'no captions' );
+		$this->assertStringContainsString( '<h3 class="pirkoo__stage-name">', $html, 'each stage is a card with its name as the title' );
+		$this->assertStringContainsString( 'pirkoo__job-action', $html, 'each job has its round button, as in GitLab' );
+		$this->assertStringContainsString( 'pirkoo__job--red', $html );
+		$this->assertStringContainsString( 'aria-controls="pirkoo-job-0-0"', $html );
+		$this->assertStringContainsString( 'id="pirkoo-job-0-0"', $html );
 		$this->assertStringContainsString( '<dd>0.95 s</dd>', $html );
 		$this->assertStringContainsString( '<dd>−40</dd>', $html );
-		$this->assertStringContainsString( 'tobd__job--grey', $html, 'an unknown colour is grey' );
+		$this->assertStringContainsString( 'pirkoo__job--grey', $html, 'an unknown colour is grey' );
 		$this->assertStringNotContainsString( '<script>x', $html );
-		$this->assertStringNotContainsString( 'tobd-speed-title', $html, 'the pipeline replaces the metric panels' );
+		$this->assertStringNotContainsString( 'pirkoo-speed-title', $html, 'the pipeline replaces the metric panels' );
 	}
 
 	/**
@@ -566,24 +566,24 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 	}
 
 	public function test_priority_findings_are_every_problem_by_points_lost() {
-		$stages   = tvarkom_obd_parse_pipeline(
+		$stages   = pirkoo_parse_pipeline(
 			$this->pipeline_of(
 				array(
-					array( 'orange', 20 ),  // Job 0, tobd-job-0-0.
-					array( 'red', 20 ),     // Job 1, tobd-job-0-1.
-					array( 'yellow', 2 ),   // Job 2, tobd-job-0-2.
-					array( 'red', 40 ),     // Job 3, tobd-job-0-3.
-					array( 'orange', null ), // Job 4, tobd-job-1-0.
+					array( 'orange', 20 ),  // Job 0, pirkoo-job-0-0.
+					array( 'red', 20 ),     // Job 1, pirkoo-job-0-1.
+					array( 'yellow', 2 ),   // Job 2, pirkoo-job-0-2.
+					array( 'red', 40 ),     // Job 3, pirkoo-job-0-3.
+					array( 'orange', null ), // Job 4, pirkoo-job-1-0.
 					array( 'green', null ),
-					array( 'red', 20 ),     // Job 6, tobd-job-1-2.
+					array( 'red', 20 ),     // Job 6, pirkoo-job-1-2.
 					array( 'grey', null ),
 				)
 			)
 		);
-		$findings = tvarkom_obd_priority_findings( $stages );
+		$findings = pirkoo_priority_findings( $stages );
 
 		$this->assertSame( array( 'Job 3', 'Job 1', 'Job 6', 'Job 0', 'Job 2', 'Job 4' ), wp_list_pluck( wp_list_pluck( $findings, 'job' ), 'name' ), 'most points first, then the worst colour, then the pipeline order; minor issues too' );
-		$this->assertSame( array( 'tobd-job-0-3', 'tobd-job-0-1', 'tobd-job-1-2', 'tobd-job-0-0', 'tobd-job-0-2', 'tobd-job-1-0' ), wp_list_pluck( $findings, 'panel' ), 'the panel ids the pipeline gives its jobs' );
+		$this->assertSame( array( 'pirkoo-job-0-3', 'pirkoo-job-0-1', 'pirkoo-job-1-2', 'pirkoo-job-0-0', 'pirkoo-job-0-2', 'pirkoo-job-1-0' ), wp_list_pluck( $findings, 'panel' ), 'the panel ids the pipeline gives its jobs' );
 		$this->assertSame(
 			array(
 				'red'    => 3,
@@ -592,7 +592,7 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 				'green'  => 1,
 				'grey'   => 1,
 			),
-			tvarkom_obd_pipeline_counts( $stages )
+			pirkoo_pipeline_counts( $stages )
 		);
 	}
 
@@ -612,16 +612,16 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 		$this->respond( 'GET', '/v1/results', 200, $body );
 		$html = $this->render_page();
 
-		$this->assertStringContainsString( 'id="tobd-attention-title">Needs attention', $html );
-		$this->assertSame( 5, substr_count( $html, 'class="tobd__finding"' ), 'five at most' );
-		$this->assertStringContainsString( 'href="#tobd-job-1-2" data-tobd-job="tobd-job-1-2"', $html, 'the worst (16 points) links to its panel' );
-		$this->assertStringContainsString( 'aria-controls="tobd-job-1-2"', $html, 'and that panel is the job\'s in the pipeline' );
+		$this->assertStringContainsString( 'id="pirkoo-attention-title">Needs attention', $html );
+		$this->assertSame( 5, substr_count( $html, 'class="pirkoo__finding"' ), 'five at most' );
+		$this->assertStringContainsString( 'href="#pirkoo-job-1-2" data-pirkoo-job="pirkoo-job-1-2"', $html, 'the worst (16 points) links to its panel' );
+		$this->assertStringContainsString( 'aria-controls="pirkoo-job-1-2"', $html, 'and that panel is the job\'s in the pipeline' );
 		$this->assertStringContainsString( '6 s (reference 0.30 s or less)', $html, 'what was measured against the reference' );
 		$this->assertStringContainsString( '−16', $html );
 		$this->assertStringContainsString( '3 more checks with a problem', $html, 'the seven red and the yellow one: eight problems, five shown' );
 		$this->assertStringContainsString( '<strong>7</strong> Critical', $html );
 		$this->assertStringContainsString( '8 checks in 2 stages', $html, 'the summary says how many checks ran' );
-		$this->assertLessThan( strpos( $html, 'tobd-pipeline-title' ), strpos( $html, 'tobd-attention-title' ), 'the overview comes before the pipeline' );
+		$this->assertLessThan( strpos( $html, 'pirkoo-pipeline-title' ), strpos( $html, 'pirkoo-attention-title' ), 'the overview comes before the pipeline' );
 	}
 
 	public function test_no_finding_says_so_and_scans_without_a_pipeline_have_no_attention_panel() {
@@ -644,7 +644,7 @@ class Tvarkom_OBD_Dashboard_Test extends Tvarkom_OBD_Test_Case {
 
 		$this->respond( 'GET', '/v1/results', 200, $this->ready_results() );
 		$html = $this->render_page();
-		$this->assertStringNotContainsString( 'tobd-attention-title', $html );
-		$this->assertStringContainsString( 'tobd-lost-title', $html, 'scans before the pipeline show the points lost instead' );
+		$this->assertStringNotContainsString( 'pirkoo-attention-title', $html );
+		$this->assertStringContainsString( 'pirkoo-lost-title', $html, 'scans before the pipeline show the points lost instead' );
 	}
 }

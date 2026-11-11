@@ -5,7 +5,7 @@
  * (in the store's currency, for the report only): no customer data, no order contents. Every query is a COUNT/SUM on an indexed column
  * or a read of the table sizes MySQL already keeps, so it's light even on shared hosting.
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -19,10 +19,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @return array<string, mixed>
  */
-function tvarkom_obd_collect_metrics() {
-	$sizes     = tvarkom_obd_table_sizes();
-	$scheduler = tvarkom_obd_scheduler_counts();
-	$cron      = tvarkom_obd_cron_overdue_seconds();
+function pirkoo_collect_metrics() {
+	$sizes     = pirkoo_table_sizes();
+	$scheduler = pirkoo_scheduler_counts();
+	$cron      = pirkoo_cron_overdue_seconds();
 
 	$technical = array(
 		'schema'                      => 3,
@@ -31,19 +31,19 @@ function tvarkom_obd_collect_metrics() {
 		'woocommerce_version'         => defined( 'WC_VERSION' ) ? WC_VERSION : null,
 		'options_table_size_mb'       => $sizes['options'],
 		'database_size_mb'            => $sizes['total'],
-		'autoloaded_kb'               => tvarkom_obd_autoloaded_kb(),
-		'active_plugin_count'         => tvarkom_obd_active_plugin_count(),
+		'autoloaded_kb'               => pirkoo_autoloaded_kb(),
+		'active_plugin_count'         => pirkoo_active_plugin_count(),
 		'object_cache_enabled'        => (bool) wp_using_ext_object_cache(),
-		'object_cache_type'           => tvarkom_obd_object_cache_type(),
+		'object_cache_type'           => pirkoo_object_cache_type(),
 		'action_scheduler_pending'    => $scheduler['pending'],
 		'action_scheduler_past_due'   => $scheduler['past_due'],
 		'action_scheduler_failed'     => $scheduler['failed'],
 		'action_scheduler_failed_7d'  => $scheduler['failed_7d'],
 		'cron_disabled'               => defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON,
 		'cron_oldest_overdue_seconds' => $cron,
-		'order_tier'                  => tvarkom_obd_order_tier(),
+		'order_tier'                  => pirkoo_order_tier(),
 	);
-	return array_merge( $technical, tvarkom_obd_collect_business() );
+	return array_merge( $technical, pirkoo_collect_business() );
 }
 
 /**
@@ -51,7 +51,7 @@ function tvarkom_obd_collect_metrics() {
  *
  * @return array{options: float|null, total: float|null}
  */
-function tvarkom_obd_table_sizes() {
+function pirkoo_table_sizes() {
 	global $wpdb;
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- one read of table metadata per audit.
 	$rows = $wpdb->get_results(
@@ -89,7 +89,7 @@ function tvarkom_obd_table_sizes() {
  *
  * @return float
  */
-function tvarkom_obd_autoloaded_kb() {
+function pirkoo_autoloaded_kb() {
 	global $wpdb;
 	// WordPress 6.6+ stores several "autoload" values; older versions use "yes".
 	$values       = function_exists( 'wp_autoload_values_to_autoload' ) ? wp_autoload_values_to_autoload() : array( 'yes' );
@@ -107,7 +107,7 @@ function tvarkom_obd_autoloaded_kb() {
  *
  * @return int
  */
-function tvarkom_obd_active_plugin_count() {
+function pirkoo_active_plugin_count() {
 	$count = count( (array) get_option( 'active_plugins', array() ) );
 	if ( is_multisite() ) {
 		$count += count( (array) get_site_option( 'active_sitewide_plugins', array() ) );
@@ -120,7 +120,7 @@ function tvarkom_obd_active_plugin_count() {
  *
  * @return string None | Redis | Memcached | Unknown
  */
-function tvarkom_obd_object_cache_type() {
+function pirkoo_object_cache_type() {
 	if ( ! wp_using_ext_object_cache() ) {
 		return 'None';
 	}
@@ -141,7 +141,7 @@ function tvarkom_obd_object_cache_type() {
  *
  * @return array{pending: int, past_due: int, failed: int, failed_7d: int}
  */
-function tvarkom_obd_scheduler_counts() {
+function pirkoo_scheduler_counts() {
 	$counts = array(
 		'pending'   => 0,
 		'past_due'  => 0,
@@ -180,7 +180,7 @@ function tvarkom_obd_scheduler_counts() {
  *
  * @return int
  */
-function tvarkom_obd_cron_overdue_seconds() {
+function pirkoo_cron_overdue_seconds() {
 	$crons = function_exists( '_get_cron_array' ) ? _get_cron_array() : array();
 	if ( empty( $crons ) ) {
 		return 0;
@@ -194,8 +194,8 @@ function tvarkom_obd_cron_overdue_seconds() {
  *
  * @return string 0-10 | 10-50 | 50-200 | 200-1000 | 1000+
  */
-function tvarkom_obd_order_tier() {
-	$orders = tvarkom_obd_paid_orders_30d();
+function pirkoo_order_tier() {
+	$orders = pirkoo_paid_orders_30d();
 
 	if ( $orders < 10 ) {
 		return '0-10';

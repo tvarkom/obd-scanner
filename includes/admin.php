@@ -3,7 +3,7 @@
  * The admin page (WooCommerce → Pirkoo): before connecting, what the plugin does and sends,
  * and the "Connect and scan" button; after, the dashboard or the scan in progress.
  *
- * @package OBDScanner
+ * @package Pirkoo
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -15,14 +15,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @return void
  */
-function tvarkom_obd_admin_menu() {
+function pirkoo_admin_menu() {
 	add_submenu_page(
 		'woocommerce',
 		__( 'Pirkoo', 'pirkoo' ),
 		__( 'Pirkoo', 'pirkoo' ),
 		'manage_woocommerce',
-		TVARKOM_OBD_PAGE,
-		'tvarkom_obd_render_page'
+		PIRKOO_PAGE,
+		'pirkoo_render_page'
 	);
 }
 
@@ -31,22 +31,8 @@ function tvarkom_obd_admin_menu() {
  *
  * @return string
  */
-function tvarkom_obd_page_url() {
-	return admin_url( 'admin.php?page=' . TVARKOM_OBD_PAGE );
-}
-
-/**
- * Sends the page's earlier addresses (admin.php?page=obd-scanner before the plugin was called Pirkoo,
- * and page=tvarkom-obd in 0.1.0) to the current one, so bookmarks and old links keep working.
- *
- * @return void
- */
-function tvarkom_obd_redirect_old_page() {
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only compares the page name; nothing is changed.
-	if ( isset( $_GET['page'] ) && in_array( $_GET['page'], array( 'tvarkom-obd', 'obd-scanner' ), true ) ) {
-		wp_safe_redirect( tvarkom_obd_page_url() );
-		exit;
-	}
+function pirkoo_page_url() {
+	return admin_url( 'admin.php?page=' . PIRKOO_PAGE );
 }
 
 /**
@@ -56,8 +42,8 @@ function tvarkom_obd_redirect_old_page() {
  * @param string $file File name in legal/: terms-of-use.txt or privacy-policy.txt.
  * @return string
  */
-function tvarkom_obd_legal_url( $file ) {
-	return plugins_url( 'legal/' . $file, TVARKOM_OBD_FILE );
+function pirkoo_legal_url( $file ) {
+	return plugins_url( 'legal/' . $file, PIRKOO_FILE );
 }
 
 /**
@@ -66,9 +52,9 @@ function tvarkom_obd_legal_url( $file ) {
  * @param array<int|string, string> $links The plugin's action links.
  * @return array<int|string, string>
  */
-function tvarkom_obd_plugin_action_links( $links ) {
+function pirkoo_plugin_action_links( $links ) {
 	if ( current_user_can( 'manage_woocommerce' ) ) {
-		array_unshift( $links, '<a href="' . esc_url( tvarkom_obd_page_url() ) . '">' . esc_html__( 'Dashboard', 'pirkoo' ) . '</a>' );
+		array_unshift( $links, '<a href="' . esc_url( pirkoo_page_url() ) . '">' . esc_html__( 'Dashboard', 'pirkoo' ) . '</a>' );
 	}
 	return $links;
 }
@@ -78,7 +64,7 @@ function tvarkom_obd_plugin_action_links( $links ) {
  *
  * @return array<string, array{0: string, 1: string}> Code => [notice type, message].
  */
-function tvarkom_obd_messages() {
+function pirkoo_messages() {
 	$try_later = __( 'Try again later. If it keeps happening, email support@pirkoo.com.', 'pirkoo' );
 	return array(
 		'queued'                 => array( 'success', __( 'Scan requested. Your store is being scanned now; the results appear here in a few minutes.', 'pirkoo' ) ),
@@ -86,16 +72,16 @@ function tvarkom_obd_messages() {
 		'scan_running'           => array( 'info', __( 'A scan request for this store is already being sent. Reload this page in a minute.', 'pirkoo' ) ),
 		'invalid_website'        => array( 'error', __( 'This store can\'t be scanned: its address must be a public https domain, not localhost or an IP address.', 'pirkoo' ) ),
 		'invalid_verify_url'     => array( 'error', __( 'This store can\'t be connected: its REST API is on a different domain than the store.', 'pirkoo' ) ),
-		'invalid_email'          => array( 'error', __( 'tvarkom couldn\'t accept this site\'s admin email address (Settings → General). Use an address you read, then connect again.', 'pirkoo' ) ),
-		'verification_failed'    => array( 'error', __( 'We couldn\'t confirm this domain. tvarkom needs to reach /wp-json/tvarkom-obd/v1/verify on your store: check that a security plugin or firewall isn\'t blocking the WordPress REST API, then connect again.', 'pirkoo' ) ),
+		'invalid_email'          => array( 'error', __( 'Pirkoo couldn\'t accept this site\'s admin email address (Settings → General). Use an address you read, then connect again.', 'pirkoo' ) ),
+		'verification_failed'    => array( 'error', __( 'We couldn\'t confirm this domain. Pirkoo needs to reach /wp-json/pirkoo/v1/verify on your store: check that a security plugin or firewall isn\'t blocking the WordPress REST API, then connect again.', 'pirkoo' ) ),
 		'registration_not_found' => array( 'error', __( 'The connection timed out. Click Connect and scan again.', 'pirkoo' ) ),
-		'invalid_key'            => array( 'error', __( 'This store\'s connection to tvarkom was replaced or revoked.', 'pirkoo' ) ),
+		'invalid_key'            => array( 'error', __( 'This store\'s connection to Pirkoo was replaced or revoked.', 'pirkoo' ) ),
 		'website_not_allowed'    => array( 'error', __( 'This store\'s address changed since it was connected.', 'pirkoo' ) ),
 		'client_disabled'        => array( 'error', __( 'Scans are paused for this store. Email support@pirkoo.com.', 'pirkoo' ) ),
 		'rate_limited'           => array( 'error', __( 'Too many scans or connections for this store today.', 'pirkoo' ) . ' ' . $try_later ),
 		'not_woocommerce'        => array( 'error', __( 'Our scanner couldn\'t find WooCommerce on your public homepage. Check that your store isn\'t in maintenance mode or behind a password.', 'pirkoo' ) ),
 		'busy'                   => array( 'error', __( 'The scanner is busy right now.', 'pirkoo' ) . ' ' . $try_later ),
-		'network'                => array( 'error', __( 'Couldn\'t reach tvarkom. Check that your server can make outgoing HTTPS requests.', 'pirkoo' ) . ' ' . $try_later ),
+		'network'                => array( 'error', __( 'Couldn\'t reach Pirkoo. Check that your server can make outgoing HTTPS requests.', 'pirkoo' ) . ' ' . $try_later ),
 		'server'                 => array( 'error', __( 'Something went wrong on our side.', 'pirkoo' ) . ' ' . $try_later ),
 	);
 }
@@ -105,37 +91,37 @@ function tvarkom_obd_messages() {
  *
  * @return void
  */
-function tvarkom_obd_render_page() {
+function pirkoo_render_page() {
 	if ( ! current_user_can( 'manage_woocommerce' ) ) {
 		return;
 	}
-	$messages = tvarkom_obd_messages();
-	// Read-only display: the result code set by tvarkom_obd_handle_scan(), validated against the known codes.
+	$messages = pirkoo_messages();
+	// Read-only display: the result code set by pirkoo_handle_scan(), validated against the known codes.
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	$notice = isset( $_GET['obd_result'] ) ? sanitize_key( wp_unslash( $_GET['obd_result'] ) ) : '';
+	$notice = isset( $_GET['pirkoo_result'] ) ? sanitize_key( wp_unslash( $_GET['pirkoo_result'] ) ) : '';
 	if ( '' !== $notice && ! isset( $messages[ $notice ] ) ) {
 		$notice = 'server'; // A code this version has no text for still says the request didn't go through.
 	}
 	?>
-	<div class="wrap tobd">
+	<div class="wrap pirkoo">
 		<hr class="wp-header-end">
-		<header class="tobd__header">
-			<h1 class="tobd__title"><?php esc_html_e( 'Pirkoo', 'pirkoo' ); ?></h1>
-			<p class="tobd__store"><?php echo esc_html( (string) wp_parse_url( home_url(), PHP_URL_HOST ) ); ?></p>
+		<header class="pirkoo__header">
+			<h1 class="pirkoo__title"><?php esc_html_e( 'Pirkoo', 'pirkoo' ); ?></h1>
+			<p class="pirkoo__store"><?php echo esc_html( (string) wp_parse_url( home_url(), PHP_URL_HOST ) ); ?></p>
 		</header>
 		<?php
-		$connected = tvarkom_obd_is_connected();
+		$connected = pirkoo_is_connected();
 		// Once connected, a requested scan shows as the scan's own status, not as a second notice.
 		if ( isset( $messages[ $notice ] ) && ! ( $connected && 'queued' === $notice ) ) {
-			tvarkom_obd_render_notice( $messages[ $notice ][0], $messages[ $notice ][1] );
+			pirkoo_render_notice( $messages[ $notice ][0], $messages[ $notice ][1] );
 		}
 		if ( $connected ) {
-			tvarkom_obd_render_connected( 'queued' === $notice );
+			pirkoo_render_connected( 'queued' === $notice );
 		} else {
-			tvarkom_obd_render_connect( false );
+			pirkoo_render_connect( false );
 		}
 		?>
-		<p class="tobd__footer"><?php esc_html_e( 'Help: support@pirkoo.com · Privacy requests: privacy@pirkoo.com', 'pirkoo' ); ?></p>
+		<p class="pirkoo__footer"><?php esc_html_e( 'Help: support@pirkoo.com · Privacy requests: privacy@pirkoo.com', 'pirkoo' ); ?></p>
 	</div>
 	<?php
 }
@@ -147,44 +133,44 @@ function tvarkom_obd_render_page() {
  * @param string $text The message.
  * @return void
  */
-function tvarkom_obd_render_notice( $type, $text ) {
-	echo '<div class="notice notice-' . esc_attr( $type ) . ' inline tobd__notice"><p>' . esc_html( $text ) . '</p></div>';
+function pirkoo_render_notice( $type, $text ) {
+	echo '<div class="notice notice-' . esc_attr( $type ) . ' inline pirkoo__notice"><p>' . esc_html( $text ) . '</p></div>';
 }
 
 /**
- * The page once connected: the results from tvarkom, or what's happening, and the scan button.
+ * The page once connected: the results from Pirkoo, or what's happening, and the scan button.
  *
- * @param bool $requested Whether a scan was requested just now (tvarkom accepted it).
+ * @param bool $requested Whether a scan was requested just now (Pirkoo accepted it).
  * @return void
  */
-function tvarkom_obd_render_connected( $requested = false ) {
-	$results = tvarkom_obd_fetch_results();
+function pirkoo_render_connected( $requested = false ) {
+	$results = pirkoo_fetch_results();
 
 	if ( is_string( $results ) ) {
 		if ( 'invalid_key' === $results || 'website_not_allowed' === $results ) {
 			// The next scan registers again; the admin can do it now.
-			$messages = tvarkom_obd_messages();
-			tvarkom_obd_render_notice( 'warning', $messages[ $results ][1] . ' ' . __( 'Connect again to keep your results up to date.', 'pirkoo' ) );
-			tvarkom_obd_render_connect( true );
+			$messages = pirkoo_messages();
+			pirkoo_render_notice( 'warning', $messages[ $results ][1] . ' ' . __( 'Connect again to keep your results up to date.', 'pirkoo' ) );
+			pirkoo_render_connect( true );
 			return;
 		}
-		tvarkom_obd_render_notice( 'error', __( 'Your results couldn\'t be loaded from tvarkom right now. Reload this page in a few minutes.', 'pirkoo' ) );
+		pirkoo_render_notice( 'error', __( 'Your results couldn\'t be loaded from Pirkoo right now. Reload this page in a few minutes.', 'pirkoo' ) );
 		return;
 	}
 
 	if ( null === $results['latest'] ) {
-		tvarkom_obd_render_waiting( $results['status'], $results['next_scan_at'] );
+		pirkoo_render_waiting( $results['status'], $results['next_scan_at'] );
 		return;
 	}
 	if ( 'scanning' === $results['status'] || ( $requested && 'ready' === $results['status'] ) ) {
-		tvarkom_obd_render_scan_progress( (int) $results['latest']['completed_at'] );
+		pirkoo_render_scan_progress( (int) $results['latest']['completed_at'] );
 	} else {
 		if ( 'failed' === $results['status'] ) {
-			tvarkom_obd_render_notice( 'warning', __( 'The latest scan couldn\'t be completed, so these are the results of the one before. A failed scan doesn\'t count: you can scan again now.', 'pirkoo' ) );
+			pirkoo_render_notice( 'warning', __( 'The latest scan couldn\'t be completed, so these are the results of the one before. A failed scan doesn\'t count: you can scan again now.', 'pirkoo' ) );
 		}
-		tvarkom_obd_render_scan_button( $results['next_scan_at'] );
+		pirkoo_render_scan_button( $results['next_scan_at'] );
 	}
-	tvarkom_obd_render_dashboard( $results );
+	pirkoo_render_dashboard( $results );
 }
 
 /**
@@ -194,19 +180,19 @@ function tvarkom_obd_render_connected( $requested = false ) {
  * @param int $shown When the scan on the page completed (Unix seconds).
  * @return void
  */
-function tvarkom_obd_render_scan_progress( $shown ) {
+function pirkoo_render_scan_progress( $shown ) {
 	?>
-	<div class="tobd__progress" data-tobd-refresh="1" role="status">
-		<span class="tobd__spinner" aria-hidden="true"></span>
+	<div class="pirkoo__progress" data-pirkoo-refresh="1" role="status">
+		<span class="pirkoo__spinner" aria-hidden="true"></span>
 		<div>
-			<p class="tobd__progress-title"><?php esc_html_e( 'Scanning your store…', 'pirkoo' ); ?></p>
+			<p class="pirkoo__progress-title"><?php esc_html_e( 'Scanning your store…', 'pirkoo' ); ?></p>
 			<p>
 				<?php
 				echo esc_html(
 					sprintf(
 						/* translators: %s: date and time of the scan shown on the page. */
 						__( 'This usually takes 2 to 5 minutes, and this page updates itself when it\'s done. Until then, you\'re seeing your scan from %s.', 'pirkoo' ),
-						tvarkom_obd_datetime( $shown )
+						pirkoo_datetime( $shown )
 					)
 				);
 				?>
@@ -221,19 +207,19 @@ function tvarkom_obd_render_scan_progress( $shown ) {
  * last result code, with the scan button.
  *
  * @param string $status  The gateway's status: none, scanning or failed.
- * @param int    $allowed When tvarkom allows the next scan (Unix seconds, 0: now).
+ * @param int    $allowed When Pirkoo allows the next scan (Unix seconds, 0: now).
  * @return void
  */
-function tvarkom_obd_render_waiting( $status, $allowed ) {
-	$last     = tvarkom_obd_settings()['last'];
+function pirkoo_render_waiting( $status, $allowed ) {
+	$last     = pirkoo_settings()['last'];
 	$code     = isset( $last['code'] ) ? (string) $last['code'] : '';
-	$messages = tvarkom_obd_messages();
+	$messages = pirkoo_messages();
 
 	if ( 'scanning' === $status || ( 'none' === $status && 'queued' === $code ) ) {
 		?>
-		<section class="tobd__panel tobd__waiting" data-tobd-refresh="1" aria-live="polite">
-			<span class="tobd__spinner" aria-hidden="true"></span>
-			<h2 class="tobd__h2"><?php esc_html_e( 'Scanning your store', 'pirkoo' ); ?></h2>
+		<section class="pirkoo__panel pirkoo__waiting" data-pirkoo-refresh="1" aria-live="polite">
+			<span class="pirkoo__spinner" aria-hidden="true"></span>
+			<h2 class="pirkoo__h2"><?php esc_html_e( 'Scanning your store', 'pirkoo' ); ?></h2>
 			<p><?php esc_html_e( 'Our scanner is loading your homepage, cart and checkout like a shopper would. This usually takes 2 to 5 minutes. This page updates itself; you can also leave and come back later.', 'pirkoo' ); ?></p>
 		</section>
 		<?php
@@ -248,34 +234,34 @@ function tvarkom_obd_render_waiting( $status, $allowed ) {
 		$text = __( 'Scan your store to see its results here.', 'pirkoo' );
 	}
 	?>
-	<section class="tobd__panel tobd__waiting">
-		<h2 class="tobd__h2"><?php esc_html_e( 'No results yet', 'pirkoo' ); ?></h2>
+	<section class="pirkoo__panel pirkoo__waiting">
+		<h2 class="pirkoo__h2"><?php esc_html_e( 'No results yet', 'pirkoo' ); ?></h2>
 		<p><?php echo esc_html( $text ); ?></p>
 	</section>
 	<?php
-	tvarkom_obd_render_scan_button( $allowed );
+	pirkoo_render_scan_button( $allowed );
 }
 
 /**
- * The scan button: enabled when tvarkom allows a scan, otherwise disabled with the date of the
+ * The scan button: enabled when Pirkoo allows a scan, otherwise disabled with the date of the
  * next one (one scan a week).
  *
- * @param int $allowed When tvarkom allows the next scan (Unix seconds, 0: now).
+ * @param int $allowed When Pirkoo allows the next scan (Unix seconds, 0: now).
  * @return void
  */
-function tvarkom_obd_render_scan_button( $allowed ) {
+function pirkoo_render_scan_button( $allowed ) {
 	$wait = $allowed > time();
 	?>
-	<form class="tobd__scanbar tobd-scan-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-		<input type="hidden" name="action" value="tvarkom_obd_scan">
-		<?php wp_nonce_field( 'tvarkom_obd_scan' ); ?>
-		<button type="submit" class="tobd__btn" <?php disabled( $wait ); ?>><?php esc_html_e( 'Scan now', 'pirkoo' ); ?></button>
-		<p class="tobd__meta">
+	<form class="pirkoo__scanbar pirkoo-scan-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+		<input type="hidden" name="action" value="pirkoo_scan">
+		<?php wp_nonce_field( 'pirkoo_scan' ); ?>
+		<button type="submit" class="pirkoo__btn" <?php disabled( $wait ); ?>><?php esc_html_e( 'Scan now', 'pirkoo' ); ?></button>
+		<p class="pirkoo__meta">
 			<?php
 			echo esc_html(
 				$wait
 					/* translators: %s: date and time. */
-					? sprintf( __( 'You can scan your store once a week. Your next scan is available on %s.', 'pirkoo' ), tvarkom_obd_datetime( $allowed ) )
+					? sprintf( __( 'You can scan your store once a week. Your next scan is available on %s.', 'pirkoo' ), pirkoo_datetime( $allowed ) )
 					: __( 'You can scan your store once a week.', 'pirkoo' )
 			);
 			?>
@@ -291,7 +277,7 @@ function tvarkom_obd_render_scan_button( $allowed ) {
  * @param bool $reconnect Whether the store was connected before.
  * @return void
  */
-function tvarkom_obd_render_connect( $reconnect ) {
+function pirkoo_render_connect( $reconnect ) {
 	$checks = array(
 		__( 'Server response of your homepage, cart and checkout', 'pirkoo' ),
 		__( 'Homepage weight, files and browser caching', 'pirkoo' ),
@@ -304,28 +290,28 @@ function tvarkom_obd_render_connect( $reconnect ) {
 	);
 	$link   = '<a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>';
 	?>
-	<section class="tobd__panel tobd__connect" aria-labelledby="tobd-connect-title">
+	<section class="pirkoo__panel pirkoo__connect" aria-labelledby="pirkoo-connect-title">
 		<?php if ( ! $reconnect ) : ?>
-			<h2 class="tobd__h2 tobd__lead-title" id="tobd-connect-title"><?php esc_html_e( 'See how healthy your store is', 'pirkoo' ); ?></h2>
-			<p class="tobd__lead"><?php esc_html_e( 'Pirkoo connects your store to tvarkom\'s free scanner. It measures your store from outside, like a shopper\'s browser, adds a few figures from inside WordPress, and shows the results here: a score, where points were lost, and how it changes over time.', 'pirkoo' ); ?></p>
-			<ul class="tobd__checks">
+			<h2 class="pirkoo__h2 pirkoo__lead-title" id="pirkoo-connect-title"><?php esc_html_e( 'See how healthy your store is', 'pirkoo' ); ?></h2>
+			<p class="pirkoo__lead"><?php esc_html_e( 'Pirkoo connects your store to its free scanner. It measures your store from outside, like a shopper\'s browser, adds a few figures from inside WordPress, and shows the results here: a score, where points were lost, and how it changes over time.', 'pirkoo' ); ?></p>
+			<ul class="pirkoo__checks">
 				<?php foreach ( $checks as $check ) : ?>
 					<li><?php echo esc_html( $check ); ?></li>
 				<?php endforeach; ?>
 			</ul>
 		<?php else : ?>
-			<h2 class="tobd__h2" id="tobd-connect-title"><?php esc_html_e( 'Connect again', 'pirkoo' ); ?></h2>
+			<h2 class="pirkoo__h2" id="pirkoo-connect-title"><?php esc_html_e( 'Connect again', 'pirkoo' ); ?></h2>
 		<?php endif; ?>
 
-		<h3 class="tobd__h3"><?php esc_html_e( 'What is sent to tvarkom', 'pirkoo' ); ?></h3>
-		<dl class="tobd__sends">
+		<h3 class="pirkoo__h3"><?php esc_html_e( 'What is sent to Pirkoo', 'pirkoo' ); ?></h3>
+		<dl class="pirkoo__sends">
 			<div>
 				<dt><?php esc_html_e( 'To connect', 'pirkoo' ); ?></dt>
-				<dd><?php esc_html_e( 'Your store\'s address and this site\'s admin email, the account\'s contact address (no reports or marketing are sent to it). tvarkom then reads a one-time code from your store to confirm the request came from it.', 'pirkoo' ); ?></dd>
+				<dd><?php esc_html_e( 'Your store\'s address and this site\'s admin email, the account\'s contact address (no reports or marketing are sent to it). Pirkoo then reads a one-time code from your store to confirm the request came from it.', 'pirkoo' ); ?></dd>
 			</div>
 			<div>
 				<dt><?php esc_html_e( 'With each scan you request', 'pirkoo' ); ?></dt>
-				<dd><?php esc_html_e( 'Your store, cart and checkout addresses and the admin email. tvarkom\'s scanner then loads your public pages like a visitor.', 'pirkoo' ); ?></dd>
+				<dd><?php esc_html_e( 'Your store, cart and checkout addresses and the admin email. Pirkoo\'s scanner then loads your public pages like a visitor.', 'pirkoo' ); ?></dd>
 			</div>
 			<div>
 				<dt><?php esc_html_e( 'Store data', 'pirkoo' ); ?></dt>
@@ -337,33 +323,33 @@ function tvarkom_obd_render_connect( $reconnect ) {
 			</div>
 			<div>
 				<dt><?php esc_html_e( 'Site checks', 'pirkoo' ); ?></dt>
-				<dd><?php esc_html_e( 'Whether a WordPress or theme update is waiting, whether debug output is shown on your pages, whether search engines are asked not to index the store, the site\'s WordPress environment type (production, staging, development or local), how many database tables use the MyISAM engine or a character set other than utf8mb4, how many expired transients are stored, how many administrator accounts exist (a count, no user details), and whether the dashboard file editor is on; the upload limit, missing PHP extensions, free disk space, the server\'s load and available memory; how many plugins or themes WordPress paused, how many fatal errors your error log shows for the last 7 days (a count, never the log), automatic update settings and whether permalinks are plain; the database\'s response time and how many spam comments, auto-drafts and old revisions it holds; how many core files differ from WordPress.org\'s official checksums (the plugin fetches them from api.wordpress.org), wp-config.php\'s file permissions, whether an "admin" username exists, and whether registration is open and with which role. tvarkom\'s scanner also checks whether well-known files such as configuration backups or the debug log can be downloaded from your store.', 'pirkoo' ); ?></dd>
+				<dd><?php esc_html_e( 'Whether a WordPress or theme update is waiting, whether debug output is shown on your pages, whether search engines are asked not to index the store, the site\'s WordPress environment type (production, staging, development or local), how many database tables use the MyISAM engine or a character set other than utf8mb4, how many expired transients are stored, how many administrator accounts exist (a count, no user details), and whether the dashboard file editor is on; the upload limit, missing PHP extensions, free disk space, the server\'s load and available memory; how many plugins or themes WordPress paused, how many fatal errors your error log shows for the last 7 days (a count, never the log), automatic update settings and whether permalinks are plain; the database\'s response time and how many spam comments, auto-drafts and old revisions it holds; how many core files differ from WordPress.org\'s official checksums (the plugin fetches them from api.wordpress.org), wp-config.php\'s file permissions, whether an "admin" username exists, and whether registration is open and with which role. Pirkoo\'s scanner also checks whether well-known files such as configuration backups or the debug log can be downloaded from your store.', 'pirkoo' ); ?></dd>
 			</div>
 			<div>
 				<dt><?php esc_html_e( 'A checkout profile', 'pirkoo' ); ?></dt>
 				<dd><?php esc_html_e( 'One checkout page load on your server, with one product in a temporary cart that is never saved (nothing is ordered): plugin, theme and hook names with their timings, database query shapes with every value replaced by "?", the host names of outside services called, and object cache hit and miss counts.', 'pirkoo' ); ?></dd>
 			</div>
-			<div class="tobd__never">
+			<div class="pirkoo__never">
 				<dt><?php esc_html_e( 'Never sent', 'pirkoo' ); ?></dt>
 				<dd><?php esc_html_e( 'Customer records, order details, option contents and task arguments.', 'pirkoo' ); ?></dd>
 			</div>
 		</dl>
-		<p class="tobd__meta"><?php esc_html_e( 'tvarkom keeps each scan\'s results and analysis, including the business context and sales figures above, linked to your store for 12 months, to show them here and compare scans. Nothing on your store changes, and nothing is sent unless you click a scan button.', 'pirkoo' ); ?></p>
+		<p class="pirkoo__meta"><?php esc_html_e( 'Pirkoo keeps each scan\'s results and analysis, including the business context and sales figures above, linked to your store for 12 months, to show them here and compare scans. Nothing on your store changes, and nothing is sent unless you click a scan button.', 'pirkoo' ); ?></p>
 
-		<form id="tobd-connect-form" class="tobd-scan-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-			<input type="hidden" name="action" value="tvarkom_obd_scan">
-			<?php wp_nonce_field( 'tvarkom_obd_scan' ); ?>
-			<p class="tobd__consent">
+		<form id="pirkoo-connect-form" class="pirkoo-scan-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+			<input type="hidden" name="action" value="pirkoo_scan">
+			<?php wp_nonce_field( 'pirkoo_scan' ); ?>
+			<p class="pirkoo__consent">
 				<?php
 				printf(
 					/* translators: 1: link to the Terms of Use, 2: link to the Privacy Policy. */
 					esc_html__( 'By clicking “Connect and scan”, you agree to send this data to Pirkoo\'s service, run by tvarkom, now and each time you click Scan now, and accept Pirkoo\'s %1$s and %2$s.', 'pirkoo' ),
-					sprintf( $link, esc_url( tvarkom_obd_legal_url( 'terms-of-use.txt' ) ), esc_html__( 'Terms of Use', 'pirkoo' ) ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
-					sprintf( $link, esc_url( tvarkom_obd_legal_url( 'privacy-policy.txt' ) ), esc_html__( 'Privacy Policy', 'pirkoo' ) ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
+					sprintf( $link, esc_url( pirkoo_legal_url( 'terms-of-use.txt' ) ), esc_html__( 'Terms of Use', 'pirkoo' ) ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
+					sprintf( $link, esc_url( pirkoo_legal_url( 'privacy-policy.txt' ) ), esc_html__( 'Privacy Policy', 'pirkoo' ) ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts.
 				);
 				?>
 			</p>
-			<button type="submit" class="tobd__btn"><?php esc_html_e( 'Connect and scan', 'pirkoo' ); ?></button>
+			<button type="submit" class="pirkoo__btn"><?php esc_html_e( 'Connect and scan', 'pirkoo' ); ?></button>
 		</form>
 	</section>
 	<?php
@@ -376,24 +362,24 @@ function tvarkom_obd_render_connect( $reconnect ) {
  *
  * @return void
  */
-function tvarkom_obd_handle_scan() {
+function pirkoo_handle_scan() {
 	if ( ! current_user_can( 'manage_woocommerce' ) ) {
 		wp_die( esc_html__( 'You are not allowed to do this.', 'pirkoo' ), 403 );
 	}
-	check_admin_referer( 'tvarkom_obd_scan' );
+	check_admin_referer( 'pirkoo_scan' );
 
-	// Registration waits for tvarkom to fetch this site; the scan request for a quick platform check.
+	// Registration waits for Pirkoo to fetch this site; the scan request for a quick platform check.
 	wc_set_time_limit( 120 );
-	$first = ! tvarkom_obd_is_connected();
+	$first = ! pirkoo_is_connected();
 	if ( $first ) {
-		tvarkom_obd_update_settings( array( 'connected_at' => time() ) );
+		pirkoo_update_settings( array( 'connected_at' => time() ) );
 	}
-	$code = tvarkom_obd_scan();
-	if ( $first && '' === tvarkom_obd_settings()['api_key'] ) {
+	$code = pirkoo_scan();
+	if ( $first && '' === pirkoo_settings()['api_key'] ) {
 		// Not registered: nothing will be sent until the next click.
-		tvarkom_obd_update_settings( array( 'connected_at' => 0 ) );
+		pirkoo_update_settings( array( 'connected_at' => 0 ) );
 	}
-	wp_safe_redirect( add_query_arg( 'obd_result', $code, tvarkom_obd_page_url() ) );
+	wp_safe_redirect( add_query_arg( 'pirkoo_result', $code, pirkoo_page_url() ) );
 	exit;
 }
 
@@ -404,14 +390,14 @@ function tvarkom_obd_handle_scan() {
  * @param string $hook_suffix Current admin page.
  * @return void
  */
-function tvarkom_obd_admin_assets( $hook_suffix ) {
-	if ( 'woocommerce_page_' . TVARKOM_OBD_PAGE !== $hook_suffix ) {
+function pirkoo_admin_assets( $hook_suffix ) {
+	if ( 'woocommerce_page_' . PIRKOO_PAGE !== $hook_suffix ) {
 		return;
 	}
-	wp_enqueue_style( 'tvarkom-obd-admin', plugins_url( 'assets/admin.css', TVARKOM_OBD_FILE ), array(), tvarkom_obd_asset_version( 'assets/admin.css' ) );
-	wp_enqueue_script( 'tvarkom-obd-admin', plugins_url( 'assets/admin.js', TVARKOM_OBD_FILE ), array(), tvarkom_obd_asset_version( 'assets/admin.js' ), true );
+	wp_enqueue_style( 'pirkoo-admin', plugins_url( 'assets/admin.css', PIRKOO_FILE ), array(), pirkoo_asset_version( 'assets/admin.css' ) );
+	wp_enqueue_script( 'pirkoo-admin', plugins_url( 'assets/admin.js', PIRKOO_FILE ), array(), pirkoo_asset_version( 'assets/admin.js' ), true );
 	wp_localize_script(
-		'tvarkom-obd-admin',
+		'pirkoo-admin',
 		'tvarkomObd',
 		array( 'busy' => __( 'Requesting the scan… this can take up to a minute', 'pirkoo' ) )
 	);
@@ -424,9 +410,9 @@ function tvarkom_obd_admin_assets( $hook_suffix ) {
  * @param string $file Path inside the plugin, e.g. assets/admin.css.
  * @return string
  */
-function tvarkom_obd_asset_version( $file ) {
-	$modified = @filemtime( plugin_dir_path( TVARKOM_OBD_FILE ) . $file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- a missing file keeps the plugin's version.
-	return false === $modified ? TVARKOM_OBD_VERSION : TVARKOM_OBD_VERSION . '.' . $modified;
+function pirkoo_asset_version( $file ) {
+	$modified = @filemtime( plugin_dir_path( PIRKOO_FILE ) . $file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- a missing file keeps the plugin's version.
+	return false === $modified ? PIRKOO_VERSION : PIRKOO_VERSION . '.' . $modified;
 }
 
 /**
@@ -434,7 +420,7 @@ function tvarkom_obd_asset_version( $file ) {
  *
  * @return void
  */
-function tvarkom_obd_privacy_policy_content() {
+function pirkoo_privacy_policy_content() {
 	if ( ! function_exists( 'wp_add_privacy_policy_content' ) ) {
 		return;
 	}

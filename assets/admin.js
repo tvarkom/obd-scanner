@@ -13,7 +13,7 @@
 ( function () {
 	'use strict';
 
-	var KEY = 'tvarkomObdReloads';
+	var KEY = 'pirkooReloads';
 	var MAX_RELOADS = 30;
 
 	function reloads( value ) {
@@ -94,8 +94,8 @@
 			}
 			sent = true;
 			var button = form.querySelector( 'button[type="submit"]' );
-			if ( button && window.tvarkomObd ) {
-				button.textContent = window.tvarkomObd.busy;
+			if ( button && window.pirkoo ) {
+				button.textContent = window.pirkoo.busy;
 				button.setAttribute( 'aria-busy', 'true' );
 			}
 		} );

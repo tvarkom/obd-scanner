@@ -398,7 +398,7 @@ function pirkoo_admin_assets( $hook_suffix ) {
 	wp_enqueue_script( 'pirkoo-admin', plugins_url( 'assets/admin.js', PIRKOO_FILE ), array(), pirkoo_asset_version( 'assets/admin.js' ), true );
 	wp_localize_script(
 		'pirkoo-admin',
-		'tvarkomObd',
+		'pirkoo',
 		array( 'busy' => __( 'Requesting the scan… this can take up to a minute', 'pirkoo' ) )
 	);
 }

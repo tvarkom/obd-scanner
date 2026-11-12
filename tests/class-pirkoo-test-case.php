@@ -184,7 +184,7 @@ abstract class Pirkoo_Test_Case extends WP_UnitTestCase {
 		$request->set_header( 'Content-Type', 'application/json' );
 		$request->set_body( $body );
 		if ( null !== $secret ) {
-			foreach ( pirkoo_signature_headers( $secret, 'POST', '/' . rest_get_url_prefix() . $route, $body, $time ) as $name => $value ) {
+			foreach ( pirkoo_signature_headers( $secret, 'POST', '/wp-json' . $route, $body, $time ) as $name => $value ) {
 				$request->set_header( $name, $value );
 			}
 		}

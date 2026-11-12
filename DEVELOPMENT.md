@@ -25,14 +25,16 @@ App "Disconnect" ──▶ POST /wp-json/pirkoo/v1/disconnect (signed) ──▶
 
 - Nothing is collected or sent before the store is connected, and then only when the app asks.
 - Signed requests: headers `X-Pirkoo-Timestamp` and `X-Pirkoo-Signature`, the hex HMAC-SHA256 with
-  the secret of timestamp, method, URL path (`/wp-json/pirkoo/v1/collect`) and the body's sha256,
+  the secret of timestamp, method, the route as `/wp-json/pirkoo/v1/<route>` (whatever the site's
+  REST address) and the body's sha256,
   one per line (`pirkoo_signature()`). Refused: more than 5 minutes of clock difference, a
   signature already used (a transient for 10 minutes), a wrong one. `tests/test-connect.php` and
   the app's `internal/storelink` tests share one signature vector: keep them in line.
 - One collection at a time (`pirkoo_lock()`): a second gets 409.
 - `PIRKOO_APP_URL` (default `https://app.pirkoo.com`) can be overridden in wp-config.php.
-- Not supported yet: stores whose REST API isn't at `<origin>/wp-json/` (plain permalinks,
-  WordPress in a subfolder).
+- The Connect link also sends the plugin's REST address (`rest_url( 'pirkoo/v1' )`, 0.3.1), so
+  stores with plain permalinks (`?rest_route=`) or WordPress in a subfolder connect too; the app
+  accepts it only on the store's own host.
 
 ## Files
 

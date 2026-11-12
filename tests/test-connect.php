@@ -53,6 +53,7 @@ class Pirkoo_Connect_Test extends Pirkoo_Test_Case {
 		$this->assertStringStartsWith( 'https://app.test/connect?', $location );
 		parse_str( (string) wp_parse_url( $location, PHP_URL_QUERY ), $query );
 		$this->assertSame( pirkoo_store_origin(), $query['store'] );
+		$this->assertSame( untrailingslashit( rest_url( 'pirkoo/v1' ) ), $query['api'], 'The plugin\'s REST address goes with the link (0.3.1).' );
 		return (string) $query['code'];
 	}
 
@@ -128,7 +129,7 @@ class Pirkoo_Connect_Test extends Pirkoo_Test_Case {
 		$this->assertSame( home_url( '/' ), $data['website'] );
 		$this->assertSame( get_option( 'admin_email' ), $data['email'] );
 		$this->assertSame( 3, $data['metrics']['schema'] );
-		$this->assertSame( array( 'name', 'timezone', 'date_format', 'time_format', 'locale' ), array_keys( $data['store'] ) );
+		$this->assertSame( array( 'name', 'timezone', 'date_format', 'time_format', 'locale', 'payment_methods', 'shipping_methods' ), array_keys( $data['store'] ) );
 		$this->assertFalse( get_option( PIRKOO_LOCK ), 'The lock is released.' );
 
 		$this->assertSame( 401, $this->rest_post( '/pirkoo/v1/collect', '{}', self::SECRET, $time )->get_status(), 'A replayed request is refused.' );
@@ -192,5 +193,66 @@ class Pirkoo_Connect_Test extends Pirkoo_Test_Case {
 		$this->assertFalse( pirkoo_is_connected() );
 		$this->assertSame( 0, pirkoo_settings()['connected_at'] );
 		$this->assertFalse( get_transient( 'pirkoo_verify_token' ) );
+	}
+
+	public function test_collect_sends_the_stores_method_titles_only() {
+		update_option(
+			'woocommerce_cod_settings',
+			array(
+				'enabled'      => 'yes',
+				'title'        => 'Pagamento <b>na</b> entrega',
+				'instructions' => 'secret instructions',
+			)
+		);
+		WC()->payment_gateways()->init();
+		$zone = new WC_Shipping_Zone();
+		$zone->set_zone_name( 'Brasil' );
+		$zone->save();
+		foreach ( array( 'PAC', 'SEDEX', 'PAC' ) as $title ) {
+			$instance = $zone->add_shipping_method( 'flat_rate' );
+			update_option(
+				'woocommerce_flat_rate_' . $instance . '_settings',
+				array(
+					'title' => $title,
+					'cost'  => '10',
+				)
+			);
+		}
+		$this->connect_store( self::SECRET );
+
+		$store = $this->rest_post( '/pirkoo/v1/collect', '{}', self::SECRET )->get_data()['store'];
+
+		$this->assertContains(
+			array(
+				'id'    => 'cod',
+				'title' => 'Pagamento na entrega',
+			),
+			$store['payment_methods']
+		);
+		$this->assertSame(
+			array(
+				array(
+					'id'    => 'flat_rate',
+					'title' => 'PAC',
+				),
+				array(
+					'id'    => 'flat_rate',
+					'title' => 'SEDEX',
+				),
+			),
+			$store['shipping_methods']
+		);
+		$this->assertStringNotContainsString( 'secret instructions', (string) wp_json_encode( $store ) );
+	}
+
+	public function test_the_signed_route_is_the_same_whatever_the_rest_prefix() {
+		$this->connect_store( self::SECRET );
+		$prefix = function () {
+			return 'api';
+		};
+		add_filter( 'rest_url_prefix', $prefix );
+		$response = $this->rest_post( '/pirkoo/v1/collect', '{}', self::SECRET );
+		remove_filter( 'rest_url_prefix', $prefix );
+		$this->assertSame( 200, $response->get_status() );
 	}
 }

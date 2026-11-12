@@ -4,7 +4,7 @@ Tags: woocommerce, performance, speed, health, dashboard
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.3.0
+Stable tag: 0.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,9 +38,9 @@ Pirkoo's scanner measures your store from outside, the way a shopper's browser l
 
 This plugin uses Pirkoo (https://app.pirkoo.com), run by MB TVARKOM SOFTWARE (Lithuania), to scan your store and show the results. It contacts nobody until an administrator clicks **Connect to Pirkoo** on the Plugins screen and confirms on app.pirkoo.com, right under a list of what is collected, which accepts Pirkoo's Privacy Policy. Before that, nothing is sent.
 
-**Connecting**: the click sends your browser to `https://app.pirkoo.com/connect` with your store's address and a one-time code (valid 10 minutes). After you confirm there, app.pirkoo.com calls `https://<your store>/wp-json/pirkoo/v1/connect` with that code, and the plugin answers with a new connection secret. From then on the plugin answers only requests signed with that secret.
+**Connecting**: the click sends your browser to `https://app.pirkoo.com/connect` with your store's address, the plugin's REST address on it, and a one-time code (valid 10 minutes). After you confirm there, app.pirkoo.com calls `https://<your store>/wp-json/pirkoo/v1/connect` with that code, and the plugin answers with a new connection secret. From then on the plugin answers only requests signed with that secret.
 
-**Each scan**, when someone in your Pirkoo account starts one: app.pirkoo.com calls `https://<your store>/wp-json/pirkoo/v1/collect` (signed), and the plugin answers with your store's home URL, cart and checkout URLs, the site's admin email, the store's name, timezone, date and time formats and language, and:
+**Each scan**, when someone in your Pirkoo account starts one: app.pirkoo.com calls `https://<your store>/wp-json/pirkoo/v1/collect` (signed), and the plugin answers with your store's home URL, cart and checkout URLs, the site's admin email, the store's name, timezone, date and time formats and language, the titles your store gives its enabled payment and shipping methods (never their settings), and:
 
 * PHP, WordPress and WooCommerce versions
 * Database and options table sizes, autoloaded options size, and the names and sizes of the 20 largest autoloaded options (never their contents)
@@ -95,6 +95,10 @@ The Connect and Disconnect links are built with WordPress's own admin address (`
 Pirkoo is made by tvarkom (MB TVARKOM SOFTWARE, Lithuania), which builds diagnostic tools for WooCommerce stores. Contact: support@pirkoo.com.
 
 == Changelog ==
+
+= 0.3.1 =
+* Stores with plain permalinks or WordPress in a subfolder can connect: the plugin tells Pirkoo its REST address.
+* Each scan sends the titles your store gives its payment and shipping methods, so the app shows them as your shoppers see them.
 
 = 0.3.0 =
 * Pirkoo becomes a connector to app.pirkoo.com: Connect to Pirkoo and Disconnect from Pirkoo on the Plugins screen; scans start in the app, which asks the plugin for the store's data with signed requests.

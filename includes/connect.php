@@ -102,6 +102,9 @@ function pirkoo_handle_connect() {
 	$url = PIRKOO_APP_URL . '/connect?' . http_build_query(
 		array(
 			'store' => pirkoo_store_origin(),
+			// This plugin's REST address: not <origin>/wp-json/ with plain permalinks or WordPress in a
+			// subfolder (0.3.1). The app accepts it only on the store's own host.
+			'api'   => untrailingslashit( rest_url( 'pirkoo/v1' ) ),
 			'code'  => $code,
 		),
 		'',
@@ -279,7 +282,9 @@ function pirkoo_rest_signed( WP_REST_Request $request ) {
 	if ( abs( time() - (int) $time ) > PIRKOO_CLOCK_SKEW ) {
 		return new WP_Error( 'pirkoo_clock_skew', 'The signature\'s time is more than 5 minutes off: check this server\'s clock.', array( 'status' => 401 ) );
 	}
-	$path     = '/' . rest_get_url_prefix() . $request->get_route();
+	// The signed route is always /wp-json/pirkoo/v1/<route>, whatever this site's REST address
+	// (plain permalinks, a subfolder, another prefix): both sides sign the same string.
+	$path     = '/wp-json' . $request->get_route();
 	$expected = pirkoo_signature( $secret, (int) $time, $request->get_method(), $path, $request->get_body() );
 	if ( ! hash_equals( $expected, strtolower( $signature ) ) ) {
 		return new WP_Error( 'pirkoo_bad_signature', 'Wrong signature.', array( 'status' => 401 ) );
@@ -326,13 +331,80 @@ function pirkoo_collect() {
 		'metrics'  => pirkoo_collect_metrics(),
 		'detailed' => pirkoo_collect_detailed(),
 		'store'    => array(
-			'name'        => wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES ),
-			'timezone'    => wp_timezone_string(),
-			'date_format' => (string) get_option( 'date_format' ),
-			'time_format' => (string) get_option( 'time_format' ),
-			'locale'      => get_locale(),
+			'name'             => wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES ),
+			'timezone'         => wp_timezone_string(),
+			'date_format'      => (string) get_option( 'date_format' ),
+			'time_format'      => (string) get_option( 'time_format' ),
+			'locale'           => get_locale(),
+			'payment_methods'  => pirkoo_payment_method_titles(),
+			'shipping_methods' => pirkoo_shipping_method_titles(),
 		),
 	);
+}
+
+/**
+ * A method title as the store shows it to shoppers: tags stripped, at most 80 characters.
+ *
+ * @param mixed $title The title.
+ * @return string
+ */
+function pirkoo_method_title( $title ) {
+	$title = trim( wp_strip_all_tags( html_entity_decode( (string) $title, ENT_QUOTES, 'UTF-8' ) ) );
+	return function_exists( 'mb_substr' ) ? mb_substr( $title, 0, 80 ) : substr( $title, 0, 80 );
+}
+
+/**
+ * The enabled payment gateways with the store's own titles (0.3.1), for the app's store profile:
+ * id and title only, never settings. At most 30.
+ *
+ * @return array<int, array{id: string, title: string}>
+ */
+function pirkoo_payment_method_titles() {
+	$out = array();
+	foreach ( WC()->payment_gateways()->payment_gateways() as $gateway ) {
+		if ( is_object( $gateway ) && isset( $gateway->enabled, $gateway->id ) && 'yes' === $gateway->enabled && method_exists( $gateway, 'get_title' ) ) {
+			$title = pirkoo_method_title( $gateway->get_title() );
+			if ( '' !== $title ) {
+				$out[] = array(
+					'id'    => (string) $gateway->id,
+					'title' => $title,
+				);
+			}
+		}
+	}
+	return array_slice( $out, 0, 30 );
+}
+
+/**
+ * The shipping methods enabled in any zone with the titles the store gave each (0.3.1), e.g.
+ * flat_rate "PAC" and flat_rate "SEDEX": id and title only. Repeated titles once; at most 30.
+ *
+ * @return array<int, array{id: string, title: string}>
+ */
+function pirkoo_shipping_method_titles() {
+	if ( ! class_exists( 'WC_Shipping_Zones' ) ) {
+		return array();
+	}
+	$zones = array( new WC_Shipping_Zone( 0 ) ); // "Locations not covered by your other zones".
+	foreach ( WC_Shipping_Zones::get_zones( 'json' ) as $zone ) {
+		$zones[] = new WC_Shipping_Zone( (int) $zone['id'] );
+	}
+	$out  = array();
+	$seen = array();
+	foreach ( $zones as $zone ) {
+		foreach ( $zone->get_shipping_methods( true ) as $method ) {
+			$title = pirkoo_method_title( $method->get_title() );
+			if ( '' === $title || isset( $seen[ $method->id . '|' . $title ] ) ) {
+				continue;
+			}
+			$seen[ $method->id . '|' . $title ] = true;
+			$out[]                              = array(
+				'id'    => (string) $method->id,
+				'title' => $title,
+			);
+		}
+	}
+	return array_slice( $out, 0, 30 );
 }
 
 /**

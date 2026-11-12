@@ -108,15 +108,15 @@ class Pirkoo_Business_Test extends Pirkoo_Test_Case {
 		$this->assertNull( pirkoo_web_server() );
 	}
 
-	public function test_the_audit_sends_sales_in_the_store_currency() {
-		$this->connect_store();
+	public function test_the_collection_sends_sales_in_the_store_currency() {
+		$this->connect_store( 'business-secret' );
 		update_option( 'woocommerce_currency', 'USD' );
 		$this->order( 2000 );
-		$this->respond( 'POST', '/v1/audits', 202, array( 'status' => 'queued' ) );
 
-		pirkoo_scan();
+		$response = $this->rest_post( '/pirkoo/v1/collect', '{}', 'business-secret' );
 
-		$metrics = $this->requests[0]['body']['metrics'];
+		$this->assertSame( 200, $response->get_status() );
+		$metrics = json_decode( (string) wp_json_encode( $response->get_data() ), true )['metrics'];
 		$this->assertSame( 3, $metrics['schema'] );
 		$this->assertSame( 'USD', $metrics['currency'] );
 		// The request body went through JSON: 2000.0 comes back as the number 2000.

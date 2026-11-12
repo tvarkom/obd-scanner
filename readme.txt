@@ -4,7 +4,7 @@ Tags: woocommerce, performance, speed, health, dashboard
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.2.3
+Stable tag: 0.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,7 +12,7 @@ On-board Diagnostics Scanner for WooCommerce.
 
 == Description ==
 
-Pirkoo, the On-board Diagnostics Scanner for WooCommerce, adds a **WooCommerce → Pirkoo** page that shows how healthy your store is, right in wp-admin. Click once, and Pirkoo's free scanner checks your store; scan it again once a week to follow your score.
+Pirkoo, the On-board Diagnostics Scanner for WooCommerce, connects your store to **app.pirkoo.com**, where you and your team see how healthy your store is. The plugin has no screen in wp-admin: it adds **Connect to Pirkoo** under its name on the Plugins screen, and answers Pirkoo's scans once the store is connected. Agencies follow all their clients' stores in one place.
 
 The dashboard shows:
 
@@ -24,22 +24,23 @@ The dashboard shows:
 
 Every problem a check finds lowers the score by a share of what's left: more for the cart, checkout, HTTPS, search visibility and registration, less for upkeep issues. Checks that couldn't be measured, or don't apply to your site (for example, search engines blocked on a staging site), are left out and counted.
 
-Pirkoo's scanner measures your store from outside, the way a shopper's browser loads it, and adds a few figures the plugin reads inside WordPress. The plugin changes nothing on your store.
+Pirkoo's scanner measures your store from outside, the way a shopper's browser loads it, and adds the figures the plugin reads inside WordPress. The plugin changes nothing on your store.
 
 = How it works =
 
 1. Install and activate the plugin. Nothing is sent yet.
-2. Open **WooCommerce → Pirkoo** and click **Connect and scan**, right under the list of what is sent.
-3. The first scan takes a few minutes; the page updates itself when the results arrive.
-4. After that, click **Scan now** whenever you want fresh results, once a week at most. Until then the button shows the date of your next scan, and the dashboard shows the latest results and the score history.
+2. On the Plugins screen, click **Connect to Pirkoo** under Pirkoo's name (administrators and shop managers).
+3. On app.pirkoo.com, log in with your email (a link is emailed to you, no password) and confirm the connection, right under the list of what is collected.
+4. Scan the store from app.pirkoo.com whenever you want fresh results; the dashboard shows the latest results and the score history.
+5. To stop, click **Disconnect from Pirkoo** on the Plugins screen, or disconnect the store in the app.
 
 == External services ==
 
-This plugin uses Pirkoo's audit service (https://pirkoo.com), run by MB TVARKOM SOFTWARE (Lithuania), to scan your store and show the results. It contacts the service only after an administrator clicks **Connect and scan** on the plugin's page, right under a list of what it sends and the line "By clicking “Connect and scan”, you agree to send this data to Pirkoo's service, run by tvarkom, now and each time you click Scan now, and accept Pirkoo's Terms of Use and Privacy Policy". Before that click, nothing is sent. The plugin never scans on its own: each scan is an administrator's click.
+This plugin uses Pirkoo (https://app.pirkoo.com), run by MB TVARKOM SOFTWARE (Lithuania), to scan your store and show the results. It contacts nobody until an administrator clicks **Connect to Pirkoo** on the Plugins screen and confirms on app.pirkoo.com, right under a list of what is collected, which accepts Pirkoo's Privacy Policy. Before that, nothing is sent.
 
-**Connecting** (once, and again if the store's key stops working): your store's home URL, the site's admin email (the account's contact address; no reports or marketing are sent to it) and the URL of the plugin's verification endpoint are sent to `https://api.pirkoo.com/v1/register`. The service then calls `https://<your store>/wp-json/pirkoo/v1/verify` to confirm the request came from your store, and issues a key for your domain (`https://api.pirkoo.com/v1/register/verify`).
+**Connecting**: the click sends your browser to `https://app.pirkoo.com/connect` with your store's address and a one-time code (valid 10 minutes). After you confirm there, app.pirkoo.com calls `https://<your store>/wp-json/pirkoo/v1/connect` with that code, and the plugin answers with a new connection secret. From then on the plugin answers only requests signed with that secret.
 
-**Each scan** (the first with **Connect and scan**, then each **Scan now** click, at most once a week): your store's home URL, cart and checkout URLs and the admin email are sent to `https://api.pirkoo.com/v1/audits`, with:
+**Each scan**, when someone in your Pirkoo account starts one: app.pirkoo.com calls `https://<your store>/wp-json/pirkoo/v1/collect` (signed), and the plugin answers with your store's home URL, cart and checkout URLs, the site's admin email, the store's name, timezone, date and time formats and language, and:
 
 * PHP, WordPress and WooCommerce versions
 * Database and options table sizes, autoloaded options size, and the names and sizes of the 20 largest autoloaded options (never their contents)
@@ -56,44 +57,49 @@ Option, table, task and host names have email addresses, long numbers and identi
 
 **WordPress.org**: for the core files check, the plugin asks `https://api.wordpress.org/core/checksums/1.0/` for the official checksums of your WordPress version and language, the same request WordPress makes for its own updates. It sends the version and language only. WordPress.org's privacy policy: https://wordpress.org/about/privacy/
 
-**The dashboard**: each time an administrator opens the plugin's page, it asks `https://api.pirkoo.com/v1/results` for your store's results, sending only the store's key.
+**Disconnecting**: **Disconnect from Pirkoo** tells `https://app.pirkoo.com/api/stores/disconnect` (signed with the secret) and deletes the secret; app.pirkoo.com can also ask `https://<your store>/wp-json/pirkoo/v1/disconnect` to delete it. After that the plugin answers nothing.
 
 The plugin never reads customers' names, emails or addresses or order contents for this, and never sends option contents or task arguments.
 
 **What Pirkoo keeps**: each scan's results and analysis linked to your store, for 12 months after the scan: the score and risk level, which checks cost points and how many, the measurements, and the full analysis this plugin shows you (the store data, business context and sales figures above, and what Pirkoo found in them), never the fix plan. They're used to show you this dashboard and your score history, to answer you when you contact Pirkoo, and, across stores, to improve the scanner. Pirkoo also keeps the latest business context of your store (without sales amounts), replaced by each scan, for totals across stores and support. Each scan request (store, page addresses, time) is kept for 24 months, with the admin email erased from it after 90 days; the store's contact email is deleted after 12 months without a scan.
 
-Uninstalling the plugin deletes its settings, key and table of daily totals from your store; records on our side follow the periods above. To have them deleted sooner, email privacy@pirkoo.com.
+Uninstalling the plugin deletes its settings, connection secret and table of daily totals from your store; records on our side follow the periods above. To have them deleted sooner, email privacy@pirkoo.com.
 
 * Privacy Policy: https://pirkoo.com/privacy/ (also shipped with the plugin, `legal/privacy-policy.txt`)
 * Terms of Use: shipped with the plugin, `legal/terms-of-use.txt`
 
 == Frequently Asked Questions ==
 
-= Is it free? =
-
-Yes. The scan and the dashboard are free, with no account to create.
-
 = Does it slow down my store? =
 
-No. Apart from adding one to a daily total when a shopper adds to cart, opens the checkout or orders, the plugin runs only on its own admin page: when you click a scan button it collects its figures, loads your checkout once to profile it, and sends one request. Nothing runs in the background. The scanner runs on Pirkoo's servers and loads your public pages like one visitor would.
+No. Apart from adding one to a daily total when a shopper adds to cart, opens the checkout or orders, the plugin runs only when Pirkoo scans the store: it collects its figures and loads your checkout once to profile it. Nothing runs in the background. The scanner runs on Pirkoo's servers and loads your public pages like one visitor would.
 
 = Why does my store need to be public? =
 
-Pirkoo's scanner measures your store from the internet, like a shopper. Stores on localhost, behind a password or in maintenance mode can't be scanned, and the domain check needs the WordPress REST API to be reachable.
+Pirkoo's scanner measures your store from the internet, like a shopper. Stores on localhost, behind a password or in maintenance mode can't be scanned, and app.pirkoo.com needs to reach the WordPress REST API at `/wp-json/pirkoo/` (allow it in a security plugin or firewall that blocks it).
 
 = How often can I scan my store? =
 
-Once a week, when you click **Scan now**. A scan that fails doesn't count, so you can try again right away (at most 3 times a day).
+From app.pirkoo.com, when you click **Scan now**, within the limits shown there.
 
 = Does it send anything on its own? =
 
-No. Nothing is sent until you click **Connect and scan**, and after that only when you click **Scan now** or open the plugin's page (which asks Pirkoo for your results). To remove its settings and key, delete the plugin.
+No. Nothing is sent before the store is connected, and after that only when app.pirkoo.com asks the plugin for a scan's data. To stop, disconnect the store; to remove its settings, delete the plugin.
+
+= What if my wp-admin has another address? =
+
+The Connect and Disconnect links are built with WordPress's own admin address (`admin_url()`), which plugins that rename wp-admin (for example to /meu-painel) change too, and app.pirkoo.com only calls `/wp-json/pirkoo/`, never wp-admin.
 
 = Who makes Pirkoo? =
 
 Pirkoo is made by tvarkom (MB TVARKOM SOFTWARE, Lithuania), which builds diagnostic tools for WooCommerce stores. Contact: support@pirkoo.com.
 
 == Changelog ==
+
+= 0.3.0 =
+* Pirkoo becomes a connector to app.pirkoo.com: Connect to Pirkoo and Disconnect from Pirkoo on the Plugins screen; scans start in the app, which asks the plugin for the store's data with signed requests.
+* The WooCommerce → Pirkoo page, its dashboard and the store's key are removed (an update from 0.2.x deletes the key: connect the store again).
+* The store's name, timezone, date and time formats and language are sent with each scan, for the app's pages.
 
 = 0.2.3 =
 * Everything the plugin creates on your site is named after Pirkoo: its settings, its table of daily totals, its page's styles and the address the service checks when connecting (`/wp-json/pirkoo/v1/verify`).

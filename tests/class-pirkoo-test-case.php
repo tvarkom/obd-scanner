@@ -1,18 +1,18 @@
 <?php
 /**
- * Base test case: a fake Pirkoo gateway, and no other outgoing requests.
+ * Base test case: a fake app.pirkoo.com, and no other outgoing requests.
  *
  * @package Pirkoo
  */
 
 /**
- * Every request to PIRKOO_API_URL is recorded and answered from respond(); any other
+ * Every request to PIRKOO_APP_URL is recorded and answered from respond(); any other
  * request fails as if offline.
  */
 abstract class Pirkoo_Test_Case extends WP_UnitTestCase {
 
 	/**
-	 * Requests the gateway received: method, path, headers and decoded JSON body.
+	 * Requests the app received: method, path, headers and decoded JSON body.
 	 *
 	 * @var array<int, array{method: string, path: string, headers: array, body: mixed}>
 	 */
@@ -26,7 +26,7 @@ abstract class Pirkoo_Test_Case extends WP_UnitTestCase {
 	private $responses = array();
 
 	/**
-	 * Installs the fake gateway and starts from a store that never connected.
+	 * Installs the fake app and starts from a store that never connected.
 	 */
 	public function set_up() {
 		parent::set_up();
@@ -58,10 +58,10 @@ abstract class Pirkoo_Test_Case extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Queues the gateway's answer to the next "$method $path".
+	 * Queues the app's answer to the next "$method $path".
 	 *
 	 * @param string            $method GET or POST.
-	 * @param string            $path   Path, e.g. "/v1/audits".
+	 * @param string            $path   Path, e.g. "/api/stores/disconnect".
 	 * @param int|WP_Error      $status HTTP status, or a transport error.
 	 * @param array|string|null $body   JSON body (array) or raw body (string).
 	 */
@@ -70,7 +70,7 @@ abstract class Pirkoo_Test_Case extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The fake gateway (filter pre_http_request).
+	 * The fake app (filter pre_http_request).
 	 *
 	 * @param false|array|WP_Error $pre  Short-circuit value.
 	 * @param array                $args Request arguments.
@@ -81,7 +81,7 @@ abstract class Pirkoo_Test_Case extends WP_UnitTestCase {
 		if ( false !== $pre ) {
 			return $pre; // Already answered by a test's own fake (e.g. wordpress.org).
 		}
-		if ( 0 !== strpos( $url, PIRKOO_API_URL . '/' ) ) {
+		if ( 0 !== strpos( $url, PIRKOO_APP_URL . '/' ) ) {
 			return new WP_Error( 'http_request_failed', 'Tests are offline: ' . $url );
 		}
 		$request          = array(
@@ -94,7 +94,7 @@ abstract class Pirkoo_Test_Case extends WP_UnitTestCase {
 
 		$key = $request['method'] . ' ' . $request['path'];
 		if ( empty( $this->responses[ $key ] ) ) {
-			$this->fail( 'Unexpected gateway request: ' . $key );
+			$this->fail( 'Unexpected app request: ' . $key );
 		}
 		$answer = array_shift( $this->responses[ $key ] );
 		if ( is_wp_error( $answer ) ) {
@@ -114,7 +114,7 @@ abstract class Pirkoo_Test_Case extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The gateway requests as "METHOD /path".
+	 * The app requests as "METHOD /path".
 	 *
 	 * @return string[]
 	 */
@@ -128,41 +128,12 @@ abstract class Pirkoo_Test_Case extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Queues a successful registration: the gateway fetches the store's verify route (checked
-	 * here) and issues $key.
-	 *
-	 * @param string $key The key the gateway issues.
-	 */
-	protected function respond_registration( $key = 'tvk_test' ) {
-		$this->respond(
-			'POST',
-			'/v1/register',
-			201,
-			array(
-				'registration_id' => 'reg_1',
-				'token'           => 'tok_1',
-				'expires_in'      => 600,
-			)
-		);
-		$this->respond(
-			'POST',
-			'/v1/register/verify',
-			200,
-			array(
-				'api_key' => $key,
-				'plan'    => 'free',
-				'email'   => 'admin@example.org',
-			)
-		);
-	}
-
-	/**
-	 * Calls $callback, which must end in a redirect, and returns the redirect's pirkoo_result.
+	 * Calls $callback, which must end in a redirect, and returns where it redirects.
 	 *
 	 * @param callable $callback Code that redirects (and exits otherwise).
 	 * @return string
 	 */
-	protected function result_of_redirect( callable $callback ) {
+	protected function redirect_of( callable $callback ) {
 		$stop = function ( $location ) {
 			throw new Pirkoo_Redirect( $location ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Caught below, never printed.
 		};
@@ -170,8 +141,7 @@ abstract class Pirkoo_Test_Case extends WP_UnitTestCase {
 		try {
 			$callback();
 		} catch ( Pirkoo_Redirect $redirect ) {
-			parse_str( (string) wp_parse_url( $redirect->location, PHP_URL_QUERY ), $query );
-			return isset( $query['pirkoo_result'] ) ? (string) $query['pirkoo_result'] : '';
+			return $redirect->location;
 		} finally {
 			remove_filter( 'wp_redirect', $stop );
 		}
@@ -186,80 +156,38 @@ abstract class Pirkoo_Test_Case extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A connected store with a key.
+	 * A store connected with $secret.
+	 *
+	 * @param string $secret The connection secret.
 	 */
-	protected function connect_store() {
+	protected function connect_store( $secret = 'test-secret-0123456789-0123456789-abcd' ) {
 		pirkoo_update_settings(
 			array(
-				'api_key'      => 'tvk_test',
+				'secret'       => $secret,
 				'connected_at' => time() - DAY_IN_SECONDS,
 			)
 		);
 	}
 
 	/**
-	 * The page's HTML.
+	 * Sends a POST to one of the plugin's REST routes, signed with $secret at $time unless $secret
+	 * is null.
 	 *
-	 * @return string
+	 * @param string      $route  Route, e.g. /pirkoo/v1/collect.
+	 * @param string      $body   Raw JSON body.
+	 * @param string|null $secret The secret to sign with, or null for an unsigned request.
+	 * @param int|null    $time   The signature's time (now when null).
+	 * @return WP_REST_Response
 	 */
-	protected function render_page() {
-		ob_start();
-		pirkoo_render_page();
-		return (string) ob_get_clean();
-	}
-
-	/**
-	 * GET /v1/results' body for a store with results.
-	 *
-	 * @param string $status The latest audit's status.
-	 * @return array
-	 */
-	protected function ready_results( $status = 'ready' ) {
-		return array(
-			'status'       => $status,
-			'next_scan_at' => gmdate( 'c', time() + 6 * DAY_IN_SECONDS ),
-			'latest'       => array(
-				'completed_at' => gmdate( 'c', time() - HOUR_IN_SECONDS ),
-				'score'        => 40,
-				'level'        => 'CRITICAL_RISK',
-				'metrics'      => array(
-					'ttfb_ms'        => 517,
-					'cart_ms'        => 1025,
-					'checkout_ms'    => 625,
-					'page_weight_kb' => 1800,
-					'requests'       => 72,
-					'autoload_kb'    => 950,
-					'php_version'    => '8.3.14',
-					'object_cache'   => 'None',
-					'cert_days_left' => 60,
-					'spf'            => 'missing',
-					'dmarc'          => 'present',
-				),
-				'lost_points'  => array(
-					array(
-						'id'     => 'slow_checkout',
-						'points' => 20,
-					),
-					array(
-						'id'     => 'slow_server',
-						'points' => 20,
-					),
-					array(
-						'id'     => 'too_many_files',
-						'points' => 20,
-					),
-				),
-			),
-			'history'      => array(
-				array(
-					'completed_at' => gmdate( 'c', time() - 8 * DAY_IN_SECONDS ),
-					'score'        => 30,
-				),
-				array(
-					'completed_at' => gmdate( 'c', time() - HOUR_IN_SECONDS ),
-					'score'        => 40,
-				),
-			),
-		);
+	protected function rest_post( $route, $body = '{}', $secret = null, $time = null ) {
+		$request = new WP_REST_Request( 'POST', $route );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body( $body );
+		if ( null !== $secret ) {
+			foreach ( pirkoo_signature_headers( $secret, 'POST', '/' . rest_get_url_prefix() . $route, $body, $time ) as $name => $value ) {
+				$request->set_header( $name, $value );
+			}
+		}
+		return rest_get_server()->dispatch( $request );
 	}
 }

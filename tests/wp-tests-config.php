@@ -41,6 +41,6 @@ define( 'WPLANG', '' );
 define( 'WP_DEBUG', true );
 
 // A gateway that doesn't exist: every request to it is answered by the tests (Pirkoo_Test_Case).
-define( 'PIRKOO_API_URL', 'https://gateway.test' );
+define( 'PIRKOO_APP_URL', 'https://app.test' );
 
 $table_prefix = 'wptests_'; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Required by the test suite.

@@ -11,49 +11,42 @@ WooCommerce" is its description, never its name. The repo and folder are `pirkoo
 
 ## How it works
 
+Since 0.3.0 the plugin is a connector to app.pirkoo.com, with no screen in wp-admin (the app's
+repo, `docs/PROPOSAL-0.3.0.md` 3.5, has the protocol).
+
 ```
-Connect and scan (admin.php) ──▶ register (api.php) ──▶ POST /v1/audits {product: "obd"} (scan.php)
-        │                         gateway fetches /wp-json/pirkoo/v1/verify (rest.php)
-        ▼
-Scan now (admin.php, once a week) ──▶ POST /v1/audits again
-        ▼
-The page (admin.php) ──▶ GET /v1/results ──▶ dashboard (dashboard.php): gauge, lost points, bars, history
+Plugins screen: Connect to Pirkoo ──▶ admin-post pirkoo_connect: one-time code (10 min)
+        ──▶ browser to app.pirkoo.com/connect?store=…&code=…  ──▶ an Owner or Admin confirms
+        ◀── app: POST /wp-json/pirkoo/v1/connect {code} ──▶ {secret} (stored in the option pirkoo)
+App "Scan now" ──▶ POST /wp-json/pirkoo/v1/collect (signed) ──▶ the store's data ──▶ gateway
+Plugins screen: Disconnect from Pirkoo ──▶ POST app/api/stores/disconnect (signed), secret deleted
+App "Disconnect" ──▶ POST /wp-json/pirkoo/v1/disconnect (signed) ──▶ secret deleted
 ```
 
-- Nothing is sent before an administrator clicks **Connect and scan** (`connected_at` in the
-  option `pirkoo`), and every scan is a click: there is no scheduled scan (founder decision of
-  9 Nov 2026: automatic weekly scans are for a future paid version).
-- The gateway (`api-gateway`) allows one scan a week per store. The page disables **Scan now** until `GET /v1/results`' `next_scan_at`; a failed
-  scan doesn't count (the gateway caps attempts at 3 a day). Its audits run as plan `obd` in the
-  audit tool, which emails nothing.
-- The dashboard reads only what the gateway's audit history keeps (`GET /v1/results`): score,
-  level, the metric catalog's values and the points each scoring rule cost. The fix plan is never
-  sent to the plugin. The references in `dashboard.php` are the scanner's
-  (`audit-tool scanner/src/analyzers/riskEngine.ts`): keep them in line.
-- Charts are inline SVG and CSS rendered in PHP; `assets/admin.js` only reloads the page while a
-  scan runs and marks the button busy.
+- Nothing is collected or sent before the store is connected, and then only when the app asks.
+- Signed requests: headers `X-Pirkoo-Timestamp` and `X-Pirkoo-Signature`, the hex HMAC-SHA256 with
+  the secret of timestamp, method, URL path (`/wp-json/pirkoo/v1/collect`) and the body's sha256,
+  one per line (`pirkoo_signature()`). Refused: more than 5 minutes of clock difference, a
+  signature already used (a transient for 10 minutes), a wrong one. `tests/test-connect.php` and
+  the app's `internal/storelink` tests share one signature vector: keep them in line.
+- One collection at a time (`pirkoo_lock()`): a second gets 409.
+- `PIRKOO_APP_URL` (default `https://app.pirkoo.com`) can be overridden in wp-config.php.
+- Not supported yet: stores whose REST API isn't at `<origin>/wp-json/` (plain permalinks,
+  WordPress in a subfolder).
 
 ## Files
 
 | File | What it holds |
 |---|---|
 | `pirkoo.php` | Plugin header, constants, includes and every hook |
-| `includes/settings.php` | The option `pirkoo`: key, `connected_at`, last result |
-| `includes/api.php` | Gateway requests, registration, `GET /v1/results` and its checks |
-| `includes/rest.php` | `GET /wp-json/pirkoo/v1/verify`, the registration's domain check |
+| `includes/settings.php` | The option `pirkoo`: secret, `connected_at`, the connection code in progress; the clean-up after an update from 0.2.x |
+| `includes/connect.php` | The Plugins screen links and their handlers, the REST routes (connect, collect, disconnect), signatures, the collection lock, the suggested privacy policy text |
 | `includes/metrics.php` | The store metrics sent with each scan (schema 3) |
-| `includes/scan.php` | One scan request and the lock |
-| `includes/dashboard.php` | The dashboard's charts and texts |
-| `includes/analysis.php` | The analysis (0.2.0): the free sections from `latest.analysis`, checked and escaped; paid ones skipped |
-| `includes/charts.php` | The store profile (sales and checkout as counted, catalog, operations) as charts, from the analysis's figures; payment and shipping names, with the store's own titles for identifiers the scanner can't name |
-| `includes/overview.php` | The overview above the pipeline: store summary (with what its terms mean), the store health score card (risk bands, checks it's based on), needs attention (every problem by points lost, linked to its panel) and store health trends (only within one scoring model); reads the scan's data, never scores or estimates |
-| `includes/pipeline.php` | The store pipeline: every check as a coloured job in a stage, a log-style panel per job (no cause, no fix) |
-| `includes/site-health.php` | The site checks sent as `detailed.site_health` for the pipeline (updates, debug output, search visibility, table engines, transients, administrators, file editor), merged with the two files below |
+| `includes/site-health.php` | The site checks sent as `detailed.site_health` (updates, debug output, search visibility, table engines, transients, administrators, file editor), merged with the two files below |
 | `includes/server-checks.php` | Upload limit, PHP extensions, disk space, load and memory (null when the host doesn't let PHP read them) |
 | `includes/wordpress-checks.php` | Paused plugins and themes, fatal errors (7 days, a count from the log), automatic updates, permalinks, database latency and clutter, core checksums (api.wordpress.org), wp-config.php permissions, an "admin" username, open registration |
-| `includes/business.php`, `funnel.php`, `detailed.php`, `profile*.php`, `class-pirkoo-profiler.php` | The collectors (0.2.0): business context, daily shop totals (table `pirkoo_funnel`), detailed diagnostics, the checkout profiler (header `X-Pirkoo-Profile`) |
-| `includes/admin.php` | The page, the scan button and its handler, assets, privacy policy text |
-| `uninstall.php` | Removes the option, lock and token |
+| `includes/business.php`, `funnel.php`, `detailed.php`, `profile*.php`, `class-pirkoo-profiler.php` | The collectors: business context, daily shop totals (table `pirkoo_funnel`), detailed diagnostics, the checkout profiler (header `X-Pirkoo-Profile`) |
+| `uninstall.php` | Removes the option, lock, tokens and the daily totals table |
 
 ## Checks
 
@@ -63,14 +56,15 @@ compatibility), PHPStan level 6, `php -l` and PHPUnit on PHP 7.4 and 8.4 with My
 `-d sys_temp_dir`; its exit code is always 0, read the output).
 
 `tests/` uses the WordPress test suite with WooCommerce loaded; every request to
-`PIRKOO_API_URL` (`https://gateway.test` in the tests) is answered by the fake gateway in
-`Pirkoo_Test_Case`, and any other request fails as if offline.
+`PIRKOO_APP_URL` (`https://app.test` in the tests) is answered by the fake app in
+`Pirkoo_Test_Case`, and any other request fails as if offline. PHPStan through php-wasm needs one
+worker (`parallel.maximumNumberOfProcesses: 1` in a local config).
 
 ## Release
 
 Build the zip from a tagged commit, its folder named after the slug
 (`pirkoo/`), with only the shipped files: `pirkoo.php`, `uninstall.php`,
-`readme.txt`, `includes/`, `assets/`, `legal/`.
+`readme.txt`, `includes/`, `legal/`.
 
 `legal/privacy-policy.txt` is Pirkoo's privacy policy (the plugin, the service at
 `api.pirkoo.com` and pirkoo.com; since 10 Nov 2026), published at https://pirkoo.com/privacy/: the
